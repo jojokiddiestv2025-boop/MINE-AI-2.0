@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { onAuthStateChanged, User } from "firebase/auth";
 import { AppTab } from './types';
@@ -72,7 +71,7 @@ const App: React.FC = () => {
           The <code>API_KEY</code> environment variable is missing or invalid. Please add your Google Gemini API key to your Netlify environment variables.
         </p>
         <div className="glass p-4 rounded-xl border border-gray-800 text-left text-xs font-mono text-gray-500 mb-8">
-          Netlify Settings > Environment Variables > Add API_KEY
+          Netlify Settings &gt; Environment Variables &gt; Add API_KEY
         </div>
         <button 
           onClick={() => window.location.reload()}
