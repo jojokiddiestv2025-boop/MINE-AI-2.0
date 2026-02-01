@@ -10,9 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    html {
-      scroll-behavior: smooth;
-    }
+    html { scroll-behavior: smooth; }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #030712;
@@ -20,21 +18,12 @@
       margin: 0;
       overflow-x: hidden;
     }
-    .font-outfit {
-      font-family: 'Outfit', sans-serif;
-    }
-    ::-webkit-scrollbar {
-      width: 6px;
-    }
-    ::-webkit-scrollbar-track {
-      background: transparent;
-    }
+    .font-outfit { font-family: 'Outfit', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
       background: #374151;
       border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #4b5563;
     }
     .glass {
       background: rgba(17, 24, 39, 0.7);
@@ -51,15 +40,13 @@
     }
   </style>
   <script>
-    // Defensive shim for process.env to prevent crashes in browser environments 
-    // that don't natively provide the process object (like standard Netlify static deploys).
-    window.process = window.process || {
-      env: {
-        NODE_ENV: 'production',
-        // The API_KEY is expected to be injected by the hosting environment or platform.
-        API_KEY: '' 
-      }
-    };
+    // Ensure process.env exists for the SDK
+    window.process = window.process || {};
+    window.process.env = window.process.env || {};
+    // Only set if not already provided by the environment
+    if (!window.process.env.API_KEY) {
+      window.process.env.API_KEY = "";
+    }
   </script>
 <script type="importmap">
 {

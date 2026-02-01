@@ -18,6 +18,9 @@ const App: React.FC = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const contentAreaRef = useRef<HTMLDivElement>(null);
 
+  // Check if API KEY is present
+  const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
@@ -53,6 +56,32 @@ const App: React.FC = () => {
 
   if (!user) {
     return <Auth />;
+  }
+
+  // Handle Missing API Key Case
+  if (!hasApiKey) {
+    return (
+      <div className="h-screen w-full bg-[#030712] flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
+          <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h2 className="text-2xl font-outfit font-bold mb-4">API Configuration Required</h2>
+        <p className="text-gray-400 max-w-md mb-8">
+          The <code>API_KEY</code> environment variable is missing or invalid. Please add your Google Gemini API key to your Netlify environment variables.
+        </p>
+        <div className="glass p-4 rounded-xl border border-gray-800 text-left text-xs font-mono text-gray-500 mb-8">
+          Netlify Settings > Environment Variables > Add API_KEY
+        </div>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-8 py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition-colors"
+        >
+          Retry Connection
+        </button>
+      </div>
+    );
   }
 
   return (

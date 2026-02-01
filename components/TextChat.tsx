@@ -16,15 +16,20 @@ const TextChat: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    if (!process.env.API_KEY) return;
     
-    chatRef.current = ai.chats.create({
-      model: 'gemini-3-flash-preview',
-      config: {
-        systemInstruction: "You are MINE AI, a Source-First Intelligence Aggregator. Your primary function is to browse the live web and synthesize real-time data from credible sources. You are also multimodal and can see images. When an image is provided, analyze it and use Google Search to find related information if necessary. Do not rely on your internal training data for facts; always query the web tool. Be definitive, evidence-based, and cite your sources explicitly.",
-        tools: [{ googleSearch: {} }]
-      }
-    });
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      chatRef.current = ai.chats.create({
+        model: 'gemini-3-flash-preview',
+        config: {
+          systemInstruction: "You are MINE AI, a Source-First Intelligence Aggregator. Your primary function is to browse the live web and synthesize real-time data from credible sources. You are also multimodal and can see images. When an image is provided, analyze it and use Google Search to find related information if necessary. Do not rely on your internal training data for facts; always query the web tool. Be definitive, evidence-based, and cite your sources explicitly.",
+          tools: [{ googleSearch: {} }]
+        }
+      });
+    } catch (e) {
+      console.error("Failed to init Chat AI", e);
+    }
   }, []);
 
   useEffect(() => {
@@ -63,8 +68,6 @@ const TextChat: React.FC = () => {
       timestamp: new Date().toISOString()
     };
 
-    // Note: In a real app, we'd store the image in the message history too.
-    // For now, we just send it to the model.
     setMessages(prev => [...prev, userMessage]);
     
     const currentInput = inputValue;
@@ -75,7 +78,7 @@ const TextChat: React.FC = () => {
     setIsTyping(true);
 
     try {
-      if (!chatRef.current) throw new Error("Chat not initialized");
+      if (!chatRef.current) throw new Error("Chat engine not initialized. Please verify API configuration.");
 
       let messageToSend: any = currentInput;
       
@@ -115,7 +118,7 @@ const TextChat: React.FC = () => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: "Source link error. Re-establishing connection to global knowledge base...",
+        content: `Connection error: ${error.message || "Unknown error"}. Please check your configuration and internet link.`,
         timestamp: new Date().toISOString(),
       };
       setMessages(prev => [...prev, assistantMessage]);
