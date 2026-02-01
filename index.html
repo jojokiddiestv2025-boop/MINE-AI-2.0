@@ -40,13 +40,16 @@
     }
   </style>
   <script>
-    // Ensure process.env exists for the SDK
-    window.process = window.process || {};
-    window.process.env = window.process.env || {};
-    // Only set if not already provided by the environment
-    if (!window.process.env.API_KEY) {
-      window.process.env.API_KEY = "";
-    }
+    // Robust global shim for the process object required by many SDKs
+    (function() {
+      window.process = window.process || {};
+      window.process.env = window.process.env || {};
+      // Netlify or other providers might not inject the key into the client-side code automatically
+      // so we ensure it is at least an empty string to avoid "undefined" property access crashes.
+      if (typeof window.process.env.API_KEY === 'undefined') {
+        window.process.env.API_KEY = "";
+      }
+    })();
   </script>
 <script type="importmap">
 {
