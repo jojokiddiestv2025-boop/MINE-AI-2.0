@@ -1,27 +1,19 @@
 
-export enum AppTab {
-  CHAT = 'chat',
-  VOICE = 'voice',
-  IMAGE = 'image'
-}
-
-export interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: string;
-  groundingUrls?: Array<{ title: string; uri: string }>;
-}
-
 export interface TranscriptionEntry {
   id: string;
   type: 'user' | 'model';
   text: string;
 }
 
-export interface GeneratedImage {
+export interface VisualContext {
   id: string;
-  url: string;
-  prompt: string;
-  timestamp: string;
+  data: string; // base64
+  mimeType: string;
+}
+
+export interface WorkspaceState {
+  content: string;
+  language: string;
+  title: string;
+  isActive: boolean;
 }
