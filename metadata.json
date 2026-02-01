@@ -1,0 +1,7 @@
+{
+  "name": "MINE AI",
+  "description": "An ultra-capable AI assistant combining high-reasoning text chat with real-time, low-latency conversational voice technology. Features Google Search grounding and native audio processing.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
