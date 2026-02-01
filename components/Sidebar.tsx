@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { signOut } from "firebase/auth";
 import { AppTab } from '../types';
 import { auth } from '../firebase';
 

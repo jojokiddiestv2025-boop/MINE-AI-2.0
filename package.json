@@ -5,22 +5,21 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "build": "echo 'Static deployment: no compilation required'",
-    "start": "echo 'Serving static files'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
     "@google/genai": "^1.3.0",
     "firebase": "^10.7.1"
   },
-  "overrides": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0"
-  },
   "devDependencies": {
-    "@types/react": "19.0.0",
-    "@types/react-dom": "19.0.0",
-    "typescript": "^5.0.0"
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
   }
 }

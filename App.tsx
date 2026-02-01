@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { onAuthStateChanged, User } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged, User } from "firebase/auth";
 import { AppTab } from './types';
 import { auth } from './firebase';
 import Sidebar from './components/Sidebar';
