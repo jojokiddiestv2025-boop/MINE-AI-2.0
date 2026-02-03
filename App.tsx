@@ -5,14 +5,16 @@ import { auth } from './firebase';
 import LiveVoice from './components/LiveVoice';
 import Auth from './components/Auth';
 import Landing from './components/Landing';
+import Logo from './components/Logo';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
   const [showLanding, setShowLanding] = useState(true);
 
-  // Check if API KEY is present
-  const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
+  // Check if API KEY is present - refined for wrapped environments
+  const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
+  const hasApiKey = !!apiKey && apiKey.length > 5;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -24,8 +26,9 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="h-screen w-full bg-[#030712] flex items-center justify-center">
-        <div className="w-12 h-12 border-2 border-blue-600/30 border-t-blue-600 rounded-full animate-spin"></div>
+      <div className="h-screen w-full bg-[#030712] flex flex-col items-center justify-center space-y-6">
+        <Logo size="md" className="animate-pulse" />
+        <div className="w-12 h-12 border-2 border-blue-600/10 border-t-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -41,20 +44,23 @@ const App: React.FC = () => {
   if (!hasApiKey) {
     return (
       <div className="h-screen w-full bg-[#030712] flex flex-col items-center justify-center p-6 text-center">
+        <div className="mb-10">
+          <Logo size="lg" />
+        </div>
         <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center mb-6 border border-red-500/20">
           <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
         </div>
-        <h2 className="text-2xl font-outfit font-bold mb-4">API Configuration Required</h2>
-        <p className="text-gray-400 max-w-md mb-8">
-          The <code>API_KEY</code> environment variable is missing or invalid. Please add your Google Gemini API key to your environment variables.
+        <h2 className="text-2xl font-outfit font-bold mb-4 uppercase tracking-tighter">System Configuration Error</h2>
+        <p className="text-gray-400 max-w-md mb-8 leading-relaxed">
+          The <code>API_KEY</code> environment variable is required to establish a neural link. Please verify your environment variables.
         </p>
         <button 
           onClick={() => window.location.reload()}
-          className="px-8 py-3 bg-blue-600 rounded-xl font-bold hover:bg-blue-500 transition-colors"
+          className="px-10 py-4 bg-blue-600 rounded-2xl font-bold uppercase tracking-widest text-xs hover:bg-blue-500 transition-all shadow-xl shadow-blue-600/20 active:scale-95"
         >
-          Retry Connection
+          Re-establish Link
         </button>
       </div>
     );
@@ -62,28 +68,24 @@ const App: React.FC = () => {
 
   return (
     <div className="flex flex-col h-screen w-full bg-[#030712] overflow-hidden font-inter">
-      <header className="h-16 flex items-center px-6 glass border-b border-gray-800 z-10 shrink-0">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg">
-            <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h1 className="text-lg font-outfit font-bold tracking-tight">
-            MINE AI <span className="text-blue-500">Multimodal Voice</span>
+      <header className="h-20 flex items-center px-8 glass border-b border-white/5 z-20 shrink-0">
+        <div className="flex items-center space-x-4">
+          <Logo size="sm" />
+          <h1 className="text-xl font-outfit font-black tracking-tighter uppercase">
+            Mine <span className="text-blue-500">Ai</span>
           </h1>
         </div>
         
-        <div className="ml-auto flex items-center space-x-4">
-          <div className="hidden md:flex items-center space-x-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-            <span>Neural Link Active</span>
+        <div className="ml-auto flex items-center space-x-8">
+          <div className="hidden lg:flex items-center space-x-3 text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
+            <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+            <span>Link Sync: 100%</span>
           </div>
           <button 
             onClick={() => auth.signOut()}
-            className="text-[10px] uppercase font-bold text-gray-500 hover:text-red-400 transition-colors"
+            className="text-[10px] uppercase font-black tracking-widest text-gray-500 hover:text-red-500 transition-colors bg-white/5 px-4 py-2 rounded-xl border border-white/5 hover:border-red-500/30"
           >
-            Sign Out
+            Terminal Exit
           </button>
         </div>
       </header>

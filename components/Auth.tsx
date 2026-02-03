@@ -7,6 +7,7 @@ import {
   signInWithPopup
 } from "firebase/auth";
 import { auth } from '../firebase';
+import Logo from './Logo';
 
 const Auth: React.FC = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -61,12 +62,8 @@ const Auth: React.FC = () => {
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] pointer-events-none"></div>
         
         <div className="flex flex-col items-center mb-10 relative z-10">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-blue-500/20 mb-6 transition-transform hover:scale-105 duration-300">
-            <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-          </div>
-          <h2 className="text-3xl font-outfit font-extrabold tracking-tighter text-white uppercase">MINE AI</h2>
+          <Logo size="md" className="mb-4" />
+          <h2 className="text-3xl font-outfit font-extrabold tracking-tighter text-white uppercase">Mine Ai</h2>
           <p className="text-gray-400 mt-2 text-center uppercase tracking-[0.2em] text-[10px] font-bold">Neural Interface Access</p>
         </div>
 

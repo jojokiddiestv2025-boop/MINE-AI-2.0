@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MINE AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -17,6 +17,7 @@
       color: #f9fafb;
       margin: 0;
       overflow-x: hidden;
+      -webkit-tap-highlight-color: transparent;
     }
     .font-outfit { font-family: 'Outfit', sans-serif; }
     ::-webkit-scrollbar { width: 6px; }
@@ -31,17 +32,29 @@
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    @keyframes pulse-ring {
-      0% { transform: scale(0.8); opacity: 0.5; }
-      100% { transform: scale(2); opacity: 0; }
+    
+    /* Epic Logo Animations */
+    @keyframes orbit {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
-    .animate-pulse-ring {
-      animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    @keyframes pulse-core {
+      0%, 100% { transform: scale(1); opacity: 0.8; filter: blur(2px); }
+      50% { transform: scale(1.1); opacity: 1; filter: blur(4px); }
     }
+    .logo-ring-1 { animation: orbit 10s linear infinite; }
+    .logo-ring-2 { animation: orbit 15s linear infinite reverse; }
+    .logo-ring-3 { animation: orbit 20s linear infinite; }
+    .logo-core { animation: pulse-core 3s ease-in-out infinite; }
   </style>
   <script>
-    // Polyfill process for libraries that expect it
-    window.process = { env: { API_KEY: "" } };
+    // Robust process polyfill for mobile wrappers (Median.co / WebView)
+    window.process = window.process || {};
+    window.process.env = window.process.env || {};
+    // This will be populated by Vite define during build
+    if (!window.process.env.API_KEY) {
+      window.process.env.API_KEY = "";
+    }
   </script>
 <script type="importmap">
 {

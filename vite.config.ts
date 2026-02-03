@@ -6,7 +6,11 @@ export default defineConfig({
   plugins: [react()],
   define: {
     // This ensures process.env.API_KEY is available in the bundled code
-    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || '')
+    // and correctly polyfilled for both local dev and production build
+    'process.env.API_KEY': JSON.stringify(process.env.API_KEY || ''),
+    'process.env': {
+       API_KEY: JSON.stringify(process.env.API_KEY || '')
+    }
   },
   build: {
     outDir: 'dist',
