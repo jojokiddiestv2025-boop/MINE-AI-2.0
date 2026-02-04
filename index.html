@@ -31,64 +31,106 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
       --safe-area-top: env(safe-area-inset-top, 0px);
       --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+      --accent-blue: #3b82f6;
+      --accent-purple: #8b5cf6;
+      --bg-deep: #030712;
     }
+    
+    * {
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
     html { 
       scroll-behavior: smooth; 
-      height: auto; 
-      min-height: 100%;
+      height: 100%;
     }
+    
     body {
       font-family: 'Inter', sans-serif;
-      background-color: #030712;
+      background-color: var(--bg-deep);
       color: #f9fafb;
       margin: 0;
       overflow-x: hidden;
-      overflow-y: auto;
       min-height: 100%;
       -webkit-tap-highlight-color: transparent;
+      display: flex;
+      flex-direction: column;
     }
+
     .font-outfit { font-family: 'Outfit', sans-serif; }
-    ::-webkit-scrollbar { width: 6px; }
+
+    /* Animated Ambient Background */
+    .ambient-mesh {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: 
+        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 1) 0%, rgba(3, 7, 18, 1) 100%);
+      opacity: 1;
+    }
+
+    .glass {
+      background: rgba(15, 23, 42, 0.6);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    }
+
+    .glass-strong {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(30px) saturate(200%);
+      -webkit-backdrop-filter: blur(30px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Keyframes */
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    @keyframes shine {
+      0% { background-position: -200% center; }
+      100% { background-position: 200% center; }
+    }
+
+    .animate-float { animation: float 6s ease-in-out infinite; }
+    
+    .text-gradient {
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .text-glow-blue {
+      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: #1f2937;
+      background: rgba(255,255,255,0.1);
       border-radius: 10px;
     }
-    ::-webkit-scrollbar-thumb:hover {
-      background: #374151;
-    }
-    .glass {
-      background: rgba(17, 24, 39, 0.7);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.5); }
     
     /* Median/Mobile Specific Fixes */
     .safe-pt { padding-top: var(--safe-area-top); }
     .safe-pb { padding-bottom: var(--safe-area-bottom); }
-    .safe-mt { margin-top: var(--safe-area-top); }
-    
-    @keyframes orbit {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-    @keyframes pulse-core {
-      0%, 100% { transform: scale(1); opacity: 0.8; filter: blur(2px); }
-      50% { transform: scale(1.1); opacity: 1; filter: blur(4px); }
-    }
-    .logo-ring-1 { animation: orbit 10s linear infinite; }
-    .logo-ring-2 { animation: orbit 15s linear infinite reverse; }
-    .logo-ring-3 { animation: orbit 20s linear infinite; }
-    .logo-core { animation: pulse-core 3s ease-in-out infinite; }
   </style>
   <script>
-    // Robust process polyfill for Median.co / mobile WebViews
     window.process = window.process || { env: {} };
     if (!window.process.env) window.process.env = {};
     if (typeof window.process.env.API_KEY === 'undefined') {
@@ -110,6 +152,7 @@
 </script>
 </head>
 <body>
+  <div class="ambient-mesh"></div>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
