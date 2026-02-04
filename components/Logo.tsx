@@ -6,78 +6,87 @@ interface LogoProps {
   showText?: boolean;
 }
 
-const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = false }) => {
+const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = true }) => {
   const sizes = {
-    sm: 'w-10',
-    md: 'w-32',
-    lg: 'w-56',
-    xl: 'w-80'
+    sm: 'w-12',
+    md: 'w-40',
+    lg: 'w-64',
+    xl: 'w-96'
   };
 
   return (
     <div className={`flex flex-col items-center justify-center ${className}`}>
-      <div className={`relative ${sizes[size]} aspect-square group`}>
-        {/* Deep Atmosphere Glow */}
-        <div className="absolute inset-0 bg-blue-600/20 blur-[60px] rounded-full scale-100 group-hover:scale-125 transition-transform duration-1000"></div>
+      <div className={`${sizes[size]} aspect-square relative group select-none`}>
+        {/* Atmospheric depth glow */}
+        <div className="absolute inset-0 bg-blue-500/10 blur-[60px] rounded-full scale-110 group-hover:scale-125 transition-transform duration-1000"></div>
         
-        <svg viewBox="0 0 100 100" className="w-full h-full relative z-10 transition-all duration-1000 ease-in-out">
+        <svg viewBox="0 0 400 400" className="w-full h-full relative z-10 drop-shadow-2xl">
           <defs>
-            <linearGradient id="chromeGlow" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="30%" stopColor="#e2e8f0" />
-              <stop offset="100%" stopColor="#475569" />
+            <linearGradient id="hexBaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#374151" />
+              <stop offset="100%" stopColor="#111827" />
             </linearGradient>
-            <linearGradient id="apexBlue" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#00c2ff" />
-              <stop offset="100%" stopColor="#0047ff" />
+            <linearGradient id="circuitBlue" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#00d2ff" />
+              <stop offset="100%" stopColor="#0072ff" />
             </linearGradient>
-            <filter id="hyperGlow">
-              <feGaussianBlur stdDeviation="3" result="blur"/>
-              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            <linearGradient id="chromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#f8fafc" />
+              <stop offset="50%" stopColor="#cbd5e1" />
+              <stop offset="100%" stopColor="#64748b" />
+            </linearGradient>
+            <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+              <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
           </defs>
 
-          {/* Outer Rotating Ring */}
-          <circle cx="50" cy="50" r="48" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" strokeDasharray="10 20" className="animate-[spin_20s_linear_infinite]" />
-          <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(0,102,255,0.15)" strokeWidth="0.5" strokeDasharray="1 10" className="animate-[spin_30s_linear_infinite_reverse]" />
+          {/* Hexagon Background Shadow/Base */}
+          <path d="M200 20 L360 110 L360 290 L200 380 L40 290 L40 110 Z" fill="#242b38" />
+          <path d="M200 25 L350 110 L350 285 L200 370 L50 285 L50 110 Z" fill="url(#hexBaseGrad)" />
 
-          {/* Main Core Hex */}
-          <path d="M50 8 L87 30 L87 70 L50 92 L13 70 L13 30 Z" 
-                fill="#010307" 
-                stroke="rgba(255,255,255,0.1)" 
-                strokeWidth="1.5" />
-          
-          {/* Active Core Pulse */}
-          <path d="M50 15 L80 32 L80 68 L50 85 L20 68 L20 32 Z" 
-                fill="url(#apexBlue)" 
-                opacity="0.85" 
-                filter="url(#hyperGlow)"
-                className="animate-pulse" />
+          {/* Inner Circuit Sections (Blue) */}
+          <g transform="translate(200, 200) scale(0.85) translate(-200, -200)">
+            <path d="M200 40 L340 120 L340 200 L200 280 L60 200 L60 120 Z" fill="none" />
+            
+            {/* Top Blue Part */}
+            <path d="M150 40 L340 120 L340 200 L230 140 Z" fill="url(#circuitBlue)" />
+            {/* Bottom Blue Part */}
+            <path d="M60 200 L60 280 L250 360 L170 260 Z" fill="url(#circuitBlue)" />
+            
+            {/* Circuit Line Patterns */}
+            <g stroke="rgba(255,255,255,0.3)" strokeWidth="2" fill="none">
+              <path d="M280 100 L320 120 M300 130 L340 150 M320 160 L340 170" />
+              <path d="M80 230 L120 250 M100 260 L140 280 M120 290 L160 310" />
+              <circle cx="310" cy="115" r="3" fill="white" />
+              <circle cx="90" cy="240" r="3" fill="white" />
+            </g>
+          </g>
 
-          {/* Precision Pickaxe Overlay */}
-          <g transform="rotate(-45, 50, 50) translate(0, -6)">
-             {/* Mirror Polished Shaft */}
-             <rect x="47.5" y="35" width="5" height="50" rx="2.5" fill="url(#chromeGlow)" />
-             <rect x="49" y="37" width="2" height="46" rx="1" fill="rgba(255,255,255,0.5)" />
-             
-             {/* Chrome Apex Head */}
-             <path d="M22 46 Q50 12 78 46 L50 40 Z" fill="url(#chromeGlow)" stroke="#1e293b" strokeWidth="0.2" />
-             <path d="M50 12 Q68 30 78 46 L50 40 Z" fill="rgba(0,0,0,0.2)" />
+          {/* Central Silver Pickaxe */}
+          <g transform="rotate(-45, 200, 200) translate(0, -10)" filter="url(#innerGlow)">
+            {/* Shaft */}
+            <rect x="188" y="140" width="24" height="180" rx="12" fill="url(#chromeGrad)" />
+            <rect x="194" y="150" width="6" height="160" rx="3" fill="rgba(255,255,255,0.4)" />
+            
+            {/* Head */}
+            <path d="M100 150 Q200 20 300 150 L200 130 Z" fill="url(#chromeGrad)" />
+            <path d="M200 20 L300 150 L200 130 Z" fill="rgba(0,0,0,0.15)" />
+            <path d="M100 150 Q200 20 200 130 Z" fill="rgba(255,255,255,0.2)" />
           </g>
         </svg>
       </div>
       
       {showText && (
-        <div className="mt-12 flex flex-col items-center">
-          <h1 className="font-outfit font-black tracking-[-0.1em] leading-none text-white flex items-baseline" 
-              style={{ fontSize: size === 'xl' ? '7rem' : '4rem' }}>
-            MINE
-            <span className="ml-3 bg-gradient-to-br from-blue-400 to-blue-700 bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(0,102,255,0.6)]">AI</span>
+        <div className="mt-4 animate-reveal text-center">
+          <h1 className="font-outfit font-black tracking-tight text-[#1e293b]" 
+              style={{ fontSize: size === 'xl' ? '6rem' : size === 'lg' ? '4rem' : '2.5rem' }}>
+            Mine <span className="text-[#1e293b]">Ai</span>
           </h1>
-          <div className="mt-6 flex items-center gap-6 opacity-40">
-            <div className="h-[0.5px] w-12 bg-white"></div>
-            <span className="text-[11px] font-black uppercase tracking-[1em] text-white">Apex Interface</span>
-            <div className="h-[0.5px] w-12 bg-white"></div>
+          <div className="flex items-center justify-center gap-4 opacity-30">
+            <div className="h-[1px] w-8 bg-[#1e293b]"></div>
+            <span className="text-[10px] font-black uppercase tracking-[0.5em] text-[#1e293b]">Official Node</span>
+            <div className="h-[1px] w-8 bg-[#1e293b]"></div>
           </div>
         </div>
       )}

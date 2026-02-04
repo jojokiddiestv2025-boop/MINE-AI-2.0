@@ -18,6 +18,7 @@ const requestNativeMicPermission = () => {
   }
 };
 
+// PCM Data encoding implementation according to guidelines
 function encode(bytes: Uint8Array) {
   let binary = '';
   const len = bytes.byteLength;
@@ -27,6 +28,7 @@ function encode(bytes: Uint8Array) {
   return btoa(binary);
 }
 
+// PCM Data decoding implementation according to guidelines
 function decode(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
@@ -37,6 +39,7 @@ function decode(base64: string) {
   return bytes;
 }
 
+// Manual audio buffer decoding according to guidelines
 async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
@@ -108,10 +111,9 @@ const LiveVoice: React.FC = () => {
     try {
       setIsConnecting(true);
       setError(null);
-      const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
-      if (!apiKey) throw new Error("API_KEY_MISSING");
-
-      const ai = new GoogleGenAI({ apiKey });
+      
+      // Initialize Gemini API client right before connection as per guidelines
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       requestNativeMicPermission();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
@@ -144,24 +146,45 @@ const LiveVoice: React.FC = () => {
               setIsUserSpeaking(rms > 0.05);
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
+              
+              // Use sessionPromise to prevent stale closures
               sessionPromise.then(s => s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }));
             };
             source.connect(scriptProcessor);
             scriptProcessor.connect(inputCtx.destination);
+            
             visionIntervalRef.current = window.setInterval(() => {
-              if (visualContext) sessionPromise.then(s => s.sendRealtimeInput({ media: { data: visualContext.data, mimeType: visualContext.mimeType } }));
+              if (visualContext) {
+                 sessionPromise.then(s => s.sendRealtimeInput({ media: { data: visualContext.data, mimeType: visualContext.mimeType } }));
+              }
             }, 4000);
           },
           onmessage: async (m) => {
+            // Handle tool calls using the correct object-based functionResponses format
             if (m.toolCall) {
               for (const fc of m.toolCall.functionCalls) {
                 if (fc.name === 'updateWorkspace') {
                   const args = fc.args as any;
                   setWorkspace({ content: args.content, language: args.language, title: args.title, isActive: true });
-                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "OK" } }] }));
+                  sessionPromise.then(s => s.sendToolResponse({ 
+                    functionResponses: { 
+                      id: fc.id, 
+                      name: fc.name, 
+                      response: { result: "OK" } 
+                    } 
+                  }));
                 }
               }
             }
+
+            // Handle audio interruption from the model
+            if (m.serverContent?.interrupted) {
+              sourcesRef.current.forEach(s => s.stop());
+              sourcesRef.current.clear();
+              nextStartTimeRef.current = 0;
+            }
+
+            // Process model output audio bytes
             const audioData = m.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (audioData) {
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
@@ -169,18 +192,31 @@ const LiveVoice: React.FC = () => {
               const node = outputCtx.createBufferSource();
               node.buffer = buffer;
               node.connect(outputCtx.destination);
+              
+              node.addEventListener('ended', () => {
+                sourcesRef.current.delete(node);
+              });
+              
               node.start(nextStartTimeRef.current);
               nextStartTimeRef.current += buffer.duration;
               sourcesRef.current.add(node);
             }
           },
-          onerror: (e) => { setError({ title: "Sync Lost", message: "Signal interruption detected." }); cleanup(); },
-          onclose: () => cleanup()
+          onerror: (e) => { 
+            console.error('Live sync error:', e);
+            setError({ title: "Sync Lost", message: "Signal interruption detected." }); 
+            cleanup(); 
+          },
+          onclose: (e) => {
+            console.log('Live sync closed:', e);
+            cleanup();
+          }
         }
       });
       sessionPromiseRef.current = sessionPromise;
     } catch (err) {
-      setError({ title: "Sync Blocked", message: "Microphone permission required." });
+      console.error('Initialization error:', err);
+      setError({ title: "Sync Blocked", message: "System initialization failed." });
       setIsConnecting(false);
       cleanup();
     }

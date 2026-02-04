@@ -12,7 +12,7 @@ const Landing: React.FC<LandingProps> = ({ onEnter }) => {
       <main className="relative z-20 flex flex-col items-center px-8 max-w-[1400px] w-full text-center py-32 md:py-48">
         
         <div className="mb-24 scale-90 md:scale-100">
-          <Logo size="xl" showText={true} />
+          <Logo size="xl" showText={true} className="drop-shadow-[0_0_30px_rgba(255,255,255,0.05)]" />
         </div>
 
         <div className="flex flex-col items-center space-y-12 max-w-6xl mx-auto">

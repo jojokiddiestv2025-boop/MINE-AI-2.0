@@ -1,4 +1,5 @@
 
+// Initialize Firebase using the modular SDK (v9+)
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
 

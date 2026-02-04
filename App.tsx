@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, User } from "firebase/auth";
+// Added 'type' keyword for User to resolve module export errors
+import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from './firebase';
 import LiveVoice from './components/LiveVoice';
 import Auth from './components/Auth';
@@ -11,8 +12,8 @@ const App: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [showLanding, setShowLanding] = useState(true);
 
-  const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
-  const hasApiKey = !!apiKey && apiKey.length > 5;
+  // Directly check the presence of the API key as required by guidelines
+  const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -25,7 +26,7 @@ const App: React.FC = () => {
   if (isInitializing) {
     return (
       <div className="min-h-screen w-full bg-[#02040a] flex flex-col items-center justify-center space-y-12 animate-apex">
-        <Logo size="md" className="animate-pulse" />
+        <Logo size="md" showText={false} />
         <div className="w-16 h-16 border-2 border-blue-600/10 border-t-blue-600 rounded-full animate-spin"></div>
       </div>
     );
@@ -43,7 +44,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen w-full bg-[#02040a] flex flex-col items-center justify-center p-12 text-center animate-apex">
         <div className="mb-16">
-          <Logo size="lg" />
+          <Logo size="lg" showText={true} />
         </div>
         <div className="w-24 h-24 rounded-full bg-red-600/5 flex items-center justify-center mb-10 border border-red-600/20 shadow-2xl shadow-red-600/10">
           <svg className="w-10 h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -68,9 +69,9 @@ const App: React.FC = () => {
     <div className="flex flex-col min-h-screen w-full bg-[#02040a] font-inter overflow-x-hidden">
       <header className="sticky top-0 h-auto min-h-[6rem] flex items-center px-10 md:px-20 bg-black/40 backdrop-blur-3xl border-b border-white/[0.03] z-50 shrink-0 safe-pt">
         <div className="flex items-center space-x-6 py-6 group cursor-none" onClick={() => setShowLanding(true)}>
-          <Logo size="sm" />
-          <h1 className="text-2xl font-outfit font-black tracking-[-0.08em] uppercase whitespace-nowrap">
-            Mine <span className="text-blue-600 group-hover:drop-shadow-[0_0_15px_rgba(0,102,255,0.8)] transition-all">Ai</span>
+          <Logo size="sm" showText={false} />
+          <h1 className="text-2xl font-outfit font-black tracking-[-0.08em] uppercase whitespace-nowrap text-white">
+            Mine <span className="text-blue-600">Ai</span>
           </h1>
         </div>
         

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
@@ -61,11 +60,14 @@ const Auth: React.FC = () => {
 
     try {
       if (isResetPassword) {
+        // Send reset email using modular SDK
         await sendPasswordResetEmail(auth, email);
         setSuccess('Password reset link sent to your email.');
       } else if (isLogin) {
+        // Sign in using modular SDK
         await signInWithEmailAndPassword(auth, email, password);
       } else {
+        // Sign up using modular SDK
         await createUserWithEmailAndPassword(auth, email, password);
       }
     } catch (err: any) {
@@ -89,13 +91,11 @@ const Auth: React.FC = () => {
     setSuccess('');
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
-    // Add scopes for better profile integration
     provider.addScope('https://www.googleapis.com/auth/userinfo.profile');
     provider.addScope('https://www.googleapis.com/auth/userinfo.email');
 
     try {
       if (isWebView()) {
-        // Popups are typically blocked or broken in Median.co/WebViews. Use Redirect.
         await signInWithRedirect(auth, provider);
       } else {
         await signInWithPopup(auth, provider);
@@ -110,7 +110,6 @@ const Auth: React.FC = () => {
   return (
     <div className="min-h-screen w-full flex items-center justify-center bg-[#030712] p-4">
       <div className="w-full max-w-md glass border border-gray-800 p-8 rounded-3xl shadow-2xl relative overflow-hidden">
-        {/* Subtle Decorative Background Light */}
         <div className="absolute top-0 right-0 w-32 h-32 bg-blue-600/5 blur-[60px] pointer-events-none"></div>
         
         <div className="flex flex-col items-center mb-10 relative z-10">
