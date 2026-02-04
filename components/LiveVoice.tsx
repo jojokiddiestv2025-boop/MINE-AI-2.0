@@ -45,19 +45,29 @@ const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
     type: Type.OBJECT,
-    description: 'ESSENTIAL: Use this to display essays, CVs, code, or drafts. You MUST call this whenever the user asks for a draft, essay, CV, or code block via voice command.',
+    description: 'PRIMARY OUTPUT INTERFACE: Use this tool to answer ALL user questions. You MUST call this for any explanation, code, or data output. Summarize your spoken response while the user reads the full details here.',
     properties: {
-      content: { type: Type.STRING, description: 'The actual text, essay, CV content, or code.' },
-      language: { type: Type.STRING, description: 'Format: markdown, python, javascript, html, cv, etc.' },
-      title: { type: Type.STRING, description: 'Descriptive title for this document (e.g. "Essay on AI", "My Software CV").' },
+      content: { type: Type.STRING, description: 'The primary text, explanation, or code. Use Markdown for formatting.' },
+      language: { type: Type.STRING, description: 'The coding language (markdown, python, etc) or text format.' },
+      title: { type: Type.STRING, description: 'A concise, high-impact title for the content.' },
     },
     required: ['content', 'language', 'title'],
+  },
+};
+
+const startTutorialTool: FunctionDeclaration = {
+  name: 'startTutorial',
+  parameters: {
+    type: Type.OBJECT,
+    description: 'Call this to guide the user through using Mine Ai and the workspace Pad.',
+    properties: {},
   },
 };
 
 const LiveVoice: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [transcriptions, setTranscriptions] = useState<TranscriptionEntry[]>([]);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
@@ -104,6 +114,15 @@ const LiveVoice: React.FC = () => {
     sessionPromiseRef.current = null;
   }, []);
 
+  const triggerTutorial = () => {
+    setWorkspace({
+      title: 'Neural Link: System Tutorial',
+      language: 'markdown',
+      content: `# Getting Started with Mine Ai\n\nYou are now linked to a multimodal super-intelligence. Here's how to dominate your tasks:\n\n### 1. The Interaction Paradigm\nSpeak naturally. I listen in real-time. Whether you need a deep philosophical answer, a quick fact, or a full software architecture, I am listening.\n\n### 2. THE PAD (Your Workspace)\nI am designed to visualize everything. **Every detailed answer I give will appear right here in this pad.** You don't need to take notes—just read, copy, and iterate.\n\n### 3. Visual Reasoning\nUse the **Vision Interface** on the left to upload images. I can analyze diagrams, troubleshoot code from screenshots, or solve math problems written on paper.\n\n### 4. Interactive Drafting\nAsk me to "Write a 10-page essay on Mars" or "Draft a high-level React component." Watch the Pad update in real-time while we discuss the details.\n\n**Ready to start? Just speak your first request.**`,
+      isActive: true
+    });
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -122,6 +141,7 @@ const LiveVoice: React.FC = () => {
   const startConversation = async () => {
     try {
       setIsConnecting(true);
+      setError(null);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -139,10 +159,17 @@ const LiveVoice: React.FC = () => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
           },
-          tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          inputAudioTranscription: {},
-          outputAudioTranscription: {},
-          systemInstruction: 'You are Mine Ai, a multitasking super-intelligence. You outclass ChatGPT by integrating real-time voice, vision, and a live workspace pad. \n\nCRITICAL PROTOCOL:\n1. If a user asks to draft an ESSAY, a CV, CODE, or a LONG TEXT via voice, you MUST use the `updateWorkspace` tool immediately. \n2. Do NOT just speak long content. Put it in THE PAD. Summarize what you are writing in your voice response.\n3. If a user says "Draft me a software engineer CV", call `updateWorkspace` with a professional markdown CV.\n4. If a user says "Write an essay about space", call `updateWorkspace` with the essay content.\n5. You are sharp, direct, and elite. You only communicate via voice and vision.'
+          tools: [{ functionDeclarations: [updateWorkspaceTool, startTutorialTool] }],
+          // Removing transcription objects as they can trigger 'Not Implemented' errors in certain environments/models
+          systemInstruction: `You are Mine Ai, the ultimate multitasking intelligence.
+
+CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains detailed information, facts, code, or drafts. 
+- Spoken words are for interaction and short summaries.
+- The PAD (workspace) is for the heavy lifting.
+- If a user asks "Who is Einstein?", call 'updateWorkspace' with a full biography.
+- If a user asks "How do I bake a cake?", call 'updateWorkspace' with the recipe.
+- If the user needs help, call 'startTutorial'.
+- Be elite, efficient, and always visualize your logic.`
         },
         callbacks: {
           onopen: () => {
@@ -186,6 +213,8 @@ const LiveVoice: React.FC = () => {
                 });
               }
             }, 5000);
+
+            triggerTutorial();
           },
           onmessage: async (message: LiveServerMessage) => {
             if (message.toolCall) {
@@ -203,7 +232,18 @@ const LiveVoice: React.FC = () => {
                       functionResponses: [{ 
                         id: fc.id, 
                         name: fc.name, 
-                        response: { result: "Document drafted successfully in the workspace pad. The user can now see, copy, and paste it." } 
+                        response: { result: "Workspace synchronized." } 
+                      }]
+                    });
+                  });
+                } else if (fc.name === 'startTutorial') {
+                  triggerTutorial();
+                  sessionPromise.then(session => {
+                    session.sendToolResponse({
+                      functionResponses: [{ 
+                        id: fc.id, 
+                        name: fc.name, 
+                        response: { result: "Tutorial initialized." } 
                       }]
                     });
                   });
@@ -230,28 +270,10 @@ const LiveVoice: React.FC = () => {
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
-
-            if (message.serverContent?.inputTranscription) {
-              transcriptionBufferRef.current.user += message.serverContent.inputTranscription.text;
-            }
-            if (message.serverContent?.outputTranscription) {
-              transcriptionBufferRef.current.model += message.serverContent.outputTranscription.text;
-            }
-            if (message.serverContent?.turnComplete) {
-              const userText = transcriptionBufferRef.current.user;
-              const modelText = transcriptionBufferRef.current.model;
-              if (userText || modelText) {
-                setTranscriptions(prev => [
-                  ...prev,
-                  ...(userText ? [{ id: Date.now() + '-u', type: 'user' as const, text: userText }] : []),
-                  ...(modelText ? [{ id: Date.now() + '-m', type: 'model' as const, text: modelText }] : [])
-                ].slice(-50));
-              }
-              transcriptionBufferRef.current = { user: '', model: '' };
-            }
           },
           onerror: (e) => { 
             console.error("Live Session Error:", e);
+            setError("Connection Error: System unavailable or operation restricted.");
             cleanup(); 
           },
           onclose: () => { cleanup(); }
@@ -262,6 +284,7 @@ const LiveVoice: React.FC = () => {
       await sessionPromise;
     } catch (err) {
       console.error("Initialization Failed:", err);
+      setError("Failed to initialize neural link.");
       setIsConnecting(false);
       cleanup();
     }
@@ -274,103 +297,113 @@ const LiveVoice: React.FC = () => {
   };
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [transcriptions]);
-
-  useEffect(() => {
     return () => cleanup();
   }, [cleanup]);
 
   return (
-    <div className="flex flex-col h-full bg-[#030712] overflow-hidden">
-      <div className="flex-1 w-full max-w-[1800px] mx-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6 overflow-hidden">
+    <div className="flex flex-col h-full bg-[#030712] overflow-hidden font-inter">
+      <div className="flex-1 w-full max-w-[1920px] mx-auto flex flex-col lg:flex-row gap-4 p-4 md:p-6 overflow-hidden">
         
-        {/* Sidebar: Vision Context */}
-        <div className="w-full lg:w-48 shrink-0 flex flex-col gap-3">
-          <div className="glass border border-gray-800 p-4 rounded-3xl flex flex-col h-full shadow-lg">
-            <h3 className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-500 mb-4 text-center">Vision Hub</h3>
-            <div className="flex-1 flex flex-col items-center justify-center relative min-h-[120px]">
+        {/* Sidebar: Vision */}
+        <div className="w-full lg:w-56 shrink-0 flex flex-col gap-4">
+          <div className="glass border border-gray-800 p-6 rounded-[2.5rem] flex flex-col h-full shadow-2xl">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-500 mb-8 text-center">Neural Vision</h3>
+            <div className="flex-1 flex flex-col items-center justify-center relative min-h-[140px]">
               {visualContext ? (
                 <div className="relative group w-full h-full aspect-square">
-                  <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} alt="Context" className="w-full h-full object-cover rounded-2xl border border-white/5" />
-                  <button onClick={() => setVisualContext(null)} className="absolute -top-2 -right-2 bg-red-600 text-white rounded-full p-1.5 shadow-2xl hover:scale-110 transition-transform"><svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
-                  <div className="absolute inset-0 bg-blue-500/10 pointer-events-none rounded-2xl border border-blue-500/30 animate-pulse"></div>
+                  <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} alt="Context" className="w-full h-full object-cover rounded-3xl border border-blue-500/20 shadow-2xl" />
+                  <button onClick={() => setVisualContext(null)} className="absolute -top-3 -right-3 bg-red-600 text-white rounded-full p-2.5 shadow-2xl hover:scale-110 transition-all flex items-center justify-center"><svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
+                  <div className="absolute inset-0 bg-blue-500/5 pointer-events-none rounded-3xl border border-blue-500/30 animate-pulse"></div>
                 </div>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border-2 border-dashed border-gray-800 rounded-2xl flex flex-col items-center justify-center text-gray-600 hover:border-blue-500/50 hover:text-blue-500 transition-all group">
-                  <svg className="w-8 h-8 mb-2 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                  <span className="text-[9px] font-bold uppercase tracking-widest">Show Mine Ai</span>
+                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border-2 border-dashed border-gray-800 rounded-3xl flex flex-col items-center justify-center text-gray-500 hover:border-blue-500/40 hover:text-blue-400 transition-all group p-6 text-center bg-gray-900/20">
+                  <svg className="w-12 h-12 mb-4 group-hover:scale-110 transition-transform opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                  <span className="text-[11px] font-black uppercase tracking-widest leading-snug">Visual Sync Interface</span>
                 </button>
               )}
               <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*" className="hidden" />
             </div>
+            
+            <button 
+              onClick={triggerTutorial}
+              className="mt-8 w-full py-4 rounded-2xl bg-white/5 border border-white/5 text-[11px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/10 hover:text-white transition-all shadow-xl"
+            >
+              System Guide
+            </button>
           </div>
         </div>
 
-        {/* Center: Neural Conversation Interface */}
-        <div className={`flex flex-col glass border border-gray-800 rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-700 relative ${workspace.isActive ? 'lg:w-[500px]' : 'flex-1'}`}>
-          <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-8 space-y-5 pb-48">
-            {transcriptions.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center space-y-6 opacity-40">
-                <div className="w-24 h-24 rounded-full border border-gray-800 flex items-center justify-center animate-pulse">
-                  <svg className="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
+        {/* Center: Conversation Hub */}
+        <div className={`flex flex-col glass border border-gray-800 rounded-[3rem] overflow-hidden shadow-2xl transition-all duration-1000 relative ${workspace.isActive ? 'lg:w-[540px]' : 'flex-1'}`}>
+          <div ref={scrollRef} className="flex-1 overflow-y-auto p-10 space-y-8 pb-56">
+            {!isConnected && !isConnecting && (
+              <div className="h-full flex flex-col items-center justify-center text-center space-y-10 animate-in fade-in duration-1000">
+                <div className="w-32 h-32 rounded-full border border-gray-800 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.05)]">
+                  <svg className="w-14 h-14 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
                 </div>
-                <div className="space-y-2 px-6">
-                  <h4 className="text-sm font-bold uppercase tracking-[0.4em] text-gray-500">Neural Gateway</h4>
-                  <p className="text-xs text-gray-600 max-w-[280px] mx-auto leading-relaxed">Establish a link and speak your request. Mine Ai will draft essays, CVs, and code directly into THE PAD.</p>
+                <div className="space-y-4 px-12">
+                  <h4 className="text-sm font-black uppercase tracking-[0.6em] text-blue-500">Neural Offline</h4>
+                  <p className="text-[12px] text-gray-600 max-w-[320px] mx-auto leading-relaxed font-semibold">Initiate the link to access multi-modal super intelligence. All data flows visually through the Pad.</p>
                 </div>
               </div>
-            ) : (
-              transcriptions.map((t) => (
-                <div key={t.id} className={`flex ${t.type === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-4 duration-500`}>
-                  <div className={`px-5 py-3 rounded-2xl text-[14px] max-w-[85%] border shadow-lg ${
-                    t.type === 'user' ? 'bg-blue-600/10 text-blue-50 border-blue-500/30' : 'bg-gray-800/80 text-gray-100 border-gray-700'
-                  }`}>
-                    <span className="text-[9px] uppercase font-black tracking-widest block mb-1 opacity-50">{t.type === 'user' ? 'Operator' : 'Neural Core'}</span>
-                    {t.text}
-                  </div>
+            )}
+            
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-6 rounded-3xl text-sm font-bold text-center animate-bounce">
+                {error}
+              </div>
+            )}
+
+            {isConnecting && (
+              <div className="h-full flex flex-col items-center justify-center space-y-6">
+                <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin shadow-2xl shadow-blue-500/20"></div>
+                <p className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-400">Syncing Neurons...</p>
+              </div>
+            )}
+
+            {isConnected && (
+              <div className="space-y-6 flex flex-col items-center justify-center h-full opacity-40">
+                <div className="w-24 h-24 rounded-full border border-blue-500/10 flex items-center justify-center">
+                   <div className={`w-3 h-3 rounded-full bg-blue-500 ${isUserSpeaking ? 'animate-ping' : ''}`}></div>
                 </div>
-              ))
+                <p className="text-[10px] font-black uppercase tracking-[0.8em] text-blue-500">Live Voice Protocol</p>
+              </div>
             )}
           </div>
 
-          {/* Minimalist Neural Interaction Bar */}
-          <div className="absolute bottom-0 left-0 right-0 p-10 flex flex-col items-center bg-gradient-to-t from-[#030712] via-[#030712]/90 to-transparent pointer-events-none">
-            <div className="flex flex-col items-center gap-5 pointer-events-auto">
+          {/* Neural Core Button */}
+          <div className="absolute bottom-0 left-0 right-0 p-16 flex flex-col items-center bg-gradient-to-t from-[#030712] via-[#030712]/95 to-transparent pointer-events-none">
+            <div className="flex flex-col items-center gap-8 pointer-events-auto">
               <div className="relative group">
                 {isConnected && (
-                  <div className={`absolute -inset-8 bg-blue-500/20 blur-3xl rounded-full transition-opacity duration-1000 ${isUserSpeaking ? 'opacity-100' : 'opacity-40'}`}></div>
+                  <div className={`absolute -inset-12 bg-blue-500/10 blur-[60px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-125' : 'opacity-40 scale-100'}`}></div>
                 )}
                 <button
                   onClick={isConnected ? cleanup : startConversation}
                   disabled={isConnecting}
-                  className={`w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500 relative z-10 shadow-2xl ${
+                  className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-700 relative z-10 shadow-[0_0_60px_rgba(0,0,0,0.8)] border-4 ${
                     isConnected 
-                      ? 'bg-red-500/10 text-red-500 border border-red-500/40' 
-                      : 'bg-gradient-to-br from-blue-600 to-indigo-700 text-white shadow-blue-500/40 hover:scale-105 active:scale-95'
+                      ? 'bg-gray-900 border-red-500/20 text-red-500 hover:border-red-500/60' 
+                      : 'bg-gradient-to-br from-blue-500 to-indigo-800 border-white/5 text-white hover:scale-105 active:scale-90'
                   }`}
                 >
-                  {isConnecting ? <div className="w-8 h-8 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : 
+                  {isConnecting ? <div className="w-12 h-12 border-4 border-white/20 border-t-white rounded-full animate-spin"></div> : 
                     isConnected ? (
-                      <div className="flex flex-col items-center">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2.5} /></svg>
-                      </div>
+                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
                     ) : (
-                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={2} /></svg>
+                      <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1.5} /></svg>
                     )
                   }
                 </button>
               </div>
-              <div className="text-center space-y-1">
-                <p className={`text-[11px] font-black uppercase tracking-[0.5em] transition-colors duration-500 ${isConnected ? 'text-blue-400' : 'text-gray-500'}`}>
-                  {isConnected ? 'Neural Link Active' : 'Establish Interface'}
+              <div className="text-center space-y-3">
+                <p className={`text-[13px] font-black uppercase tracking-[0.8em] transition-all duration-700 ${isConnected ? 'text-blue-400' : 'text-gray-600'}`}>
+                  {isConnecting ? 'Establishing Link' : isConnected ? 'Neural Active' : 'Enter Neural Loop'}
                 </p>
                 {isConnected && (
-                  <div className="flex items-center justify-center gap-1.5 h-4 opacity-50">
-                    {[...Array(9)].map((_, i) => (
-                      <div key={i} className={`w-0.5 bg-blue-500 rounded-full ${isUserSpeaking ? 'animate-bounce' : 'h-1'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '4px', animationDelay: `${i*0.06}s` }}></div>
+                  <div className="flex items-center justify-center gap-2.5 h-6 opacity-30">
+                    {[...Array(13)].map((_, i) => (
+                      <div key={i} className={`w-1 bg-blue-400 rounded-full transition-all duration-200 ${isUserSpeaking ? 'animate-bounce' : 'h-1.5'}`} style={{ height: isUserSpeaking ? `${40 + Math.random()*60}%` : '6px', animationDelay: `${i*0.04}s` }}></div>
                     ))}
                   </div>
                 )}
@@ -379,54 +412,57 @@ const LiveVoice: React.FC = () => {
           </div>
         </div>
 
-        {/* Right Section: THE PAD (Persistent Drafting Pad) */}
+        {/* Workspace: THE PAD */}
         {workspace.isActive && (
-          <div className="flex-1 flex flex-col glass border border-blue-500/30 rounded-[2.5rem] overflow-hidden shadow-2xl animate-in slide-in-from-right duration-700">
-            <header className="px-8 py-6 border-b border-gray-800 bg-black/40 flex justify-between items-center backdrop-blur-3xl">
-              <div className="flex items-center space-x-5">
+          <div className="flex-1 flex flex-col glass border border-blue-500/30 rounded-[3.5rem] overflow-hidden shadow-[0_0_120px_rgba(59,130,246,0.1)] animate-in slide-in-from-right duration-1000 relative">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/[0.03] blur-[100px] pointer-events-none"></div>
+            <header className="px-12 py-10 border-b border-gray-800/40 bg-black/50 flex justify-between items-center backdrop-blur-3xl z-10">
+              <div className="flex items-center space-x-8">
                 <div className="relative">
-                  <div className="absolute -inset-1.5 bg-blue-500/30 blur-md rounded-full animate-pulse"></div>
-                  <div className="w-3.5 h-3.5 rounded-full bg-blue-500"></div>
+                  <div className="absolute -inset-3 bg-blue-500/20 blur-xl rounded-full animate-pulse"></div>
+                  <div className="w-5 h-5 rounded-full bg-blue-400 shadow-[0_0_20px_rgba(96,165,250,0.9)] border border-white/40"></div>
                 </div>
                 <div>
-                  <h3 className="font-outfit font-extrabold text-xl tracking-tight text-white leading-none">{workspace.title}</h3>
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/30 uppercase tracking-[0.2em]">{workspace.language}</span>
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Live Draft Pad</span>
+                  <h3 className="font-outfit font-extrabold text-3xl tracking-tight text-white leading-tight">{workspace.title}</h3>
+                  <div className="flex items-center gap-5 mt-3">
+                    <span className="text-[11px] font-black px-4 py-1.5 rounded-full bg-blue-600/20 text-blue-300 border border-blue-500/30 uppercase tracking-[0.4em]">{workspace.language}</span>
+                    <span className="text-[11px] font-black text-gray-500 uppercase tracking-[0.4em] transition-colors hover:text-blue-400 cursor-default">Real-Time Sync Protocol</span>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-5">
                 <button 
                   onClick={copyToClipboard}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl text-[13px] font-black uppercase tracking-wider transition-all border shadow-lg ${
-                    copyStatus === 'copied' ? 'bg-green-500/20 text-green-400 border-green-500/40' : 'bg-white/5 text-gray-300 hover:text-white border-white/10 hover:bg-white/10'
+                  className={`flex items-center gap-3 px-8 py-4 rounded-2xl text-[14px] font-black uppercase tracking-[0.2em] transition-all border shadow-2xl ${
+                    copyStatus === 'copied' ? 'bg-green-600/20 text-green-400 border-green-500/40' : 'bg-white/5 text-gray-300 hover:text-white border-white/5 hover:bg-white/10'
                   }`}
                 >
                   {copyStatus === 'copied' ? (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" strokeWidth={3} /></svg>
-                      Copied
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M5 13l4 4L19 7" strokeWidth={3} /></svg>
+                      Linked
                     </>
                   ) : (
                     <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" strokeWidth={2} /></svg>
-                      Copy All
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2" strokeWidth={2} /></svg>
+                      Extract
                     </>
                   )}
                 </button>
-                <button onClick={() => setWorkspace(prev => ({ ...prev, isActive: false }))} className="w-11 h-11 rounded-2xl bg-white/5 flex items-center justify-center text-gray-400 hover:text-white transition-all border border-white/10 hover:bg-red-500/20">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2.5} /></svg>
+                <button onClick={() => setWorkspace(prev => ({ ...prev, isActive: false }))} className="w-14 h-14 rounded-2xl bg-white/5 flex items-center justify-center text-gray-500 hover:text-white transition-all border border-white/5 hover:bg-red-500/20 hover:border-red-500/40">
+                  <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
                 </button>
               </div>
             </header>
-            <div className="flex-1 overflow-auto p-12 font-mono text-[16px] leading-relaxed bg-[#02040a]/90 text-gray-300 selection:bg-blue-500/40">
-              <div className="max-w-4xl mx-auto">
-                <pre className="whitespace-pre-wrap font-sans">
-                  <code className={`language-${workspace.language}`}>
-                    {workspace.content}
-                  </code>
-                </pre>
+            <div className="flex-1 overflow-auto p-16 md:p-24 font-mono text-[18px] leading-[1.8] bg-[#02040a]/98 text-gray-200 selection:bg-blue-500/40">
+              <div className="max-w-4xl mx-auto animate-in fade-in duration-1000">
+                <div className="prose prose-invert prose-blue max-w-none prose-headings:font-outfit prose-headings:font-black prose-headings:tracking-tighter">
+                  <pre className="whitespace-pre-wrap font-sans text-gray-300">
+                    <code className={`language-${workspace.language}`}>
+                      {workspace.content}
+                    </code>
+                  </pre>
+                </div>
               </div>
             </div>
           </div>
