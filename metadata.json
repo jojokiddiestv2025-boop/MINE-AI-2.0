@@ -3,6 +3,7 @@
   "description": "Multimodal voice assistant with integrated code workspace and vision support.",
   "requestFramePermissions": [
     "microphone",
-    "camera"
+    "camera",
+    "geolocation"
   ]
 }
