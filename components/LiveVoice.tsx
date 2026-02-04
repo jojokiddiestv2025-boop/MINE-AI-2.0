@@ -3,6 +3,23 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration } from '@google/genai';
 import { TranscriptionEntry, VisualContext, WorkspaceState } from '../types';
 
+// Native Bridge Helpers for Median.co
+const median = (window as any).median;
+const isMedian = () => !!median || !!(window as any).webkit?.messageHandlers?.median;
+
+const requestNativeMicPermission = () => {
+  if (isMedian()) {
+    try {
+      // Median bridge command to request permissions if configured
+      (window as any).median?.permissions?.request?.({
+        permissions: ['microphone', 'camera']
+      });
+    } catch (e) {
+      console.warn("Median permission bridge failed, falling back to standard API", e);
+    }
+  }
+};
+
 function encode(bytes: Uint8Array) {
   let binary = '';
   const len = bytes.byteLength;
@@ -41,33 +58,50 @@ async function decodeAudioData(
   return buffer;
 }
 
+// Native Integration Tools
+const medianShareTool: FunctionDeclaration = {
+  name: 'nativeShare',
+  parameters: {
+    type: Type.OBJECT,
+    description: 'Use the mobile device native share sheet to share text or a URL.',
+    properties: {
+      text: { type: Type.STRING, description: 'The text content to share.' },
+      url: { type: Type.STRING, description: 'Optional URL to include in the share.' }
+    },
+    required: ['text']
+  }
+};
+
+const medianToastTool: FunctionDeclaration = {
+  name: 'nativeToast',
+  parameters: {
+    type: Type.OBJECT,
+    description: 'Display a native system toast notification on the user device.',
+    properties: {
+      message: { type: Type.STRING, description: 'Message to show in the toast.' }
+    },
+    required: ['message']
+  }
+};
+
 const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
     type: Type.OBJECT,
-    description: 'PRIMARY OUTPUT INTERFACE: Use this tool to answer ALL user questions. You MUST call this for any explanation, code, or data output. Summarize your spoken response while the user reads the full details here.',
+    description: 'PRIMARY OUTPUT INTERFACE: Answer user questions here. Summarize your spoken response while the user reads the full details.',
     properties: {
-      content: { type: Type.STRING, description: 'The primary text, explanation, or code. Use Markdown for formatting.' },
-      language: { type: Type.STRING, description: 'The coding language (markdown, python, etc) or text format.' },
-      title: { type: Type.STRING, description: 'A concise, high-impact title for the content.' },
+      content: { type: Type.STRING, description: 'The primary text, explanation, or code. Use Markdown.' },
+      language: { type: Type.STRING, description: 'The coding language or text format.' },
+      title: { type: Type.STRING, description: 'A concise title for the content.' },
     },
     required: ['content', 'language', 'title'],
-  },
-};
-
-const startTutorialTool: FunctionDeclaration = {
-  name: 'startTutorial',
-  parameters: {
-    type: Type.OBJECT,
-    description: 'Call this to guide the user through using Mine Ai and the workspace Pad.',
-    properties: {},
   },
 };
 
 const LiveVoice: React.FC = () => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{title: string, message: string} | null>(null);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
   const [copyStatus, setCopyStatus] = useState<'idle' | 'copied'>('idle');
@@ -115,7 +149,7 @@ const LiveVoice: React.FC = () => {
     setWorkspace({
       title: 'Neural Link: System Tutorial',
       language: 'markdown',
-      content: `# Getting Started with Mine Ai\n\nYou are now linked to a multimodal super-intelligence. Here's how to dominate your tasks:\n\n### 1. The Interaction Paradigm\nSpeak naturally. I listen in real-time. Whether you need a deep philosophical answer, a quick fact, or a full software architecture, I am listening.\n\n### 2. THE PAD (Your Workspace)\nI am designed to visualize everything. **Every detailed answer I give will appear right here in this pad.** You don't need to take notes—just read, copy, and iterate.\n\n### 3. Visual Reasoning\nUse the **Vision Interface** on the left to upload images. I can analyze diagrams, troubleshoot code from screenshots, or solve math problems written on paper.\n\n### 4. Interactive Drafting\nAsk me to "Write a 10-page essay on Mars" or "Draft a high-level React component." Watch the Pad update in real-time while we discuss the details.\n\n**Ready to start? Just speak your first request.**`,
+      content: `# Neural Link Established\n\nYou are operating Mine Ai via a high-performance native bridge.\n\n### Native Capabilities\nSince you are using a native build (APK/iOS), I have direct access to your device. Try asking me:\n- "Share this workspace content via text"\n- "Show a native toast notification"\n\n### Multimodal Mastery\nI process your voice and visual stream simultaneously. Use the **Neural Vision** module to feed me visual data for instant reasoning.`,
       isActive: true
     });
   };
@@ -141,16 +175,37 @@ const LiveVoice: React.FC = () => {
       setError(null);
       
       const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
+      if (!apiKey || apiKey.length < 5) {
+        throw new Error("API_KEY_MISSING: The neural link requires a valid API Key to initialize.");
+      }
+
       const ai = new GoogleGenAI({ apiKey });
       
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Permission Handling
+      requestNativeMicPermission();
+      
+      let stream: MediaStream;
+      try {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          throw new Error("SECURE_CONTEXT_REQUIRED: Media devices are not available. Ensure you are using HTTPS and a compatible native WebView.");
+        }
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (micErr: any) {
+        console.error("Mic Permission Failure:", micErr);
+        throw new Error(`MIC_ACCESS_DENIED: Could not access microphone. Please enable microphone permissions in your ${isMedian() ? 'device app settings' : 'browser'} for Mine AI.`);
+      }
+      
       mediaStreamRef.current = stream;
 
-      const inputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
-      const outputCtx = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioCtx) throw new Error("AUDIO_ENGINE_MISSING: This device does not support advanced audio processing.");
       
-      if (inputCtx.state === 'suspended') await inputCtx.resume();
-      if (outputCtx.state === 'suspended') await outputCtx.resume();
+      const inputCtx = new AudioCtx({ sampleRate: 16000 });
+      const outputCtx = new AudioCtx({ sampleRate: 24000 });
+      
+      // Crucial for mobile environments
+      await inputCtx.resume();
+      await outputCtx.resume();
 
       audioContextRef.current = inputCtx;
       outputAudioContextRef.current = outputCtx;
@@ -162,16 +217,11 @@ const LiveVoice: React.FC = () => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } },
           },
-          tools: [{ functionDeclarations: [updateWorkspaceTool, startTutorialTool] }],
-          systemInstruction: `You are Mine Ai, the ultimate multitasking intelligence.
-
-CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains detailed information, facts, code, or drafts. 
-- Spoken words are for interaction and short summaries.
-- The PAD (workspace) is for the heavy lifting.
-- If a user asks "Who is Einstein?", call 'updateWorkspace' with a full biography.
-- If a user asks "How do I bake a cake?", call 'updateWorkspace' with the recipe.
-- If the user needs help, call 'startTutorial'.
-- Be elite, efficient, and always visualize your logic.`
+          tools: [{ functionDeclarations: [updateWorkspaceTool, medianShareTool, medianToastTool] }],
+          systemInstruction: `You are Mine Ai. You are running as a native app via Median.co.
+- Use 'nativeShare' for sharing.
+- Use 'nativeToast' for simple notifications.
+- Use 'updateWorkspace' for all detailed output.`
         },
         callbacks: {
           onopen: () => {
@@ -229,26 +279,15 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
                     title: args.title,
                     isActive: true
                   });
-                  sessionPromise.then(session => {
-                    session.sendToolResponse({
-                      functionResponses: [{ 
-                        id: fc.id, 
-                        name: fc.name, 
-                        response: { result: "Workspace synchronized." } 
-                      }]
-                    });
-                  });
-                } else if (fc.name === 'startTutorial') {
-                  triggerTutorial();
-                  sessionPromise.then(session => {
-                    session.sendToolResponse({
-                      functionResponses: [{ 
-                        id: fc.id, 
-                        name: fc.name, 
-                        response: { result: "Tutorial initialized." } 
-                      }]
-                    });
-                  });
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "Workspace Updated." } }] }));
+                } else if (fc.name === 'nativeShare' && isMedian()) {
+                  const args = fc.args as any;
+                  median?.social?.share?.({ text: args.text, url: args.url });
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "Shared." } }] }));
+                } else if (fc.name === 'nativeToast' && isMedian()) {
+                  const args = fc.args as any;
+                  median?.screen?.toast?.({ message: args.message });
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "Toast shown." } }] }));
                 }
               }
             }
@@ -275,8 +314,11 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
             }
           },
           onerror: (e) => { 
-            console.error("Live Session Error:", e);
-            setError("Connection Error: System unavailable or operation restricted.");
+            console.error("Neural Signal Lost:", e);
+            setError({
+              title: "Neural Connection Error",
+              message: "The link was interrupted. This usually happens due to a network fluctuation or native bridge timeout."
+            });
             cleanup(); 
           },
           onclose: () => { cleanup(); }
@@ -285,9 +327,20 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
 
       sessionPromiseRef.current = sessionPromise;
       await sessionPromise;
-    } catch (err) {
+    } catch (err: any) {
       console.error("Initialization Failed:", err);
-      setError("Failed to initialize neural link.");
+      const msg = err.message || "";
+      let userFriendly = { title: "Neural Link Failed", message: "Failed to establish the link. Check your internet connection and permissions." };
+      
+      if (msg.includes("MIC_ACCESS_DENIED")) {
+        userFriendly = { title: "Microphone Required", message: "Mine AI needs microphone access to hear you. Please enable it in your device settings." };
+      } else if (msg.includes("API_KEY_MISSING")) {
+        userFriendly = { title: "Configuration Required", message: "System API Key is missing. Neural services are unavailable." };
+      } else if (msg.includes("SECURE_CONTEXT")) {
+        userFriendly = { title: "Security Error", message: "Neural link requires a secure HTTPS connection." };
+      }
+
+      setError(userFriendly);
       setIsConnecting(false);
       cleanup();
     }
@@ -341,21 +394,26 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
           <div className="glass border border-gray-800 rounded-[3rem] p-10 min-h-[400px] flex flex-col justify-center items-center text-center shadow-2xl relative overflow-hidden">
             <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent pointer-events-none"></div>
             
-            {!isConnected && !isConnecting && (
+            {!isConnected && !isConnecting && !error && (
               <div className="space-y-10 animate-in fade-in duration-1000 relative z-10">
                 <div className="w-32 h-32 rounded-full border border-gray-800 flex items-center justify-center shadow-[0_0_40px_rgba(59,130,246,0.05)] mx-auto">
                   <svg className="w-14 h-14 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
                 </div>
                 <div className="space-y-4">
                   <h4 className="text-sm font-black uppercase tracking-[0.6em] text-blue-500">Neural Offline</h4>
-                  <p className="text-[12px] text-gray-500 max-w-[300px] mx-auto leading-relaxed font-semibold">Initiate high-bandwidth voice protocol to access super intelligence.</p>
+                  <p className="text-[12px] text-gray-500 max-w-[300px] mx-auto leading-relaxed font-semibold">Initiate multi-modal link via native bridge to begin.</p>
                 </div>
               </div>
             )}
             
             {error && (
-              <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-6 rounded-3xl text-sm font-bold animate-bounce relative z-10">
-                {error}
+              <div className="bg-red-500/5 border border-red-500/20 text-red-400 p-8 rounded-[2.5rem] relative z-10 max-w-sm animate-in zoom-in duration-300">
+                <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                </div>
+                <h4 className="text-sm font-black uppercase tracking-widest mb-2">{error.title}</h4>
+                <p className="text-xs text-gray-500 leading-relaxed mb-6 font-medium">{error.message}</p>
+                <button onClick={() => { setError(null); startConversation(); }} className="w-full py-3 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all">Retry Initializing</button>
               </div>
             )}
 
@@ -407,7 +465,7 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
               </div>
               <div className="text-center">
                 <p className={`text-[12px] font-black uppercase tracking-[0.8em] transition-all duration-700 ${isConnected ? 'text-blue-400' : 'text-gray-600'}`}>
-                  {isConnecting ? 'Linking...' : isConnected ? 'Neural Online' : 'Establish Link'}
+                  {isConnecting ? 'Establishing Link' : isConnected ? 'Neural Online' : 'Initialize Interface'}
                 </p>
               </div>
           </div>
@@ -460,7 +518,6 @@ CORE DIRECTIVE: You MUST use 'updateWorkspace' for EVERY response that contains 
 
       </div>
       
-      {/* Footer */}
       <footer className="w-full py-12 px-8 mt-12 opacity-30 text-[10px] font-black uppercase tracking-[0.8em] text-center text-gray-500">
         &copy; 2025 MINE NEURAL SYSTEMS &bull; SUPER-INTELLIGENCE INTERFACE
       </footer>
