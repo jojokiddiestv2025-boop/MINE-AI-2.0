@@ -3,28 +3,41 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>MINE AI</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
-    html { scroll-behavior: smooth; }
+    :root {
+      --safe-area-top: env(safe-area-inset-top, 0px);
+      --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    html { 
+      scroll-behavior: smooth; 
+      height: auto; 
+      min-height: 100%;
+    }
     body {
       font-family: 'Inter', sans-serif;
       background-color: #030712;
       color: #f9fafb;
       margin: 0;
       overflow-x: hidden;
+      overflow-y: auto;
+      min-height: 100%;
       -webkit-tap-highlight-color: transparent;
     }
     .font-outfit { font-family: 'Outfit', sans-serif; }
     ::-webkit-scrollbar { width: 6px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb {
-      background: #374151;
+      background: #1f2937;
       border-radius: 10px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #374151;
     }
     .glass {
       background: rgba(17, 24, 39, 0.7);
@@ -33,7 +46,11 @@
       border: 1px solid rgba(255, 255, 255, 0.1);
     }
     
-    /* Epic Logo Animations */
+    /* Median/Mobile Specific Fixes */
+    .safe-pt { padding-top: var(--safe-area-top); }
+    .safe-pb { padding-bottom: var(--safe-area-bottom); }
+    .safe-mt { margin-top: var(--safe-area-top); }
+    
     @keyframes orbit {
       from { transform: rotate(0deg); }
       to { transform: rotate(360deg); }
@@ -48,12 +65,12 @@
     .logo-core { animation: pulse-core 3s ease-in-out infinite; }
   </style>
   <script>
-    // Robust process polyfill for mobile wrappers (Median.co / WebView)
-    window.process = window.process || {};
-    window.process.env = window.process.env || {};
-    // This will be populated by Vite define during build
-    if (!window.process.env.API_KEY) {
-      window.process.env.API_KEY = "";
+    // Robust process polyfill for Median.co / mobile WebViews
+    window.process = window.process || { env: {} };
+    if (!window.process.env) window.process.env = {};
+    // Ensure API_KEY doesn't cause crashes if missing
+    if (typeof window.process.env.API_KEY === 'undefined') {
+        window.process.env.API_KEY = "";
     }
   </script>
 <script type="importmap">

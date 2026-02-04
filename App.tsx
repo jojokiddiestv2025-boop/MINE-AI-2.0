@@ -26,7 +26,7 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="h-screen w-full bg-[#030712] flex flex-col items-center justify-center space-y-6">
+      <div className="min-h-screen w-full bg-[#030712] flex flex-col items-center justify-center space-y-6">
         <Logo size="md" className="animate-pulse" />
         <div className="w-12 h-12 border-2 border-blue-600/10 border-t-blue-600 rounded-full animate-spin"></div>
       </div>
@@ -43,7 +43,7 @@ const App: React.FC = () => {
 
   if (!hasApiKey) {
     return (
-      <div className="h-screen w-full bg-[#030712] flex flex-col items-center justify-center p-6 text-center">
+      <div className="min-h-screen w-full bg-[#030712] flex flex-col items-center justify-center p-6 text-center safe-pt safe-pb">
         <div className="mb-10">
           <Logo size="lg" />
         </div>
@@ -67,30 +67,30 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col h-screen w-full bg-[#030712] overflow-hidden font-inter">
-      <header className="h-20 flex items-center px-8 glass border-b border-white/5 z-20 shrink-0">
-        <div className="flex items-center space-x-4">
+    <div className="flex flex-col min-h-screen w-full bg-[#030712] font-inter overflow-x-hidden">
+      <header className="sticky top-0 h-auto min-h-[5rem] flex items-center px-4 md:px-8 glass border-b border-white/5 z-50 shrink-0 safe-pt">
+        <div className="flex items-center space-x-3 py-3">
           <Logo size="sm" />
-          <h1 className="text-xl font-outfit font-black tracking-tighter uppercase">
+          <h1 className="text-lg md:text-xl font-outfit font-black tracking-tighter uppercase whitespace-nowrap">
             Mine <span className="text-blue-500">Ai</span>
           </h1>
         </div>
         
-        <div className="ml-auto flex items-center space-x-8">
-          <div className="hidden lg:flex items-center space-x-3 text-[10px] font-black uppercase tracking-[0.25em] text-gray-500">
-            <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
-            <span>Link Sync: 100%</span>
+        <div className="ml-auto flex items-center space-x-4 md:space-x-8">
+          <div className="hidden sm:flex items-center space-x-3 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
+            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+            <span className="hidden lg:inline">Link Sync: 100%</span>
           </div>
           <button 
             onClick={() => auth.signOut()}
-            className="text-[10px] uppercase font-black tracking-widest text-gray-500 hover:text-red-500 transition-colors bg-white/5 px-4 py-2 rounded-xl border border-white/5 hover:border-red-500/30"
+            className="text-[9px] uppercase font-black tracking-widest text-gray-500 hover:text-red-500 transition-colors bg-white/5 px-3 py-2 rounded-xl border border-white/5"
           >
-            Terminal Exit
+            Exit
           </button>
         </div>
       </header>
 
-      <main className="flex-1 overflow-hidden relative">
+      <main className="flex-1 w-full relative">
         <LiveVoice />
       </main>
     </div>

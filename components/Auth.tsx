@@ -159,8 +159,13 @@ const Auth: React.FC = () => {
             )}
 
             {success && (
-              <div className="bg-green-500/10 border border-green-500/50 text-green-400 text-[11px] py-3 px-4 rounded-xl font-medium text-center">
-                {success}
+              <div className="flex flex-col gap-2 bg-green-500/10 border border-green-500/50 text-green-400 text-[11px] py-4 px-4 rounded-xl font-medium text-center">
+                <span>{success}</span>
+                {isResetPassword && (
+                  <span className="text-[9px] opacity-70 italic">
+                    Don't see it? Check your <b>spam folder</b> and mark as "Not Spam" to improve future deliverability.
+                  </span>
+                )}
               </div>
             )}
 
