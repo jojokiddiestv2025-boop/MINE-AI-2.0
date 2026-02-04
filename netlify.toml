@@ -1,4 +1,3 @@
-
 [build]
   command = "npm run build"
   publish = "dist"
@@ -10,16 +9,19 @@
   from = "/sitemap.xml"
   to = "/sitemap.xml"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/robots.txt"
   to = "/robots.txt"
   status = 200
+  force = true
 
 [[redirects]]
-  from = "/google*.html"
-  to = "/:splat"
+  from = "/googlec8fac39536667d7f.html"
+  to = "/googlec8fac39536667d7f.html"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
