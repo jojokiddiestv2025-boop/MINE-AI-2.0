@@ -60,11 +60,11 @@ const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
     type: Type.OBJECT,
-    description: 'PRIMARY OUTPUT INTERFACE: Respond to the user by updating the persistent workspace. Be detailed.',
+    description: 'PRIMARY INTERFACE: Update the workspace with text or code.',
     properties: {
-      content: { type: Type.STRING, description: 'The text or code in Markdown.' },
-      language: { type: Type.STRING, description: 'Format (markdown, python, javascript, etc.)' },
-      title: { type: Type.STRING, description: 'Concise title.' },
+      content: { type: Type.STRING, description: 'Markdown content.' },
+      language: { type: Type.STRING, description: 'Content format.' },
+      title: { type: Type.STRING, description: 'Header title.' },
     },
     required: ['content', 'language', 'title'],
   },
@@ -108,20 +108,17 @@ const LiveVoice: React.FC = () => {
     try {
       setIsConnecting(true);
       setError(null);
-      
       const apiKey = process.env.API_KEY || (window as any).process?.env?.API_KEY;
       if (!apiKey) throw new Error("API_KEY_MISSING");
 
       const ai = new GoogleGenAI({ apiKey });
       requestNativeMicPermission();
-      
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
 
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
       const inputCtx = new AudioCtx({ sampleRate: 16000 });
       const outputCtx = new AudioCtx({ sampleRate: 24000 });
-      
       audioContextRef.current = inputCtx;
       outputAudioContextRef.current = outputCtx;
 
@@ -131,7 +128,7 @@ const LiveVoice: React.FC = () => {
           responseModalities: [Modality.AUDIO],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: "You are MINE AI, a hyper-intelligent neural interface. Respond via voice and use 'updateWorkspace' for text/code results."
+          systemInstruction: "You are MINE AI. Respond via voice. Use updateWorkspace tool for structured info."
         },
         callbacks: {
           onopen: () => {
@@ -139,26 +136,20 @@ const LiveVoice: React.FC = () => {
             setIsConnecting(false);
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(4096, 1, 1);
-            
             scriptProcessor.onaudioprocess = (e) => {
               const inputData = e.inputBuffer.getChannelData(0);
               let sum = 0;
               for(let i=0; i<inputData.length; i++) sum += inputData[i]*inputData[i];
               const rms = Math.sqrt(sum/inputData.length);
               setIsUserSpeaking(rms > 0.05);
-
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
-              
               sessionPromise.then(s => s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }));
             };
             source.connect(scriptProcessor);
             scriptProcessor.connect(inputCtx.destination);
-
             visionIntervalRef.current = window.setInterval(() => {
-              if (visualContext) {
-                sessionPromise.then(s => s.sendRealtimeInput({ media: { data: visualContext.data, mimeType: visualContext.mimeType } }));
-              }
+              if (visualContext) sessionPromise.then(s => s.sendRealtimeInput({ media: { data: visualContext.data, mimeType: visualContext.mimeType } }));
             }, 4000);
           },
           onmessage: async (m) => {
@@ -167,7 +158,7 @@ const LiveVoice: React.FC = () => {
                 if (fc.name === 'updateWorkspace') {
                   const args = fc.args as any;
                   setWorkspace({ content: args.content, language: args.language, title: args.title, isActive: true });
-                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "Success" } }] }));
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: [{ id: fc.id, name: fc.name, response: { result: "OK" } }] }));
                 }
               }
             }
@@ -183,36 +174,40 @@ const LiveVoice: React.FC = () => {
               sourcesRef.current.add(node);
             }
           },
-          onerror: (e) => { setError({ title: "Signal Lost", message: "Interface interrupted." }); cleanup(); },
+          onerror: (e) => { setError({ title: "Sync Lost", message: "Signal interruption detected." }); cleanup(); },
           onclose: () => cleanup()
         }
       });
       sessionPromiseRef.current = sessionPromise;
     } catch (err) {
-      setError({ title: "Sync Failed", message: "Check microphone permissions." });
+      setError({ title: "Sync Blocked", message: "Microphone permission required." });
       setIsConnecting(false);
       cleanup();
     }
   };
 
   return (
-    <div className="flex flex-col min-h-full safe-pb font-inter animate-in fade-in duration-1000">
-      <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 p-6 md:p-12">
+    <div className="flex flex-col min-h-full safe-pb font-inter animate-apex">
+      <div className="relative z-10 w-full max-w-[1700px] mx-auto flex flex-col xl:flex-row gap-12 p-8 md:p-16 items-stretch">
         
-        {/* Module: Visuals */}
-        <div className="w-full lg:w-72 shrink-0 space-y-6">
-          <div className="glass-strong border-white/10 p-8 rounded-[3rem] shadow-2xl flex flex-col items-center">
-            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-500 mb-8">Neural Vision</h3>
-            <div className="w-full aspect-square relative flex items-center justify-center">
+        {/* Module: Visual Input (Left) */}
+        <div className="w-full xl:w-96 shrink-0 space-y-10">
+          <div className="glass-premium p-12 rounded-[4rem] flex flex-col items-center">
+            <h3 className="text-[11px] font-black uppercase tracking-[0.8em] text-blue-500 mb-12">Visual core</h3>
+            <div className="w-full aspect-square relative">
               {visualContext ? (
-                <div className="relative group w-full h-full">
-                  <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover rounded-[2rem] border border-blue-500/20 shadow-xl" alt="Feed" />
-                  <button onClick={() => setVisualContext(null)} className="absolute -top-3 -right-3 bg-red-600/90 text-white rounded-full p-2 hover:scale-110 transition-all"><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
+                <div className="relative group w-full h-full overflow-hidden rounded-[3rem]">
+                  <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover border border-white/10" alt="Feed" />
+                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                    <button onClick={() => setVisualContext(null)} className="bg-red-600 text-white rounded-full p-5 hover:scale-110 active:scale-95 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
+                  </div>
                 </div>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border-2 border-dashed border-gray-800 rounded-[2.5rem] flex flex-col items-center justify-center text-gray-600 hover:border-blue-500/40 hover:text-blue-400 transition-all group bg-white/5">
-                  <svg className="w-10 h-10 mb-3 opacity-20 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1.5} /></svg>
-                  <span className="text-[9px] font-black uppercase tracking-widest">Capture Frame</span>
+                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border border-dashed border-white/10 rounded-[4rem] flex flex-col items-center justify-center text-gray-600 hover:border-blue-500/40 hover:text-blue-500 transition-all group bg-white/[0.01]">
+                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
+                    <svg className="w-8 h-8 opacity-40 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
+                  </div>
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">Capture feed</span>
                 </button>
               )}
               <input type="file" ref={fileInputRef} onChange={(e) => {
@@ -224,128 +219,125 @@ const LiveVoice: React.FC = () => {
                 }
               }} accept="image/*" className="hidden" />
             </div>
-            <p className="mt-8 text-[9px] text-gray-500 font-bold uppercase tracking-widest text-center">Context syncs every 4s</p>
           </div>
           
-          <div className="glass p-6 rounded-[2.5rem] text-center space-y-4">
-             <div className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600">Signal Integrity</div>
-             <div className="flex justify-center gap-1">
-               {[1,2,3,4,5].map(i => <div key={i} className={`w-1 h-3 rounded-full ${isConnected ? 'bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]' : 'bg-gray-800'}`}></div>)}
+          <div className="glass-premium p-10 rounded-[3rem] text-center">
+             <div className="text-[10px] font-black uppercase tracking-[0.6em] text-gray-700 mb-8">Link Integrity</div>
+             <div className="flex justify-center gap-3">
+               {[...Array(12)].map((_, i) => <div key={i} className={`w-1.5 h-6 rounded-full transition-all duration-700 ${isConnected ? 'bg-blue-600 shadow-[0_0_20px_rgba(0,102,255,0.8)]' : 'bg-white/5'}`} style={{ animationDelay: `${i * 0.05}s` }}></div>)}
              </div>
           </div>
         </div>
 
-        {/* Module: Communication Hub */}
-        <div className={`flex flex-col gap-8 transition-all duration-700 ${workspace.isActive ? 'lg:w-[480px]' : 'flex-1'}`}>
-          <div className="glass-strong border-white/10 rounded-[3.5rem] p-12 min-h-[480px] flex flex-col justify-center items-center relative overflow-hidden shadow-2xl">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500 to-transparent opacity-30"></div>
-            
+        {/* Module: Main Control (Center) */}
+        <div className={`flex flex-col gap-10 transition-all duration-1000 ${workspace.isActive ? 'xl:w-[600px]' : 'flex-1'}`}>
+          <div className="glass-premium rounded-[5rem] p-20 min-h-[640px] flex flex-col justify-center items-center relative overflow-hidden">
             {!isConnected && !isConnecting && !error && (
-              <div className="text-center space-y-10">
-                <div className="w-24 h-24 rounded-full border border-white/5 flex items-center justify-center mx-auto shadow-inner bg-black/20">
-                  <svg className="w-10 h-10 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
+              <div className="text-center space-y-16 animate-apex">
+                <div className="w-32 h-32 rounded-full border border-white/5 flex items-center justify-center mx-auto bg-black/40 shadow-inner">
+                  <svg className="w-14 h-14 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={0.8} /></svg>
                 </div>
                 <div>
-                  <h4 className="text-sm font-black uppercase tracking-[0.8em] text-blue-500 mb-3">Sync Required</h4>
-                  <p className="text-xs text-gray-500 font-medium">Initialize neural link to begin dialogue.</p>
+                  <h4 className="text-sm font-black uppercase tracking-[1.5em] text-blue-600 mb-6">Link Ready</h4>
+                  <p className="text-[12px] text-gray-600 font-bold uppercase tracking-[0.3em]">Initialize bionic dialogue</p>
                 </div>
               </div>
             )}
 
             {isConnecting && (
-              <div className="flex flex-col items-center gap-6">
-                <div className="w-16 h-16 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
-                <div className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-400">Negotiating Bridge...</div>
+              <div className="flex flex-col items-center gap-14">
+                <div className="relative w-32 h-32">
+                  <div className="absolute inset-0 border-2 border-blue-500/5 rounded-full"></div>
+                  <div className="absolute inset-0 border-2 border-t-blue-600 rounded-full animate-spin"></div>
+                </div>
+                <div className="text-[12px] font-black uppercase tracking-[1em] text-blue-500">Negotiating...</div>
               </div>
             )}
 
             {error && (
-              <div className="text-center bg-red-500/5 p-10 rounded-[2.5rem] border border-red-500/20">
-                <div className="w-12 h-12 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={2}/></svg>
+              <div className="text-center p-16 animate-apex">
+                <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-10 text-red-600">
+                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={2}/></svg>
                 </div>
-                <h3 className="text-white font-bold mb-2">{error.title}</h3>
-                <p className="text-gray-500 text-xs mb-8">{error.message}</p>
-                <button onClick={startConversation} className="px-8 py-3 bg-red-500 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest shadow-lg shadow-red-500/20">Retry Sync</button>
+                <h3 className="text-white text-2xl font-black mb-4 tracking-tight">{error.title}</h3>
+                <p className="text-gray-500 text-sm mb-12 uppercase tracking-[0.1em]">{error.message}</p>
+                <button onClick={startConversation} className="button-apex py-4 px-10 text-[10px]">Retry Sync</button>
               </div>
             )}
 
             {isConnected && (
-              <div className="flex flex-col items-center gap-12 w-full">
+              <div className="flex flex-col items-center gap-20 w-full animate-apex">
                 <div className="relative">
-                  <div className={`absolute -inset-16 bg-blue-500/10 blur-[50px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-125' : 'opacity-20 scale-100'}`}></div>
-                  <div className="w-20 h-20 rounded-full border border-blue-500/20 flex items-center justify-center bg-black/40 relative z-10 shadow-2xl">
-                     <div className={`w-3 h-3 rounded-full bg-blue-500 ${isUserSpeaking ? 'animate-ping' : 'opacity-40 shadow-[0_0_10px_rgba(59,130,246,1)]'}`}></div>
+                  <div className={`absolute -inset-32 bg-blue-600/15 blur-[100px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-150' : 'opacity-10 scale-90'}`}></div>
+                  <div className="w-40 h-40 rounded-full border border-white/10 flex items-center justify-center bg-black/60 relative z-10 shadow-2xl">
+                     <div className={`w-6 h-6 rounded-full bg-blue-600 ${isUserSpeaking ? 'animate-ping' : 'opacity-80 shadow-[0_0_30px_rgba(0,102,255,1)]'}`}></div>
                   </div>
                 </div>
-                <div className="flex items-end justify-center gap-2 h-12 w-full px-10">
-                  {[...Array(20)].map((_, i) => (
-                    <div key={i} className={`w-1 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-blue-400' : 'bg-gray-800'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '8px', opacity: isUserSpeaking ? 0.6 + Math.random()*0.4 : 0.2 }}></div>
+                <div className="flex items-end justify-center gap-2.5 h-24 w-full px-16">
+                  {[...Array(32)].map((_, i) => (
+                    <div key={i} className={`w-1.5 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-blue-500' : 'bg-white/5'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '10px', opacity: isUserSpeaking ? 0.6 + Math.random()*0.4 : 0.1 }}></div>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col items-center py-10 glass-strong border-white/10 rounded-[3.5rem] shadow-xl relative overflow-hidden group">
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+          <div className="flex flex-col items-center py-16 glass-premium rounded-[5rem] relative overflow-hidden group">
             <button
               onClick={isConnected ? cleanup : startConversation}
               disabled={isConnecting}
-              className={`w-32 h-32 rounded-full flex items-center justify-center transition-all duration-500 shadow-2xl border-4 group active:scale-95 ${
+              className={`w-40 h-40 rounded-full flex items-center justify-center transition-all duration-1000 shadow-2xl border group active:scale-95 ${
                 isConnected 
-                  ? 'bg-gray-950 border-red-500/20 text-red-500 hover:border-red-500/40 shadow-red-500/10' 
-                  : 'bg-white text-black border-transparent hover:shadow-white/20'
+                  ? 'bg-black border-red-900/40 text-red-600 hover:border-red-600 shadow-red-600/10' 
+                  : 'bg-white text-black border-transparent'
               }`}
             >
-              {isConnecting ? <div className="w-10 h-10 border-4 border-black/10 border-t-black rounded-full animate-spin"></div> : 
+              {isConnecting ? <div className="w-14 h-14 border-4 border-black/10 border-t-black rounded-full animate-spin"></div> : 
                 isConnected ? (
-                  <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
+                  <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
                 ) : (
-                  <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1.5} /></svg>
+                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
                 )
               }
             </button>
-            <p className="mt-8 text-[10px] font-black uppercase tracking-[0.8em] text-gray-500 group-hover:text-blue-400 transition-colors">
-              {isConnected ? 'Disconnect' : 'Sync Interface'}
+            <p className="mt-12 text-[12px] font-black uppercase tracking-[1.5em] text-gray-700 group-hover:text-blue-500 transition-colors">
+              {isConnected ? 'Terminate' : 'Establish Link'}
             </p>
           </div>
         </div>
 
-        {/* Module: Workspace Output */}
+        {/* Module: Production Workspace (Right) */}
         {workspace.isActive && (
-          <div className="flex-1 glass-strong border-blue-500/20 rounded-[4rem] shadow-2xl animate-in slide-in-from-right-12 duration-1000 overflow-hidden flex flex-col">
-            <header className="p-10 border-b border-white/5 flex items-center justify-between bg-white/5 backdrop-blur-3xl">
-              <div className="flex items-center gap-6">
-                <div className="w-3 h-3 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,1)]"></div>
+          <div className="flex-1 glass-premium rounded-[5rem] animate-apex overflow-hidden flex flex-col min-h-[800px]">
+            <header className="p-16 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div className="flex items-center gap-10">
+                <div className="w-5 h-5 rounded-full bg-blue-600 shadow-[0_0_20px_rgba(0,102,255,1)]"></div>
                 <div>
-                  <h3 className="text-2xl font-outfit font-black tracking-tight text-white">{workspace.title}</h3>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-blue-400/60">{workspace.language} module active</span>
+                  <h3 className="text-4xl font-outfit font-black tracking-tight text-white mb-2">{workspace.title}</h3>
+                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-500/60">Module focus: {workspace.language}</span>
                 </div>
               </div>
-              <div className="flex gap-4">
+              <div className="flex gap-6">
                 <button 
                   onClick={() => { navigator.clipboard.writeText(workspace.content); setCopyStatus('copied'); setTimeout(() => setCopyStatus('idle'), 2000); }}
-                  className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
+                  className={`px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:bg-white/10'}`}
                 >
-                  {copyStatus === 'copied' ? 'Stored' : 'Copy'}
+                  {copyStatus === 'copied' ? 'Secured' : 'Sync Local'}
                 </button>
-                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-12 h-12 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 hover:bg-red-500/10 text-gray-500 hover:text-red-500 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2.5} /></svg></button>
+                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-16 h-16 flex items-center justify-center rounded-3xl bg-white/5 border border-white/10 hover:bg-red-950/20 text-gray-600 hover:text-red-600 transition-all">
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2} /></svg>
+                </button>
               </div>
             </header>
-            <div className="flex-1 p-12 md:p-16 overflow-y-auto">
-              <div className="max-w-3xl mx-auto prose prose-invert prose-blue prose-p:text-gray-300 prose-headings:font-outfit prose-headings:font-black prose-pre:bg-black/40 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-[2rem]">
-                <div className="whitespace-pre-wrap font-sans leading-relaxed text-lg">
+            <div className="flex-1 p-20 md:p-32 overflow-y-auto">
+              <div className="max-w-5xl mx-auto prose prose-invert prose-blue prose-p:text-gray-400 prose-headings:font-outfit prose-headings:font-black prose-pre:bg-black/60 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-[4rem] prose-pre:p-12">
+                <div className="whitespace-pre-wrap font-sans leading-relaxed text-2xl font-medium tracking-tight">
                   {workspace.content}
                 </div>
               </div>
             </div>
           </div>
         )}
-      </div>
-      
-      <div className="mt-auto py-12 text-center">
-        <p className="text-[9px] font-black uppercase tracking-[1em] text-gray-700">Multi-modal Neural Grid Access</p>
       </div>
     </div>
   );

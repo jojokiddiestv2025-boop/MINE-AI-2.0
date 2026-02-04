@@ -4,30 +4,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="google-site-verification" content="kgyw9sx5WCmb55iruGDKUItX63pOY1qCTM1unX_eWAQ" />
-  <title>MINE AI | Neural Interface & Multimodal Intelligence</title>
-  <meta name="description" content="Mine AI is a high-bandwidth multimodal neural interface for real-time voice, vision, and code workspace synchronization. Built for power users and mobile professionals.">
-  <meta name="keywords" content="AI, Neural Interface, Gemini, Median.co, Voice Assistant, Vision AI, Multimodal AI, Productivity, Real-time AI">
-  <meta name="author" content="Mine Neural Systems">
-  <meta name="robots" content="index, follow">
-  <meta name="theme-color" content="#030712">
+  <title>MINE AI | The Apex of Neural Intelligence</title>
+  <meta name="description" content="The world's most sophisticated high-bandwidth multimodal neural interface. Experience zero-friction intelligence.">
+  <meta name="theme-color" content="#02040a">
 
-  <!-- Open Graph / Facebook -->
-  <meta property="og:type" content="website">
-  <meta property="og:url" content="https://mine-ai-2-0.vercel.app/">
-  <meta property="og:title" content="MINE AI | Neural Interface & Multimodal Intelligence">
-  <meta property="og:description" content="Experience high-bandwidth multimodal intelligence. Real-time voice and vision with integrated drafting tools.">
-  <meta property="og:image" content="https://mine-ai-2-0.vercel.app/og-image.png">
-
-  <!-- Twitter -->
-  <meta property="twitter:card" content="summary_large_image">
-  <meta property="twitter:url" content="https://mine-ai-2-0.vercel.app/">
-  <meta property="twitter:title" content="MINE AI | Neural Interface & Multimodal Intelligence">
-  <meta property="twitter:description" content="Experience high-bandwidth multimodal intelligence. Real-time voice and vision with integrated drafting tools.">
-  <meta property="twitter:image" content="https://mine-ai-2-0.vercel.app/og-image.png">
-
-  <link rel="canonical" href="https://mine-ai-2-0.vercel.app/" />
-  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
-  
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,99 +16,99 @@
     :root {
       --safe-area-top: env(safe-area-inset-top, 0px);
       --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-      --accent-blue: #3b82f6;
-      --accent-purple: #8b5cf6;
-      --bg-deep: #030712;
+      --accent-primary: #0066ff;
+      --bg-obsidian: #02040a;
     }
     
     * {
       -webkit-font-smoothing: antialiased;
       -moz-osx-font-smoothing: grayscale;
+      cursor: crosshair;
     }
 
-    html { 
-      scroll-behavior: smooth; 
-      height: 100%;
-    }
-    
-    body {
-      font-family: 'Inter', sans-serif;
-      background-color: var(--bg-deep);
-      color: #f9fafb;
+    html, body { 
+      background-color: var(--bg-obsidian);
+      color: #ffffff;
       margin: 0;
+      height: 100%;
       overflow-x: hidden;
-      min-height: 100%;
-      -webkit-tap-highlight-color: transparent;
-      display: flex;
-      flex-direction: column;
+      font-family: 'Inter', sans-serif;
     }
 
     .font-outfit { font-family: 'Outfit', sans-serif; }
 
-    /* Animated Ambient Background */
-    .ambient-mesh {
+    /* Kinetic Background Architecture */
+    .viewport-ambient {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      inset: 0;
       z-index: -1;
-      background: 
-        radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.08) 0%, transparent 40%),
-        radial-gradient(circle at 50% 50%, rgba(17, 24, 39, 1) 0%, rgba(3, 7, 18, 1) 100%);
-      opacity: 1;
+      background: radial-gradient(circle at 50% -20%, #1a2a44 0%, var(--bg-obsidian) 70%);
+      overflow: hidden;
     }
 
-    .glass {
-      background: rgba(15, 23, 42, 0.6);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+    .light-orb {
+      position: absolute;
+      width: 100vmax;
+      height: 100vmax;
+      border-radius: 50%;
+      filter: blur(140px);
+      opacity: 0.12;
+      pointer-events: none;
+      animation: float-orbit 40s linear infinite;
+    }
+    .orb-1 { background: #0066ff; top: -50%; left: -20%; }
+    .orb-2 { background: #5500ff; bottom: -50%; right: -20%; animation-duration: 60s; animation-direction: reverse; }
+
+    @keyframes float-orbit {
+      0% { transform: translate(0, 0) rotate(0deg); }
+      50% { transform: translate(10%, 5%) rotate(180deg); }
+      100% { transform: translate(0, 0) rotate(360deg); }
     }
 
-    .glass-strong {
-      background: rgba(15, 23, 42, 0.85);
-      backdrop-filter: blur(30px) saturate(200%);
-      -webkit-backdrop-filter: blur(30px) saturate(200%);
-      border: 1px solid rgba(255, 255, 255, 0.12);
+    .glass-premium {
+      background: rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(40px) saturate(180%);
+      -webkit-backdrop-filter: blur(40px) saturate(180%);
+      border: 0.5px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
     }
 
-    /* Keyframes */
-    @keyframes float {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-10px); }
+    .button-apex {
+      position: relative;
+      background: #ffffff;
+      color: #000000;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.25em;
+      padding: 1.5rem 3.5rem;
+      border-radius: 9999px;
+      overflow: hidden;
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .button-apex:hover {
+      transform: translateY(-4px) scale(1.02);
+      box-shadow: 0 30px 60px rgba(0, 102, 255, 0.25);
+    }
+    .button-apex:active { transform: translateY(0) scale(0.98); }
+
+    /* Noise Layer for Tactile Feel */
+    .grain {
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 1000;
     }
 
-    @keyframes shine {
-      0% { background-position: -200% center; }
-      100% { background-position: 200% center; }
+    @keyframes blur-reveal {
+      0% { opacity: 0; filter: blur(30px); transform: scale(1.05); }
+      100% { opacity: 1; filter: blur(0); transform: scale(1); }
     }
-
-    .animate-float { animation: float 6s ease-in-out infinite; }
+    .animate-apex { animation: blur-reveal 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     
-    .text-gradient {
-      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .text-glow-blue {
-      text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
-    }
-
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-    }
-    ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 0.5); }
-    
-    /* Median/Mobile Specific Fixes */
-    .safe-pt { padding-top: var(--safe-area-top); }
-    .safe-pb { padding-bottom: var(--safe-area-bottom); }
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
   </style>
   <script>
     window.process = window.process || { env: {} };
@@ -152,7 +132,11 @@
 </script>
 </head>
 <body>
-  <div class="ambient-mesh"></div>
+  <div class="grain"></div>
+  <div class="viewport-ambient">
+    <div class="light-orb orb-1"></div>
+    <div class="light-orb orb-2"></div>
+  </div>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
 </body>
