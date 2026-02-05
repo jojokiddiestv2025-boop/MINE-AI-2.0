@@ -5,6 +5,7 @@ import { VisualContext, WorkspaceState } from '../types';
 interface LiveVoiceProps {
   onHome?: () => void;
   isAcademic?: boolean;
+  isTeacher?: boolean;
 }
 
 async function decodeAudioData(data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> {
@@ -46,9 +47,10 @@ const updateWorkspaceTool: FunctionDeclaration = {
   },
 };
 
-const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => {
+const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false, isTeacher = false }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [isModelThinking, setIsModelThinking] = useState(false);
   const [error, setError] = useState<{title: string, message: string} | null>(null);
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
@@ -74,6 +76,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
     sourcesRef.current.clear();
     setIsConnected(false);
     setIsConnecting(false);
+    setIsModelThinking(false);
     nextStartTimeRef.current = 0;
   }, []);
 
@@ -92,9 +95,14 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
       audioContextRef.current = inputCtx;
       outputAudioContextRef.current = outputCtx;
 
-      const instruction = isAcademic 
-        ? `You are MINE AI Chancellor. Provide academic excellence. Use updateWorkspace to show solutions, essay structures, or quiz questions.`
-        : `You are MINE AI. A hyper-advanced neural link. Be creative and helpful.`;
+      let instruction = '';
+      if (isTeacher) {
+        instruction = `You are the MINE Teacher Assistant. Help teachers plan lessons, grade assignments, and track student performance. Use updateWorkspace for syllabi and lesson plans. Be supportive and professional.`;
+      } else if (isAcademic) {
+        instruction = `You are MINE AI Chancellor. Provide academic tutoring for students. Use updateWorkspace for study guides and quiz questions. Use Socratic method.`;
+      } else {
+        instruction = `You are MINE AI. A hyper-advanced neural link for personal superintelligence. Be creative, fluid, and extremely precise.`;
+      }
 
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
@@ -108,7 +116,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
               const inputData = e.inputBuffer.getChannelData(0);
               let sum = 0;
               for(let i=0; i<inputData.length; i++) sum += inputData[i]*inputData[i];
-              setIsUserSpeaking(Math.sqrt(sum/inputData.length) > 0.05);
+              const rms = Math.sqrt(sum/inputData.length);
+              setIsUserSpeaking(rms > 0.05);
               
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
@@ -122,6 +131,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
             }, 3000);
           },
           onmessage: async (m: LiveServerMessage) => {
+            if (m.serverContent?.modelTurn) {
+              setIsModelThinking(false);
+            } else if (m.serverContent?.inputTranscription) {
+              setIsModelThinking(true);
+            }
+
             if (m.toolCall) {
               for (const fc of m.toolCall.functionCalls) {
                 if (fc.name === 'updateWorkspace') {
@@ -148,7 +163,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
               sourcesRef.current.add(node);
             }
           },
-          onerror: (e) => { setError({title: "Link Error", message: "Nexus signal lost."}); cleanup(); },
+          onerror: (e) => { setError({title: "Neural Deficit", message: "Uplink signal unstable."}); cleanup(); },
           onclose: () => cleanup()
         },
         config: {
@@ -160,26 +175,33 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
       });
       sessionPromiseRef.current = sessionPromise;
     } catch (err: any) {
-      setError({ title: "Blocked", message: "Hardware access denied." });
+      setError({ title: "Hardware Blocked", message: "Neural peripheral access denied." });
       setIsConnecting(false);
     }
   };
 
   return (
-    <div className="flex flex-col flex-1 w-full max-w-[2400px] mx-auto animate-billion overflow-hidden bg-white">
+    <div className="flex flex-col flex-1 w-full max-w-[2400px] mx-auto animate-billion overflow-hidden bg-white/50 backdrop-blur-xl">
       <div className="flex flex-col lg:flex-row flex-1 p-4 md:p-10 lg:p-16 gap-8 lg:gap-14 overflow-hidden">
         
-        {/* Module: Visual Input */}
-        <div className="w-full lg:w-[400px] flex flex-col gap-8">
+        {/* Module: Perception Feed */}
+        <div className="w-full lg:w-[420px] flex flex-col gap-8 shrink-0">
           <div className="glass-premium p-10 rounded-[4rem] border-white/90 shadow-2xl flex-1 flex flex-col items-center">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-prismatic mb-8">Visual Feed</h3>
-            <div className="w-full aspect-square relative bg-slate-50 rounded-[3rem] flex items-center justify-center overflow-hidden">
+            <h3 className="text-[10px] font-black uppercase tracking-[1em] text-prismatic mb-10">Neural Input</h3>
+            <div className="w-full aspect-square relative bg-white/80 rounded-[3.5rem] flex items-center justify-center overflow-hidden shadow-inner border border-black/[0.03]">
               {visualContext ? (
-                <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" />
+                <div className="relative group w-full h-full">
+                  <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" />
+                  <button onClick={() => setVisualContext(null)} className="absolute top-4 right-4 bg-white/40 backdrop-blur-md p-4 rounded-full hover:bg-red-500 hover:text-white transition-all text-slate-900 shadow-xl">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
+                  </button>
+                </div>
               ) : (
-                <button onClick={() => document.getElementById('cam-upload')?.click()} className="flex flex-col items-center gap-4 text-slate-300 hover:text-prismatic transition-colors">
-                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
-                  <span className="text-[10px] font-black uppercase tracking-[0.4em]">Scan Reality</span>
+                <button onClick={() => document.getElementById('cam-upload')?.click()} className="flex flex-col items-center gap-6 text-slate-300 hover:text-prismatic transition-all group">
+                  <div className="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                    <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
+                  </div>
+                  <span className="text-[10px] font-black uppercase tracking-[0.5em]">Sync Visual Frame</span>
                 </button>
               )}
               <input type="file" id="cam-upload" hidden onChange={(e) => {
@@ -191,52 +213,83 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
                 }
               }} />
             </div>
-            {visualContext && <button onClick={() => setVisualContext(null)} className="mt-6 text-[10px] font-black text-red-500 uppercase tracking-widest hover:underline">Clear Feed</button>}
+            <div className="mt-12 w-full space-y-4">
+              <div className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400">Node Sensitivity</div>
+              <div className="h-1 w-full bg-slate-100 rounded-full overflow-hidden">
+                <div className={`h-full bg-prismatic transition-all duration-300 ${isUserSpeaking ? 'w-full' : 'w-12'}`}></div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Module: Neural Interface */}
-        <div className={`flex flex-col gap-8 flex-1 transition-all duration-700 ${workspace.isActive ? 'lg:flex-[1.5]' : 'lg:flex-[2]'}`}>
-          <div className="glass-premium rounded-[5rem] p-12 md:p-24 flex-1 flex flex-col justify-center items-center relative overflow-hidden shadow-2xl border-white/90">
-            {error && <div className="text-center p-12 animate-billion"><h3 className="text-red-500 text-5xl font-black mb-6">{error.title}</h3><p className="text-slate-400 text-lg mb-10">{error.message}</p><button onClick={startConversation} className="button-billion">Retry</button></div>}
+        {/* Module: Synaptic Cockpit */}
+        <div className={`flex flex-col gap-8 flex-1 transition-all duration-1000 ${workspace.isActive ? 'lg:flex-[1.5]' : 'lg:flex-[2.5]'}`}>
+          <div className="glass-premium rounded-[5rem] p-12 md:p-24 flex-1 flex flex-col justify-center items-center relative overflow-hidden shadow-2xl border-white/90 bg-white/20">
+            {error && <div className="text-center p-12 animate-billion"><h3 className="text-red-500 text-5xl font-black mb-6 uppercase tracking-tighter">{error.title}</h3><p className="text-slate-400 text-lg mb-10 font-medium">{error.message}</p><button onClick={startConversation} className="button-billion">Re-Establish</button></div>}
             
             {!isConnected && !isConnecting && !error && (
               <div className="text-center space-y-16 animate-billion">
-                <button onClick={startConversation} className="w-56 h-56 rounded-full bg-white border border-black/5 flex items-center justify-center mx-auto shadow-2xl hover:scale-110 transition-transform group">
-                   <div className="w-16 h-16 bg-prismatic rounded-full group-hover:animate-ping"></div>
+                <button onClick={startConversation} className="w-64 h-64 rounded-full bg-white border border-black/5 flex items-center justify-center mx-auto shadow-2xl hover:scale-105 transition-all group relative">
+                   <div className="absolute inset-0 bg-prismatic opacity-10 blur-2xl rounded-full group-hover:opacity-30 transition-all"></div>
+                   <div className="w-20 h-20 bg-prismatic rounded-full group-hover:scale-110 transition-transform"></div>
                 </button>
-                <div className="space-y-4">
-                  <h4 className="text-2xl font-black uppercase tracking-[1em] text-slate-900">{isAcademic ? 'CHANCELLOR' : 'PERSONAL'}</h4>
-                  <p className="text-slate-400 font-bold uppercase tracking-widest">Awaiting Command</p>
+                <div className="space-y-6">
+                  <h4 className="text-2xl font-black uppercase tracking-[1.5em] text-slate-900">{isTeacher ? 'TEACHER NUCLEUS' : isAcademic ? 'CHANCELLOR' : 'PERSONAL APEX'}</h4>
+                  <p className="text-slate-400 font-bold uppercase tracking-[0.8em] text-[12px]">Ready for High-Bandwidth Link</p>
                 </div>
               </div>
             )}
 
-            {isConnecting && <div className="flex flex-col items-center gap-12"><div className="w-24 h-24 border-4 border-t-prismatic border-slate-100 rounded-full animate-spin"></div><div className="text-xl font-black uppercase tracking-widest text-prismatic">Syncing...</div></div>}
+            {isConnecting && (
+              <div className="flex flex-col items-center gap-16">
+                <div className="w-32 h-32 border-[6px] border-t-prismatic border-slate-100 rounded-full animate-spin shadow-xl"></div>
+                <div className="text-xl font-black uppercase tracking-[2em] text-prismatic animate-pulse">Syncing...</div>
+              </div>
+            )}
 
             {isConnected && (
-              <div className="flex flex-col items-center gap-24 w-full animate-billion">
-                <div className={`w-64 h-64 rounded-full border-4 transition-all duration-300 ${isUserSpeaking ? 'border-prismatic bg-prismatic/10 scale-110' : 'border-black/5 bg-white'}`}></div>
-                <div className="flex items-end justify-center gap-2 h-32 w-full">
-                  {[...Array(20)].map((_, i) => <div key={i} className="w-2 bg-prismatic rounded-full transition-all" style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '8px' }}></div>)}
+              <div className="flex flex-col items-center gap-32 w-full animate-billion relative">
+                <div className={`absolute -inset-40 bg-prismatic/5 blur-[120px] rounded-full transition-all duration-1000 ${isModelThinking ? 'opacity-100 scale-125' : 'opacity-0 scale-90'}`}></div>
+                <div className={`w-72 h-72 rounded-full border-2 transition-all duration-700 flex items-center justify-center bg-white shadow-2xl ${isUserSpeaking ? 'border-prismatic scale-110 shadow-[0_0_80px_rgba(0,242,255,0.2)]' : isModelThinking ? 'border-purple-400 animate-pulse' : 'border-black/5'}`}>
+                   <div className={`w-16 h-16 rounded-full transition-all duration-500 ${isUserSpeaking ? 'bg-prismatic' : isModelThinking ? 'bg-purple-400 scale-75' : 'bg-slate-100'}`}></div>
+                </div>
+                <div className="flex items-end justify-center gap-2 h-40 w-full px-20">
+                  {[...Array(40)].map((_, i) => (
+                    <div key={i} className={`w-2 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-prismatic' : isModelThinking ? 'bg-purple-300' : 'bg-slate-100'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : isModelThinking ? `${40 + Math.sin(i*0.5)*30}%` : '8px' }}></div>
+                  ))}
                 </div>
               </div>
             )}
           </div>
           
-          <div className="flex items-center justify-center py-10">
-             {isConnected && <button onClick={cleanup} className="px-12 py-5 bg-red-500 text-white rounded-full font-black uppercase tracking-widest hover:bg-red-600 transition-colors shadow-lg">Terminate Link</button>}
+          <div className="flex items-center justify-center py-12 gap-8">
+             {isConnected && (
+               <>
+                 <button onClick={cleanup} className="px-16 py-6 bg-slate-900 text-white rounded-full font-black uppercase tracking-[0.4em] hover:bg-red-500 transition-all shadow-2xl active:scale-95 text-[11px]">Terminate Session</button>
+                 <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_rgba(34,197,94,0.5)]"></div>
+               </>
+             )}
           </div>
         </div>
 
-        {/* Module: Workspace */}
+        {/* Module: Production Synapse */}
         {workspace.isActive && (
-          <div className="w-full lg:w-[600px] glass-premium rounded-[4rem] animate-billion flex flex-col shadow-2xl border-white/90">
-            <header className="p-10 border-b border-black/[0.03] flex items-center justify-between">
-              <h3 className="text-3xl font-black text-slate-900">{workspace.title}</h3>
-              <button onClick={() => setWorkspace({...workspace, isActive: false})} className="p-4 hover:bg-red-50 rounded-full transition-colors text-slate-300 hover:text-red-500"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg></button>
+          <div className="w-full lg:w-[650px] glass-premium rounded-[4rem] animate-billion flex flex-col shadow-2xl border-white/90 bg-white/60 overflow-hidden">
+            <header className="p-12 border-b border-black/[0.03] flex items-center justify-between bg-white/40">
+              <div>
+                <h3 className="text-3xl font-black text-slate-900 tracking-tight">{workspace.title}</h3>
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-prismatic mt-2">Format: {workspace.language}</p>
+              </div>
+              <button onClick={() => setWorkspace({...workspace, isActive: false})} className="p-4 hover:bg-red-50 rounded-full transition-colors text-slate-300 hover:text-red-500 shadow-sm border border-black/[0.03] bg-white">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg>
+              </button>
             </header>
-            <div className="flex-1 p-10 overflow-y-auto font-sans leading-relaxed text-2xl text-slate-700 whitespace-pre-wrap">{workspace.content}</div>
+            <div className="flex-1 p-12 overflow-y-auto font-sans leading-relaxed text-2xl text-slate-800 whitespace-pre-wrap selection:bg-cyan-100 custom-scrollbar">
+              {workspace.content}
+            </div>
+            <footer className="p-8 border-t border-black/[0.03] bg-white/40 flex justify-end">
+              <button className="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-900 transition-colors">Neural Assets Saved</button>
+            </footer>
           </div>
         )}
       </div>

@@ -50,7 +50,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
 
         <div className="max-w-7xl mx-auto text-center space-y-12 animate-billion">
           <div className="inline-flex items-center px-10 py-3 rounded-full border border-black/5 bg-white/40 text-prismatic text-[11px] font-black uppercase tracking-[0.8em] backdrop-blur-md shadow-sm">
-            Neural Nexus v4.0 Active
+            Neural Nexus v5.0 Active
           </div>
           
           <h2 className="text-7xl sm:text-8xl lg:text-[13rem] font-outfit font-black tracking-[-0.05em] leading-[0.8] text-slate-900">
@@ -93,12 +93,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
                 <h4 className="text-4xl font-outfit font-black uppercase text-slate-900">Academic Chancellor</h4>
                 <div className="space-y-6">
                    <div className="p-8 bg-white/60 rounded-3xl border border-black/[0.03] shadow-sm">
-                      <p className="text-cyan-600 text-sm font-black uppercase tracking-widest mb-4">Live Quiz Generation</p>
-                      <p className="text-slate-600 font-medium leading-relaxed">"I have prepared 5 questions on quantum thermodynamics based on your scan."</p>
+                      <p className="text-cyan-600 text-sm font-black uppercase tracking-widest mb-4">Student Tutoring</p>
+                      <p className="text-slate-600 font-medium leading-relaxed">"Solving for x: Let's first look at the coefficients..."</p>
                    </div>
                    <div className="p-8 bg-white/60 rounded-3xl border border-black/[0.03] shadow-sm">
-                      <p className="text-purple-600 text-sm font-black uppercase tracking-widest mb-4">Socratic Tutoring</p>
-                      <p className="text-slate-600 font-medium leading-relaxed">"Before I give you the answer, what do you think the first variable represents?"</p>
+                      <p className="text-purple-600 text-sm font-black uppercase tracking-widest mb-4">Teacher Assistance</p>
+                      <p className="text-slate-600 font-medium leading-relaxed">"Syllabus draft for Quantum Physics v2.0 complete in your workspace."</p>
                    </div>
                 </div>
              </div>
@@ -109,7 +109,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
                 <span className="text-prismatic">FOR SCHOOLS.</span>
              </h3>
              <p className="text-slate-500 text-2xl font-medium leading-relaxed ml-auto max-w-xl">
-                Empower your institution with private neural clusters. Provision accounts, monitor academic load, and give every student an Apex Chancellor.
+                Dedicated neural clusters for <span className="text-slate-900 font-bold">Students, Teachers, and Faculty.</span> Provision private nodes, track academic progress, and leverage the AI Chancellor.
              </p>
              <button onClick={onSchoolClick} className="button-billion !bg-white !text-slate-900 border-2 border-black/5 hover:border-cyan-400 px-16 shadow-xl">
                 Register Institution
@@ -185,7 +185,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
                   <div className="text-[11px] uppercase font-black tracking-[0.5em] text-slate-400">Architect Age</div>
                 </div>
                 <div className="px-12 py-10 glass-premium rounded-[3rem] border-white/80 hover:border-cyan-400/20 transition-all group/stat shadow-xl">
-                  <div className="text-5xl font-black text-slate-900 mb-2 group-hover/stat:text-cyan-600 transition-colors">4.0</div>
+                  <div className="text-5xl font-black text-slate-900 mb-2 group-hover/stat:text-cyan-600 transition-colors">5.0</div>
                   <div className="text-[11px] uppercase font-black tracking-[0.5em] text-slate-400">Nexus Core</div>
                 </div>
               </div>

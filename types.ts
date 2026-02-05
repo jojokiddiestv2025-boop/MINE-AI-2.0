@@ -17,10 +17,11 @@ export interface WorkspaceState {
   isActive: boolean;
 }
 
-export type UserRole = 'student' | 'school_admin';
+export type UserRole = 'personal' | 'student' | 'teacher' | 'school_admin';
 
 export interface SchoolProfile {
   name: string;
   adminEmail: string;
-  studentNodes: string[]; // List of student emails
+  studentNodes: string[]; 
+  teacherNodes: string[];
 }
