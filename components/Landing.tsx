@@ -124,14 +124,14 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 {/* Image Frame with Prismatic Border Glow */}
                 <div className="absolute -inset-6 bg-prismatic opacity-20 blur-3xl group-hover:opacity-40 transition-all duration-1000"></div>
                 <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_60px_120px_rgba(0,0,0,0.9)] bg-[#0a0a0a]">
-                  {/* Primary Image: /joshua/image.jpg */}
+                  {/* Updated to joshua_suit.jpg */}
                   <img 
-                    src="/joshua/image.jpg" 
+                    src="joshua_suit.jpg" 
                     alt="Joshua - The 13 Year Old Developer" 
                     className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      // Fallback to a placeholder if the local file is not found in the preview environment
+                      // Fallback for preview environments
                       target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop";
                     }}
                   />
@@ -139,12 +139,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                   <div className="absolute bottom-16 left-16 right-16 space-y-4">
                      <div className="h-1 w-20 bg-prismatic rounded-full"></div>
                      <p className="text-white text-5xl font-black font-outfit uppercase tracking-tighter">Joshua</p>
-                     <p className="text-prismatic text-lg font-black uppercase tracking-[0.5em] opacity-80">Lead Architect • Age 13</p>
+                     <p className="text-prismatic text-lg font-black uppercase tracking-[0.5em] opacity-80">Founder & Lead Architect • Age 13</p>
                   </div>
                 </div>
-                {/* Decorative Elements */}
-                <div className="absolute -bottom-8 -right-8 w-32 h-32 glass-premium rounded-full flex items-center justify-center animate-bounce duration-[3s]">
-                  <span className="text-2xl font-black text-white">MINE</span>
+                {/* Decorative Element */}
+                <div className="absolute -bottom-8 -right-8 w-32 h-32 glass-premium rounded-full flex items-center justify-center animate-bounce duration-[3s] shadow-[0_0_40px_rgba(0,242,255,0.3)] border-prismatic/20">
+                  <Logo size="sm" showText={false} />
                 </div>
              </div>
           </div>
