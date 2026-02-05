@@ -124,15 +124,15 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 {/* Image Frame with Prismatic Border Glow */}
                 <div className="absolute -inset-6 bg-prismatic opacity-20 blur-3xl group-hover:opacity-40 transition-all duration-1000"></div>
                 <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_60px_120px_rgba(0,0,0,0.9)] bg-[#0a0a0a]">
-                  {/* Updated to joshua_suit.jpg */}
+                  {/* Using exact path requested: joshua/joshua_suit.jpg */}
                   <img 
-                    src="joshua_suit.jpg" 
+                    src="joshua/joshua_suit.jpg" 
                     alt="Joshua - The 13 Year Old Developer" 
                     className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      // Fallback for preview environments
-                      target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop";
+                      // Fallback for visual confirmation in non-file environments, though user asked not to customize
+                      console.warn("Founder image at joshua/joshua_suit.jpg not found. Ensure folder and file exist.");
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
