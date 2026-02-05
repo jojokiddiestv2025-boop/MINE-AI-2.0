@@ -115,33 +115,48 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       </section>
 
       {/* Founder Section */}
-      <section id="founder" className="py-60 px-8 relative overflow-hidden bg-black/40">
-        <div className="absolute top-0 right-0 text-[30rem] font-black opacity-[0.03] select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-white">13</div>
+      <section id="founder" className="py-60 px-8 relative overflow-hidden bg-[#050505]">
+        <div className="absolute top-0 right-0 text-[30rem] font-black opacity-[0.02] select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-white">13</div>
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24 lg:gap-40">
           
           <div className="w-full lg:w-[500px] xl:w-[600px] shrink-0 order-2 lg:order-1">
              <div className="relative group">
                 {/* Image Frame with Prismatic Border Glow */}
-                <div className="absolute -inset-6 bg-prismatic opacity-20 blur-3xl group-hover:opacity-40 transition-all duration-1000"></div>
-                <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_60px_120px_rgba(0,0,0,0.9)] bg-[#0a0a0a]">
-                  {/* Strictly using joshua/joshua_suit.jpg as requested */}
+                <div className="absolute -inset-8 bg-prismatic opacity-20 blur-[100px] group-hover:opacity-40 transition-all duration-1000"></div>
+                <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_80px_160px_rgba(0,0,0,1)] bg-[#0a0a0a]">
+                  {/* Using /joshua/joshua_suit.jpg with absolute path for better reliability */}
                   <img 
-                    src="joshua/joshua_suit.jpg" 
+                    src="/joshua/joshua_suit.jpg" 
                     alt="Joshua - The 13 Year Old Developer" 
-                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                    className="w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110"
                     onError={(e) => {
-                      console.warn("Founder image at joshua/joshua_suit.jpg could not be loaded. Please ensure the path is correct in your file explorer.");
+                      const target = e.target as HTMLImageElement;
+                      console.error("Founder image at /joshua/joshua_suit.jpg failed to load.");
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
-                  <div className="absolute bottom-16 left-16 right-16 space-y-4">
-                     <div className="h-1 w-20 bg-prismatic rounded-full"></div>
-                     <p className="text-white text-5xl font-black font-outfit uppercase tracking-tighter">Joshua</p>
-                     <p className="text-prismatic text-lg font-black uppercase tracking-[0.5em] opacity-80">Founder & Lead Architect • Age 13</p>
+                  
+                  {/* Neural Scanline Effect Overlay */}
+                  <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_4px,3px_100%]"></div>
+                  
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90"></div>
+                  
+                  <div className="absolute bottom-16 left-16 right-16 space-y-6 z-20">
+                     <div className="flex items-center gap-4">
+                        <div className="h-1 w-16 bg-prismatic rounded-full"></div>
+                        <div className="px-4 py-1 rounded-full bg-cyan-500/20 border border-cyan-500/30 text-[10px] font-black text-cyan-400 uppercase tracking-widest">Verified Founder</div>
+                     </div>
+                     <div>
+                        <p className="text-white text-6xl font-black font-outfit uppercase tracking-tighter leading-none">Joshua</p>
+                        <p className="text-prismatic text-xl font-black uppercase tracking-[0.4em] mt-2">Lead Neural Architect</p>
+                     </div>
                   </div>
                 </div>
-                {/* Decorative Element */}
-                <div className="absolute -bottom-8 -right-8 w-32 h-32 glass-premium rounded-full flex items-center justify-center animate-bounce duration-[3s] shadow-[0_0_40px_rgba(0,242,255,0.3)] border-prismatic/20">
+
+                {/* Decorative Floaties */}
+                <div className="absolute -top-10 -left-10 w-24 h-24 glass-premium rounded-3xl flex items-center justify-center animate-bounce duration-[4s] shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-white/10 z-30">
+                  <div className="text-[12px] font-black text-prismatic">13yo</div>
+                </div>
+                <div className="absolute -bottom-8 -right-8 w-36 h-36 glass-premium rounded-full flex items-center justify-center animate-pulse duration-[3s] shadow-[0_0_80px_rgba(0,242,255,0.2)] border-prismatic/20 z-30">
                   <Logo size="sm" showText={false} />
                 </div>
              </div>
@@ -149,8 +164,8 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
 
           <div className="flex-1 space-y-16 order-1 lg:order-2">
             <div className="space-y-8">
-              <div className="inline-flex items-center px-8 py-3 rounded-full border border-white/5 bg-white/[0.02] text-prismatic text-[11px] font-black uppercase tracking-[0.8em]">
-                The Visionary Architect
+              <div className="inline-flex items-center px-10 py-4 rounded-full border border-white/5 bg-white/[0.02] text-prismatic text-[11px] font-black uppercase tracking-[0.8em] shadow-[0_0_40px_rgba(0,242,255,0.05)]">
+                Founder Spotlight
               </div>
               <h3 className="text-7xl md:text-9xl font-outfit font-black tracking-tighter leading-none">
                 THE MIND <br />
@@ -158,23 +173,26 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               </h3>
             </div>
 
-            <p className="text-gray-400 text-3xl font-medium leading-tight max-w-2xl tracking-tight">
-              "Building the future isn't about age, it's about the <span className="text-white font-bold">bandwidth of your ideas.</span>"
-            </p>
+            <div className="relative">
+              <div className="absolute -left-12 top-0 text-8xl font-black text-white/5 pointer-events-none">"</div>
+              <p className="text-gray-300 text-3xl md:text-4xl font-medium leading-[1.1] max-w-2xl tracking-tight relative z-10">
+                Building the future isn't about age, it's about the <span className="text-white font-bold underline decoration-prismatic decoration-4 underline-offset-8">bandwidth of your ideas.</span>
+              </p>
+            </div>
 
-            <div className="space-y-10">
-              <p className="text-gray-500 text-xl font-medium leading-relaxed max-w-xl">
-                Joshua, a 13-year-old developer, engineered MINE AI to be the first high-fidelity neural link that works at the speed of human thought. His mission is to democratize superintelligence for students and professionals globally.
+            <div className="space-y-12">
+              <p className="text-gray-500 text-2xl font-medium leading-relaxed max-w-xl">
+                Joshua, at age 13, engineered MINE AI to bridge the latency between human intuition and machine intelligence. This is the first neural link optimized for the speed of modern academic thought.
               </p>
               
-              <div className="flex flex-wrap gap-8">
-                <div className="px-10 py-8 glass-premium rounded-[2.5rem] border-white/5">
-                  <div className="text-4xl font-black text-white mb-1">13</div>
-                  <div className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-600">Founder Age</div>
+              <div className="flex flex-wrap gap-10">
+                <div className="px-12 py-10 glass-premium rounded-[3rem] border-white/5 hover:border-prismatic/20 transition-colors group/stat">
+                  <div className="text-5xl font-black text-white mb-2 group-hover/stat:text-prismatic transition-colors">13</div>
+                  <div className="text-[11px] uppercase font-black tracking-[0.5em] text-gray-600">Architect Age</div>
                 </div>
-                <div className="px-10 py-8 glass-premium rounded-[2.5rem] border-white/5">
-                  <div className="text-4xl font-black text-white mb-1">∞</div>
-                  <div className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-600">Neural Scale</div>
+                <div className="px-12 py-10 glass-premium rounded-[3rem] border-white/5 hover:border-cyan-500/20 transition-colors group/stat">
+                  <div className="text-5xl font-black text-white mb-2 group-hover/stat:text-cyan-400 transition-colors">4.0</div>
+                  <div className="text-[11px] uppercase font-black tracking-[0.5em] text-gray-600">Nexus Core</div>
                 </div>
               </div>
             </div>
