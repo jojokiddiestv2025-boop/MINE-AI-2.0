@@ -9,7 +9,7 @@ import Logo from './components/Logo';
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [isInitializing, setIsInitializing] = useState(true);
-  const [showLanding, setShowLanding] = useState(true);
+  const [viewState, setViewState] = useState<'landing' | 'auth' | 'app'>('landing');
 
   const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
 
@@ -17,97 +17,110 @@ const App: React.FC = () => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       setIsInitializing(false);
+      if (currentUser && viewState !== 'landing') {
+        setViewState('app');
+      }
     });
     return () => unsubscribe();
-  }, []);
+  }, [viewState]);
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen w-full bg-[#02040a] flex flex-col items-center justify-center p-6 animate-apex">
+      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center p-6 animate-billion">
         <Logo size="md" showText={false} />
-        <div className="mt-12 w-12 h-12 border-2 border-blue-600/10 border-t-blue-600 rounded-full animate-spin"></div>
+        <div className="mt-12 w-16 h-1 w-24 bg-prismatic rounded-full animate-pulse"></div>
       </div>
     );
   }
 
-  // Allow returning to landing page if user is authenticated but wants to see the cinematic view
-  if (showLanding) {
-    return <Landing onEnter={() => setShowLanding(false)} />;
+  // Handle Main View States
+  if (viewState === 'landing') {
+    return <Landing 
+      onGetStarted={() => user ? setViewState('app') : setViewState('auth')} 
+      onAuthClick={() => setViewState('auth')}
+      isLoggedIn={!!user}
+    />;
   }
 
-  if (!user) {
-    return <Auth />;
+  if (viewState === 'auth' && !user) {
+    return <Auth onBack={() => setViewState('landing')} onComplete={() => setViewState('app')} />;
   }
 
-  if (!hasApiKey) {
-    return (
-      <div className="min-h-screen w-full bg-[#02040a] flex flex-col items-center justify-center p-6 text-center animate-apex">
-        <div className="mb-12 md:mb-16 scale-75 md:scale-100">
-          <Logo size="lg" showText={true} />
-        </div>
-        <div className="glass-premium p-8 md:p-12 rounded-[3rem] max-w-lg w-full">
-          <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-red-600/5 flex items-center justify-center mx-auto mb-8 border border-red-600/20 shadow-2xl shadow-red-600/10">
-            <svg className="w-8 h-8 md:w-10 md:h-10 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
+  // Primary App View
+  if (user) {
+    if (!hasApiKey) {
+      return (
+        <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center p-6 text-center animate-billion">
+          <div className="mb-12 scale-75 md:scale-100">
+            <Logo size="lg" showText={true} />
           </div>
-          <h2 className="text-2xl md:text-3xl font-outfit font-black mb-4 uppercase tracking-tight">Configuration Required</h2>
-          <p className="text-gray-500 mb-10 leading-relaxed text-base md:text-lg">
-            The <code>API_KEY</code> is missing. Neural synchronization requires valid credentials to establish the link.
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="button-apex w-full md:w-auto !py-4 !px-12"
-          >
-            Retry Connection
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="flex flex-col min-h-screen w-full bg-[#010204] font-inter overflow-x-hidden">
-      <header className="sticky top-0 h-auto flex items-center px-4 md:px-10 lg:px-20 bg-black/40 backdrop-blur-2xl border-b border-white/[0.05] z-50 shrink-0 safe-pt py-4">
-        <div 
-          className="flex items-center space-x-3 md:space-x-6 group cursor-pointer active:scale-95 transition-transform" 
-          onClick={() => setShowLanding(true)}
-        >
-          <div className="scale-75 md:scale-100">
-            <Logo size="sm" showText={false} />
-          </div>
-          <h1 className="text-xl md:text-3xl font-outfit font-black tracking-[-0.1em] uppercase whitespace-nowrap text-white">
-            MINE <span className="text-prismatic">AI</span>
-          </h1>
-        </div>
-        
-        <div className="ml-auto flex items-center space-x-4 md:space-x-10">
-          <div className="hidden md:flex items-center space-x-5 text-[10px] lg:text-[11px] font-black uppercase tracking-[0.6em] text-gray-500">
-            <div className="flex items-center space-x-2">
-              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_15px_rgba(0,102,255,0.8)]"></span>
-              <span>Node Active</span>
+          <div className="glass-premium p-10 md:p-14 rounded-[4rem] max-w-xl w-full">
+            <div className="w-20 h-20 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-10 border border-red-600/30">
+              <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
             </div>
+            <h2 className="text-3xl font-outfit font-black mb-6 uppercase tracking-tight">Configuration Link Offline</h2>
+            <p className="text-gray-400 mb-12 leading-relaxed text-lg font-medium">
+              The neural pipeline requires an <code>API_KEY</code> to bridge the consciousness barrier. 
+            </p>
             <button 
-              onClick={() => setShowLanding(true)}
-              className="hover:text-white transition-colors cursor-pointer"
+              onClick={() => window.location.reload()}
+              className="button-billion !py-5 !px-16"
             >
-              Home
+              Restart Connection
             </button>
           </div>
-          <button 
-            onClick={() => auth.signOut()}
-            className="text-[10px] uppercase font-black tracking-[0.3em] text-white/40 hover:text-white transition-all bg-white/[0.05] hover:bg-white/[0.1] px-5 py-3 rounded-2xl border border-white/5 whitespace-nowrap"
-          >
-            Sign Out
-          </button>
         </div>
-      </header>
+      );
+    }
 
-      <main className="flex-1 w-full relative flex flex-col overflow-hidden">
-        <LiveVoice onHome={() => setShowLanding(true)} />
-      </main>
-    </div>
-  );
+    return (
+      <div className="flex flex-col min-h-screen w-full bg-[#000] font-inter overflow-x-hidden">
+        <header className="sticky top-0 h-auto flex items-center px-6 md:px-14 lg:px-24 bg-black/50 backdrop-blur-3xl border-b border-white/[0.08] z-50 shrink-0 safe-pt py-6">
+          <div 
+            className="flex items-center space-x-4 md:space-x-8 group cursor-pointer active:scale-95 transition-transform" 
+            onClick={() => setViewState('landing')}
+          >
+            <div className="scale-75 md:scale-90">
+              <Logo size="sm" showText={false} />
+            </div>
+            <h1 className="text-2xl md:text-4xl font-outfit font-black tracking-[-0.1em] uppercase whitespace-nowrap text-white">
+              MINE <span className="text-prismatic">AI</span>
+            </h1>
+          </div>
+          
+          <div className="ml-auto flex items-center space-x-6 md:space-x-12">
+            <div className="hidden lg:flex items-center space-x-8 text-[11px] font-black uppercase tracking-[0.8em] text-gray-500">
+              <div className="flex items-center space-x-3">
+                <span className="w-3 h-3 rounded-full bg-blue-500 animate-pulse shadow-[0_0_20px_rgba(0,242,255,1)]"></span>
+                <span>Active Link</span>
+              </div>
+              <button 
+                onClick={() => setViewState('landing')}
+                className="hover:text-white transition-colors"
+              >
+                Dashboard
+              </button>
+            </div>
+            <button 
+              onClick={() => { auth.signOut(); setViewState('landing'); }}
+              className="text-[11px] uppercase font-black tracking-[0.4em] text-white/50 hover:text-white transition-all bg-white/[0.05] hover:bg-white/[0.1] px-8 py-4 rounded-3xl border border-white/10"
+            >
+              Sign Out
+            </button>
+          </div>
+        </header>
+
+        <main className="flex-1 w-full relative flex flex-col overflow-hidden">
+          <LiveVoice onHome={() => setViewState('landing')} />
+        </main>
+      </div>
+    );
+  }
+
+  // Fallback to landing if anything weird happens
+  return <Landing onGetStarted={() => setViewState('auth')} onAuthClick={() => setViewState('auth')} isLoggedIn={false} />;
 };
 
 export default App;

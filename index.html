@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="google-site-verification" content="kgyw9sx5WCmb55iruGDKUItX63pOY1qCTM1unX_eWAQ" />
   <meta name="msvalidate.01" content="54A68FFE38D7B3F7A3F6954AE34A8D12" />
   <title>MINE AI | The Apex of Neural Intelligence</title>
-  <meta name="description" content="The world's most sophisticated high-bandwidth multimodal neural interface. Experience zero-friction intelligence.">
+  <meta name="description" content="Experience the world's most sophisticated high-bandwidth multimodal neural interface. Zero-friction intelligence.">
   <meta name="theme-color" content="#02040a">
 
   <!-- Versioned Tailwind CDN -->
@@ -23,7 +23,7 @@
       --accent-secondary: #7000ff;
       --accent-tertiary: #ff00ea;
       --accent-quaternary: #ffaa00;
-      --bg-obsidian: #010204;
+      --bg-obsidian: #000000;
     }
     
     * {
@@ -36,14 +36,13 @@
       background-color: var(--bg-obsidian);
       color: #ffffff;
       margin: 0;
-      height: 100%;
-      overflow: hidden;
+      min-height: 100%;
       font-family: 'Inter', sans-serif;
     }
 
     .font-outfit { font-family: 'Outfit', sans-serif; }
 
-    /* Liquid Prismatic Aurora Background */
+    /* Hyper-Vibrant Liquid Background */
     .viewport-ambient {
       position: fixed;
       inset: 0;
@@ -54,72 +53,69 @@
 
     .aurora-layer {
       position: absolute;
-      width: 100vw;
-      height: 100vh;
-      opacity: 0.4;
-      filter: blur(120px);
+      width: 120vw;
+      height: 120vh;
+      opacity: 0.6;
+      filter: blur(140px);
       mix-blend-mode: screen;
-      animation: aurora-shift 30s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
+      animation: aurora-shift 20s infinite alternate cubic-bezier(0.45, 0, 0.55, 1);
     }
 
-    .aurora-1 { background: radial-gradient(circle at 10% 10%, var(--accent-primary) 0%, transparent 50%); }
-    .aurora-2 { background: radial-gradient(circle at 90% 90%, var(--accent-secondary) 0%, transparent 50%); animation-delay: -5s; }
-    .aurora-3 { background: radial-gradient(circle at 50% 50%, var(--accent-tertiary) 0%, transparent 60%); animation-duration: 45s; }
-    .aurora-4 { background: radial-gradient(circle at 20% 80%, var(--accent-quaternary) 0%, transparent 40%); opacity: 0.15; }
+    .aurora-1 { background: radial-gradient(circle at 10% 10%, var(--accent-primary) 0%, transparent 50%); top: -10%; left: -10%; }
+    .aurora-2 { background: radial-gradient(circle at 90% 90%, var(--accent-secondary) 0%, transparent 50%); bottom: -10%; right: -10%; animation-delay: -5s; }
+    .aurora-3 { background: radial-gradient(circle at 50% 50%, var(--accent-tertiary) 0%, transparent 60%); top: 20%; left: 20%; animation-duration: 35s; }
+    .aurora-4 { background: radial-gradient(circle at 80% 20%, var(--accent-quaternary) 0%, transparent 40%); opacity: 0.2; }
 
     @keyframes aurora-shift {
       0% { transform: translate(0, 0) scale(1) rotate(0deg); }
-      50% { transform: translate(5%, 10%) scale(1.1) rotate(5deg); }
-      100% { transform: translate(-5%, -10%) scale(0.9) rotate(-5deg); }
+      50% { transform: translate(10%, 15%) scale(1.2) rotate(10deg); }
+      100% { transform: translate(-10%, -15%) scale(0.8) rotate(-10deg); }
     }
 
     .glass-premium {
-      background: rgba(255, 255, 255, 0.02);
-      backdrop-filter: blur(80px) saturate(250%);
-      -webkit-backdrop-filter: blur(80px) saturate(250%);
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(255, 255, 255, 0.03);
+      backdrop-filter: blur(60px) saturate(200%);
+      -webkit-backdrop-filter: blur(60px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.1);
       box-shadow: 
-        0 40px 100px rgba(0, 0, 0, 0.8),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.03);
+        0 30px 60px rgba(0, 0, 0, 0.5),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.05);
     }
 
-    .button-apex {
+    .button-billion {
       position: relative;
-      background: #ffffff;
-      color: #000000;
+      background: linear-gradient(135deg, #fff 0%, #00f2ff 100%);
+      color: #000;
       font-weight: 900;
       text-transform: uppercase;
-      letter-spacing: 0.4em;
-      padding: 1.8rem 4.5rem;
-      border-radius: 9999px;
+      letter-spacing: 0.3em;
+      padding: 1.5rem 4rem;
+      border-radius: 2rem;
       overflow: hidden;
-      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 20px 50px rgba(255, 255, 255, 0.1);
+      transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 40px rgba(0, 242, 255, 0.3);
     }
-    .button-apex:hover {
-      transform: translateY(-8px) scale(1.05);
-      background: var(--accent-primary);
-      box-shadow: 0 50px 100px rgba(0, 242, 255, 0.4);
+    .button-billion:hover {
+      transform: translateY(-5px) scale(1.02);
+      box-shadow: 0 20px 80px rgba(0, 242, 255, 0.6);
+      filter: brightness(1.1);
     }
-    .button-apex:active { transform: translateY(0) scale(0.94); }
+    .button-billion:active { transform: translateY(0) scale(0.96); }
 
     .grain {
       position: fixed;
       inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 250 250' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.04;
       pointer-events: none;
       z-index: 1000;
     }
 
-    @keyframes blur-reveal {
-      0% { opacity: 0; filter: blur(100px); transform: translateY(40px) scale(1.1); }
-      100% { opacity: 1; filter: blur(0); transform: translateY(0) scale(1); }
+    @keyframes fade-in-up {
+      0% { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(10px); }
+      100% { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
     }
-    .animate-apex { animation: blur-reveal 1.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-    
-    ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .animate-billion { animation: fade-in-up 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
     
     .text-prismatic {
       background: linear-gradient(135deg, #fff 0%, #00f2ff 25%, #7000ff 50%, #ff00ea 75%, #fff 100%);
@@ -134,26 +130,16 @@
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-    
-    .bg-prismatic {
-        background: linear-gradient(135deg, #00f2ff, #7000ff, #ff00ea);
-        background-size: 200% 200%;
-        animation: prismatic-shift 4s linear infinite;
+
+    /* Selection styles */
+    ::selection {
+      background: var(--accent-primary);
+      color: #000;
     }
 
-    .custom-scrollbar::-webkit-scrollbar {
-      width: 6px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: rgba(255,255,255,0.1);
-      border-radius: 10px;
-    }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: rgba(255,255,255,0.2);
-    }
+    /* Hide scrollbars but keep functionality */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
   </style>
   <script>
     window.process = window.process || { env: {} };
