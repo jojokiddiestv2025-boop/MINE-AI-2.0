@@ -10,19 +10,22 @@ import {
 } from "firebase/auth";
 import { auth } from '../firebase';
 import Logo from './Logo';
+import { SchoolProfile } from '../types';
 
 interface AuthProps {
   mode: 'personal' | 'school';
+  isRegisteringInstitution?: boolean;
   onBack: () => void;
   onComplete: () => void;
   errorOverride?: string | null;
 }
 
-const Auth: React.FC<AuthProps> = ({ mode, onBack, onComplete, errorOverride }) => {
-  const [isLogin, setIsLogin] = useState(true);
+const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onComplete, errorOverride }) => {
+  const [isLogin, setIsLogin] = useState(!isRegisteringInstitution);
   const [isResetPassword, setIsResetPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [schoolName, setSchoolName] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -30,27 +33,6 @@ const Auth: React.FC<AuthProps> = ({ mode, onBack, onComplete, errorOverride }) 
   useEffect(() => {
     if (errorOverride) setError(errorOverride);
   }, [errorOverride]);
-
-  const isWebView = () => {
-    const userAgent = window.navigator.userAgent.toLowerCase();
-    return (
-      (window as any).median || 
-      userAgent.includes('wv') ||
-      (/iphone|ipad|ipod/.test(userAgent) && !userAgent.includes('safari'))
-    );
-  };
-
-  useEffect(() => {
-    const handleRedirect = async () => {
-      try {
-        const result = await getRedirectResult(auth);
-        if (result) onComplete();
-      } catch (err: any) {
-        setError('Authentication link failed. Please try again.');
-      }
-    };
-    handleRedirect();
-  }, [onComplete]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,33 +44,62 @@ const Auth: React.FC<AuthProps> = ({ mode, onBack, onComplete, errorOverride }) 
       if (isResetPassword) {
         await sendPasswordResetEmail(auth, email);
         setSuccess('Neural key reset link sent to your email.');
+      } else if (isRegisteringInstitution) {
+        // Handle School Admin Registration
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const newSchool: SchoolProfile = {
+          id: `school_${Date.now()}`,
+          name: schoolName,
+          adminEmail: email,
+          members: []
+        };
+        // Persist school data linked to admin
+        localStorage.setItem(`mine_school_data_${email}`, JSON.stringify(newSchool));
+        localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'school_admin');
+        onComplete();
       } else if (isLogin) {
-        await signInWithEmailAndPassword(auth, email, password);
+        // Standard Login
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        
+        // If logging into school mode, verify membership
+        if (mode === 'school') {
+          const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
+          let isMember = false;
+          let foundRole = '';
+          
+          for (const key of allSchools) {
+            const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
+            if (school.adminEmail === email) {
+              isMember = true;
+              foundRole = 'school_admin';
+              break;
+            }
+            const member = school.members?.find(m => m.email === email);
+            if (member) {
+              isMember = true;
+              foundRole = member.role;
+              break;
+            }
+          }
+
+          if (!isMember) {
+            throw new Error("This identity is not registered in any School Nexus.");
+          }
+          localStorage.setItem(`mine_role_${userCredential.user.uid}`, foundRole);
+        } else {
+          localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'personal');
+        }
+        
         onComplete();
       } else {
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Standard Personal Registration
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'personal');
         onComplete();
       }
     } catch (err: any) {
       setError(err.message || 'An error occurred during synchronization.');
     } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
-    setIsLoading(true);
-    const provider = new GoogleAuthProvider();
-    try {
-      if (isWebView()) {
-        await signInWithRedirect(auth, provider);
-      } else {
-        await signInWithPopup(auth, provider);
-        onComplete();
-      }
-    } catch (err: any) {
-      setError('Google sync failed.');
       setIsLoading(false);
     }
   };
@@ -106,43 +117,34 @@ const Auth: React.FC<AuthProps> = ({ mode, onBack, onComplete, errorOverride }) 
         <div className="flex flex-col items-center mb-16 relative z-10 text-center">
           <div className="scale-90 mb-8"><Logo size="md" showText={false} /></div>
           <h2 className="text-4xl md:text-5xl font-outfit font-black tracking-tighter text-slate-900 uppercase leading-none">
-            {mode === 'school' ? 'MINE SCHOOLS' : 'MINE PERSONAL'}
+            {isRegisteringInstitution ? 'Register School' : (mode === 'school' ? 'School Nexus' : 'Personal Link')}
           </h2>
           <p className="text-slate-500 mt-6 uppercase tracking-[0.6em] text-[10px] font-black">
-            {mode === 'school' ? 'Institutional Command Interface' : 'Personal Superintelligence Link'}
+            {isRegisteringInstitution ? 'Initialize Institutional Control' : (mode === 'school' ? 'Academic Command Interface' : 'Personal Neural Interface')}
           </p>
         </div>
 
-        <div className="space-y-10 relative z-10">
-          {!isResetPassword && mode === 'personal' && (
-            <button
-              onClick={handleGoogleSignIn}
-              disabled={isLoading}
-              className="w-full py-6 bg-white text-slate-900 font-black rounded-[2rem] shadow-xl border border-black/5 transition-all hover:bg-slate-50 disabled:opacity-50 flex items-center justify-center space-x-5"
-            >
-              {isLoading ? <div className="w-6 h-6 border-4 border-slate-900/10 border-t-slate-900 rounded-full animate-spin"></div> : 
-              <>
-                <svg className="w-6 h-6" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-                <span className="text-sm uppercase tracking-[0.4em]">Google Link</span>
-              </>}
-            </button>
+        <form onSubmit={handleSubmit} className="space-y-8 relative z-10">
+          {isRegisteringInstitution && (
+            <input type="text" value={schoolName} onChange={(e) => setSchoolName(e.target.value)} className="w-full bg-white/50 border border-black/[0.05] rounded-[2rem] px-8 py-6 text-slate-900 text-xl focus:ring-2 focus:ring-purple-500/40 outline-none" placeholder="Institution Name" required />
           )}
-
-          <form onSubmit={handleSubmit} className="space-y-8">
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/50 border border-black/[0.05] rounded-[2rem] px-8 py-6 text-slate-900 text-xl focus:ring-2 focus:ring-cyan-500/40 outline-none" placeholder="identity@neural.link" required />
-            {!isResetPassword && <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/50 border border-black/[0.05] rounded-[2rem] px-8 py-6 text-slate-900 text-xl focus:ring-2 focus:ring-cyan-500/40 outline-none" placeholder="Access Key" required />}
-            {error && <div className="bg-red-50 text-red-600 text-sm py-5 px-8 rounded-[2rem] font-bold text-center border border-red-100">{error}</div>}
-            {success && <div className="bg-cyan-50 text-cyan-700 text-sm py-5 px-8 rounded-[2rem] font-bold text-center border border-cyan-100">{success}</div>}
-            <button type="submit" disabled={isLoading} className="button-billion w-full text-lg py-7">
-              {isLoading ? <div className="w-7 h-7 border-4 border-white/30 border-t-white rounded-full animate-spin"></div> : (isResetPassword ? 'Reset' : (isLogin ? 'Establish Link' : 'Initialize'))}
-            </button>
-          </form>
-        </div>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/50 border border-black/[0.05] rounded-[2rem] px-8 py-6 text-slate-900 text-xl focus:ring-2 focus:ring-cyan-500/40 outline-none" placeholder="identity@neural.link" required />
+          {!isResetPassword && <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/50 border border-black/[0.05] rounded-[2rem] px-8 py-6 text-slate-900 text-xl focus:ring-2 focus:ring-cyan-500/40 outline-none" placeholder="Access Key" required />}
+          
+          {error && <div className="bg-red-50 text-red-600 text-sm py-5 px-8 rounded-[2rem] font-bold text-center border border-red-100 animate-pulse">{error}</div>}
+          {success && <div className="bg-cyan-50 text-cyan-700 text-sm py-5 px-8 rounded-[2rem] font-bold text-center border border-cyan-100">{success}</div>}
+          
+          <button type="submit" disabled={isLoading} className="button-billion w-full text-lg py-7">
+            {isLoading ? <div className="w-7 h-7 border-4 border-white/30 border-t-white rounded-full animate-spin"></div> : (isResetPassword ? 'Reset' : (isLogin ? 'Establish Link' : 'Initialize Nexus'))}
+          </button>
+        </form>
 
         <div className="mt-16 text-center relative z-10">
-          <button onClick={() => { setIsLogin(!isLogin); setIsResetPassword(false); setError(''); }} className="text-slate-400 hover:text-cyan-600 text-[11px] font-black transition-colors uppercase tracking-[0.4em]">
-            {isLogin ? "New Identity? Initialise" : "Existing? Sign In"}
-          </button>
+          {!isRegisteringInstitution && (
+            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-slate-400 hover:text-cyan-600 text-[11px] font-black transition-colors uppercase tracking-[0.4em]">
+              {isLogin ? "New Identity? Initialise" : "Existing? Sign In"}
+            </button>
+          )}
         </div>
       </div>
     </div>

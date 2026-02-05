@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from './firebase';
@@ -9,7 +8,7 @@ import Logo from './components/Logo';
 import SchoolDashboard from './components/SchoolDashboard';
 import { UserRole } from './types';
 
-type AppView = 'landing' | 'auth' | 'welcome_personal' | 'welcome_school' | 'app_personal' | 'app_student' | 'app_teacher' | 'school_admin';
+type AppView = 'landing' | 'auth' | 'welcome_personal' | 'welcome_school' | 'app_personal' | 'app_student' | 'app_teacher' | 'school_admin' | 'auth_register_school';
 type UserContextMode = 'personal' | 'school';
 
 const App: React.FC = () => {
@@ -22,7 +21,6 @@ const App: React.FC = () => {
 
   const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
 
-  // Fix: Defined missing navigation handlers to be used across different views
   const handleStartPersonal = () => {
     setAuthMode('personal');
     setViewState('auth');
@@ -31,6 +29,11 @@ const App: React.FC = () => {
   const handleStartSchool = () => {
     setAuthMode('school');
     setViewState('auth');
+  };
+
+  const handleRegisterInstitution = () => {
+    setAuthMode('school');
+    setViewState('auth_register_school');
   };
 
   useEffect(() => {
@@ -42,7 +45,7 @@ const App: React.FC = () => {
         const storedRole = localStorage.getItem(`mine_role_${currentUser.uid}`) as UserRole | null;
         
         if (!storedRole) {
-          // New account, will be assigned during welcome selection
+          // New account, will be assigned during welcome selection if not already set by Auth registration
           setViewState(authMode === 'school' ? 'welcome_school' : 'welcome_personal');
         } else {
           // Existing account - enforce isolation
@@ -83,7 +86,7 @@ const App: React.FC = () => {
       const aistudio = (window as any).aistudio;
       if (aistudio && aistudio.openSelectKey) {
         await aistudio.openSelectKey();
-        window.location.reload(); // Force reload to pick up new key
+        window.location.reload(); 
       }
     } catch (e) {
       console.error("Key selection error:", e);
@@ -104,17 +107,22 @@ const App: React.FC = () => {
     return <Landing 
       onGetStarted={handleStartPersonal} 
       onAuthClick={handleStartPersonal} 
-      onSchoolClick={handleStartSchool} 
+      onSchoolClick={handleRegisterInstitution} 
       isLoggedIn={!!user} 
     />;
   }
 
-  // View: Auth
+  // View: Auth (Standard)
   if (viewState === 'auth' && !user) {
     return <Auth mode={authMode} errorOverride={error} onBack={() => setViewState('landing')} onComplete={() => {}} />;
   }
 
-  // View: Personal Welcome (Role Assignment)
+  // View: Auth (Institution Registration)
+  if (viewState === 'auth_register_school' && !user) {
+    return <Auth mode="school" isRegisteringInstitution onBack={() => setViewState('landing')} onComplete={() => {}} />;
+  }
+
+  // View: Personal Welcome
   if (viewState === 'welcome_personal') {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-10 text-center animate-billion">
@@ -126,7 +134,7 @@ const App: React.FC = () => {
     );
   }
 
-  // View: School Welcome (Role Selection)
+  // View: School Welcome
   if (viewState === 'welcome_school') {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-10 text-center animate-billion bg-indigo-50/20">
@@ -144,7 +152,7 @@ const App: React.FC = () => {
     );
   }
 
-  // Final AI App Views with proper API Key Check
+  // Final AI App Views
   if (user && hasApiKey) {
     const isSchool = assignedRole === 'student' || assignedRole === 'teacher';
     return (
@@ -167,7 +175,7 @@ const App: React.FC = () => {
         </header>
         <main className="flex-1 w-full relative flex flex-col overflow-hidden">
           {assignedRole === 'school_admin' ? (
-             <SchoolDashboard onBack={() => setViewState('welcome_school')} />
+             <SchoolDashboard onBack={() => { auth.signOut(); setViewState('landing'); }} />
           ) : (
              <LiveVoice 
                onHome={() => setViewState('landing')} 
@@ -180,7 +188,6 @@ const App: React.FC = () => {
     );
   }
 
-  // API Key Selection Fallback
   if (user && !hasApiKey) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion">
@@ -194,8 +201,7 @@ const App: React.FC = () => {
     );
   }
 
-  // Fix: Correctly provided defined handlers to the Landing component
-  return <Landing onGetStarted={handleStartPersonal} onAuthClick={handleStartPersonal} onSchoolClick={handleStartSchool} isLoggedIn={false} />;
+  return <Landing onGetStarted={handleStartPersonal} onAuthClick={handleStartPersonal} onSchoolClick={handleRegisterInstitution} isLoggedIn={false} />;
 };
 
 export default App;

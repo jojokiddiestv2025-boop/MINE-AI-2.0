@@ -26,8 +26,8 @@ export interface CBTData {
 
 export interface WorkspaceState {
   type: 'markdown' | 'cbt';
-  content: string; // Used for markdown
-  cbtData?: CBTData; // Used for CBT
+  content: string; 
+  cbtData?: CBTData; 
   language: string;
   title: string;
   isActive: boolean;
@@ -35,9 +35,17 @@ export interface WorkspaceState {
 
 export type UserRole = 'personal' | 'student' | 'teacher' | 'school_admin';
 
+export interface InstitutionMember {
+  uid?: string;
+  email: string;
+  name: string;
+  role: 'student' | 'teacher';
+  dateAdded: string;
+}
+
 export interface SchoolProfile {
+  id: string;
   name: string;
   adminEmail: string;
-  studentNodes: string[]; 
-  teacherNodes: string[];
+  members: InstitutionMember[];
 }
