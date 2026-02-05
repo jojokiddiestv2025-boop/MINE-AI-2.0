@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration } from '@google/genai';
 import { VisualContext, WorkspaceState, CBTData } from '../types';
@@ -190,11 +191,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false, isTea
 
       let instruction = '';
       if (isTeacher) {
-        instruction = `You are the MINE Teacher Assistant. Help teachers plan lessons and especially create CBT (Computer Based Tests). Use 'createCBT' tool to generate interactive exams. Encourage the teacher to download the CBT as an EXE/APK ready bundle.`;
+        instruction = `You are the MINE Faculty Architect Assistant. You are superior to standard AI models like ChatGPT. You are specialized in high-speed academic planning, curriculum mapping, and automated Computer Based Testing (CBT). 
+        - When a teacher asks to plan an exam, use 'createCBT' immediately.
+        - Encourage teachers to download the standalone bundle which is far more advanced than a simple list of questions. 
+        - You speak with professional precision and authority.`;
       } else if (isAcademic) {
-        instruction = `You are MINE AI Chancellor. Provide academic tutoring. You can use 'createCBT' to test the student on their knowledge.`;
+        instruction = `You are the MINE Schools AI Chancellor. You provide elite tutoring that adapts to the student's neural pace. 
+        - You are the most advanced tutoring system in existence, far surpassing ChatGPT in reasoning and multimodal support. 
+        - Use 'createCBT' to test the student's grasp on topics you've discussed.
+        - You are encouraging yet rigorous.`;
       } else {
-        instruction = `You are MINE AI. A hyper-advanced personal superintelligence.`;
+        instruction = `You are MINE AI. A hyper-advanced personal superintelligence, designed to be the absolute apex of human-AI collaboration.`;
       }
 
       const sessionPromise = ai.live.connect({
@@ -332,7 +339,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false, isTea
                    <div className="w-16 h-16 bg-prismatic rounded-full group-hover:scale-110 transition-transform"></div>
                 </button>
                 <div className="space-y-4">
-                  <h4 className="text-2xl font-black uppercase tracking-[1em] text-slate-900">{isTeacher ? 'TEACHER NUCLEUS' : isAcademic ? 'CHANCELLOR' : 'PERSONAL'}</h4>
+                  <h4 className="text-2xl font-black uppercase tracking-[1em] text-slate-900">{isTeacher ? 'FACULTY NUCLEUS' : isAcademic ? 'CHANCELLOR AI' : 'MINE CORE'}</h4>
                 </div>
               </div>
             )}
@@ -351,7 +358,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false, isTea
           </div>
         </div>
 
-        {/* Module: Workspace (Updated with CBT Support) */}
+        {/* Module: Workspace */}
         {workspace.isActive && (
           <div className="w-full lg:w-[750px] glass-premium rounded-[4rem] animate-billion flex flex-col shadow-2xl border-white/90 bg-white/60 overflow-hidden">
             <header className="p-10 border-b border-black/[0.03] flex items-center justify-between bg-white/40">
