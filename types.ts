@@ -10,8 +10,24 @@ export interface VisualContext {
   mimeType: string;
 }
 
+export interface CBTQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctIndex: number;
+}
+
+export interface CBTData {
+  title: string;
+  subject: string;
+  timeLimit: number; // in minutes
+  questions: CBTQuestion[];
+}
+
 export interface WorkspaceState {
-  content: string;
+  type: 'markdown' | 'cbt';
+  content: string; // Used for markdown
+  cbtData?: CBTData; // Used for CBT
   language: string;
   title: string;
   isActive: boolean;
