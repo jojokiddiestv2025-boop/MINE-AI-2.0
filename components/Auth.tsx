@@ -2,15 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { 
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithRedirect,
-  getRedirectResult,
   sendPasswordResetEmail
 } from "firebase/auth";
 import { auth } from '../firebase';
 import Logo from './Logo';
-import { SchoolProfile } from '../types';
+import { SchoolProfile, InstitutionMember } from '../types';
 
 interface AuthProps {
   mode: 'personal' | 'school';
@@ -58,32 +54,49 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
         localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'school_admin');
         onComplete();
       } else if (isLogin) {
-        // Standard Login
-        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        // Standard Login OR First-time Provisioned School Login
+        let userCredential;
         
-        // If logging into school mode, verify membership
-        if (mode === 'school') {
-          const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
-          let isMember = false;
-          let foundRole = '';
-          
-          for (const key of allSchools) {
-            const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
-            if (school.adminEmail === email) {
-              isMember = true;
-              foundRole = 'school_admin';
-              break;
-            }
-            const member = school.members?.find(m => m.email === email);
-            if (member) {
-              isMember = true;
-              foundRole = member.role;
-              break;
-            }
-          }
+        // Find if this user is a provisioned member of a school
+        const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
+        let provisionedMember: InstitutionMember | null = null;
+        let schoolData: SchoolProfile | null = null;
 
-          if (!isMember) {
-            throw new Error("This identity is not registered in any School Nexus.");
+        for (const key of allSchools) {
+          const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
+          const member = school.members?.find(m => m.email === email);
+          if (member) {
+            provisionedMember = member;
+            schoolData = school;
+            break;
+          }
+          if (school.adminEmail === email) {
+            schoolData = school;
+            break;
+          }
+        }
+
+        try {
+          // Attempt standard sign in
+          userCredential = await signInWithEmailAndPassword(auth, email, password);
+        } catch (signInErr: any) {
+          // If sign in fails but user is a provisioned member, try to auto-register them in Firebase
+          if (provisionedMember && provisionedMember.password === password) {
+            userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          } else {
+            throw signInErr;
+          }
+        }
+        
+        // If logging into school mode, verify membership and assign role
+        if (mode === 'school') {
+          let foundRole = '';
+          if (schoolData?.adminEmail === email) {
+            foundRole = 'school_admin';
+          } else if (provisionedMember) {
+            foundRole = provisionedMember.role;
+          } else {
+             throw new Error("This identity is not registered in any School Nexus.");
           }
           localStorage.setItem(`mine_role_${userCredential.user.uid}`, foundRole);
         } else {
@@ -140,10 +153,17 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
         </form>
 
         <div className="mt-16 text-center relative z-10">
-          {!isRegisteringInstitution && (
+          {!isRegisteringInstitution && !isResetPassword && (
             <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-slate-400 hover:text-cyan-600 text-[11px] font-black transition-colors uppercase tracking-[0.4em]">
               {isLogin ? "New Identity? Initialise" : "Existing? Sign In"}
             </button>
+          )}
+          {isLogin && !isRegisteringInstitution && (
+             <div className="mt-4">
+                <button onClick={() => setIsResetPassword(!isResetPassword)} className="text-slate-300 hover:text-slate-500 text-[9px] font-black transition-colors uppercase tracking-[0.4em]">
+                  {isResetPassword ? "Return to Login" : "Forgot Access Key?"}
+                </button>
+             </div>
           )}
         </div>
       </div>

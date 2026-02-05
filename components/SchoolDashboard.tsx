@@ -9,7 +9,7 @@ interface SchoolDashboardProps {
 
 const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onBack }) => {
   const [school, setSchool] = useState<SchoolProfile | null>(null);
-  const [newMember, setNewMember] = useState({ name: '', email: '', role: 'student' as 'student' | 'teacher' });
+  const [newMember, setNewMember] = useState({ name: '', email: '', password: '', role: 'student' as 'student' | 'teacher' });
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -27,7 +27,7 @@ const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onBack }) => {
 
   const addMember = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!school || !newMember.name || !newMember.email) return;
+    if (!school || !newMember.name || !newMember.email || !newMember.password) return;
     
     // Check if member already exists
     if (school.members.some(m => m.email === newMember.email)) {
@@ -42,7 +42,7 @@ const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onBack }) => {
 
     const updatedSchool = { ...school, members: [...school.members, member] };
     saveSchool(updatedSchool);
-    setNewMember({ name: '', email: '', role: 'student' });
+    setNewMember({ name: '', email: '', password: '', role: 'student' });
   };
 
   const deleteMember = (email: string) => {
@@ -109,6 +109,17 @@ const SchoolDashboard: React.FC<SchoolDashboardProps> = ({ onBack }) => {
                 onChange={e => setNewMember({...newMember, email: e.target.value})}
                 className="w-full bg-white/50 border border-black/[0.03] rounded-3xl px-8 py-6 outline-none focus:ring-2 focus:ring-purple-500/40 text-slate-900 text-lg shadow-inner" 
                 placeholder="entity@nexus.edu"
+                required
+              />
+            </div>
+            <div className="space-y-4">
+              <label className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 px-4">Initial Access Key (Password)</label>
+              <input 
+                type="password" 
+                value={newMember.password}
+                onChange={e => setNewMember({...newMember, password: e.target.value})}
+                className="w-full bg-white/50 border border-black/[0.03] rounded-3xl px-8 py-6 outline-none focus:ring-2 focus:ring-purple-500/40 text-slate-900 text-lg shadow-inner" 
+                placeholder="Set temporary password"
                 required
               />
             </div>

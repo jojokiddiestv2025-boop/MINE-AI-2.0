@@ -38,6 +38,7 @@ export type UserRole = 'personal' | 'student' | 'teacher' | 'school_admin';
 export interface InstitutionMember {
   uid?: string;
   email: string;
+  password?: string; // Stored for initial provisioning
   name: string;
   role: 'student' | 'teacher';
   dateAdded: string;
