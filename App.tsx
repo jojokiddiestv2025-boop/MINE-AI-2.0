@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { onAuthStateChanged, type User } from "firebase/auth";
 import { auth } from './firebase';
@@ -9,7 +8,7 @@ import Logo from './components/Logo';
 import SchoolDashboard from './components/SchoolDashboard';
 import { UserRole } from './types';
 
-type AppView = 'landing' | 'auth_personal' | 'auth_school' | 'welcome_personal' | 'welcome_school' | 'app_active' | 'school_admin' | 'auth_register_school';
+type AppView = 'landing' | 'auth_personal' | 'auth_school' | 'app_active' | 'school_admin' | 'auth_register_school';
 type UserContextMode = 'personal' | 'school';
 
 const App: React.FC = () => {
@@ -46,37 +45,30 @@ const App: React.FC = () => {
         const storedRole = localStorage.getItem(`mine_role_${currentUser.uid}`) as UserRole | null;
         
         if (!storedRole) {
-          // New account, will be assigned during welcome selection if not already set by Auth registration
-          setViewState(authMode === 'school' ? 'welcome_school' : 'welcome_personal');
-        } else {
-          // Strict Identity Isolation
-          const isContextMismatch = (authMode === 'personal' && storedRole !== 'personal') || 
-                                   (authMode === 'school' && storedRole === 'personal');
-          
-          if (isContextMismatch) {
-            setError(`SECURITY ALERT: Identity Mismatch. This node is restricted to MINE ${storedRole.toUpperCase()}. Access Denied.`);
-            auth.signOut();
-            setViewState(authMode === 'school' ? 'auth_school' : 'auth_personal');
-            return;
-          }
-          
-          setAssignedRole(storedRole);
-          if (storedRole === 'school_admin') setViewState('school_admin');
-          else setViewState('app_active');
+          // Fallback if role missing (should not happen with updated Auth.tsx)
+          auth.signOut();
+          setViewState('landing');
+          return;
         }
+
+        // Context Lockdown
+        const isContextMismatch = (authMode === 'personal' && storedRole !== 'personal') || 
+                                 (authMode === 'school' && storedRole === 'personal');
+        
+        if (isContextMismatch) {
+          setError(`SECURITY ALERT: Account tier mismatch detected. Access Restricted.`);
+          auth.signOut();
+          setViewState(authMode === 'school' ? 'auth_school' : 'auth_personal');
+          return;
+        }
+        
+        setAssignedRole(storedRole);
+        if (storedRole === 'school_admin') setViewState('school_admin');
+        else setViewState('app_active');
       }
     });
     return () => unsubscribe();
   }, [authMode]);
-
-  const handleRoleSelection = (role: UserRole) => {
-    if (user) {
-      localStorage.setItem(`mine_role_${user.uid}`, role);
-      setAssignedRole(role);
-      if (role === 'school_admin') setViewState('school_admin');
-      else setViewState('app_active');
-    }
-  };
 
   const handleSelectKey = async () => {
     try {
@@ -94,13 +86,12 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion bg-slate-50">
         <Logo size="md" showText={false} />
-        <div className="mt-12 w-24 h-1 bg-prismatic rounded-full animate-pulse"></div>
-        <p className="mt-6 text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">Syncing Neural Core...</p>
+        <div className="mt-12 w-32 h-1 bg-prismatic rounded-full animate-pulse"></div>
+        <p className="mt-6 text-[9px] font-black uppercase tracking-[0.8em] text-slate-400">Verifying Neural integrity...</p>
       </div>
     );
   }
 
-  // Gateway: Landing
   if (viewState === 'landing') {
     return <Landing 
       onGetStarted={handleStartPersonal} 
@@ -111,49 +102,18 @@ const App: React.FC = () => {
     />;
   }
 
-  // Gateway: Personal Auth
   if (viewState === 'auth_personal' && !user) {
     return <Auth mode="personal" errorOverride={error} onBack={() => setViewState('landing')} onComplete={() => {}} />;
   }
 
-  // Gateway: School User Auth (Students/Teachers)
   if (viewState === 'auth_school' && !user) {
     return <Auth mode="school" errorOverride={error} onBack={() => setViewState('landing')} onComplete={() => {}} />;
   }
 
-  // Gateway: Institution Admin Registration
   if (viewState === 'auth_register_school' && !user) {
     return <Auth mode="school" isRegisteringInstitution onBack={() => setViewState('landing')} onComplete={() => {}} />;
   }
 
-  // Post-Auth: Role Setup
-  if (viewState === 'welcome_personal') {
-    return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-10 text-center animate-billion">
-        <Logo size="lg" showText={false} />
-        <h2 className="text-6xl md:text-8xl font-outfit font-black text-slate-900 mt-12 mb-6 uppercase tracking-tight">Access <span className="text-prismatic">Granted</span></h2>
-        <p className="text-slate-500 text-xl max-w-xl mb-16 uppercase tracking-[0.4em] font-bold">Establishing your personal link.</p>
-        <button onClick={() => handleRoleSelection('personal')} className="button-billion">Activate Nexus</button>
-      </div>
-    );
-  }
-
-  // Post-Auth: School Role Confirmation
-  if (viewState === 'welcome_school') {
-    return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-10 text-center animate-billion bg-indigo-50/20">
-        <Logo size="sm" showText={false} />
-        <h2 className="text-6xl md:text-8xl font-outfit font-black text-slate-900 mb-6 uppercase tracking-tight">Nexus <span className="text-prismatic">Handshake</span></h2>
-        <p className="text-slate-500 text-xl max-w-2xl mb-16 uppercase tracking-[0.4em] font-bold">Confirm your institutional tier.</p>
-        <div className="flex flex-col md:flex-row gap-8">
-          <button onClick={() => handleRoleSelection('student')} className="button-billion !bg-white !text-slate-900 border-2 border-black/5 px-16 shadow-xl">Student Tier</button>
-          <button onClick={() => handleRoleSelection('teacher')} className="button-billion px-16">Teacher Tier</button>
-        </div>
-      </div>
-    );
-  }
-
-  // App Interface: Verified Session
   if (user && hasApiKey) {
     const isSchool = assignedRole === 'student' || assignedRole === 'teacher';
     return (
@@ -166,19 +126,19 @@ const App: React.FC = () => {
             </h1>
           </div>
           <div className="ml-auto flex items-center gap-6">
-            <div className="flex items-center gap-3 px-4 py-2 bg-green-50 rounded-full border border-green-100">
+            <div className="flex items-center gap-3 px-6 py-2 bg-green-50 rounded-full border border-green-100 shadow-sm">
                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-               <span className="text-[9px] font-black uppercase tracking-widest text-green-600">Secure Shield Active</span>
+               <span className="text-[9px] font-black uppercase tracking-widest text-green-600">Shield Active</span>
             </div>
-            <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.3em] bg-prismatic/10 text-slate-600 px-4 py-2 rounded-full border border-prismatic/20">
+            <span className="hidden sm:block text-[10px] font-black uppercase tracking-[0.3em] bg-prismatic/10 text-slate-600 px-6 py-3 rounded-2xl border border-prismatic/20">
               {assignedRole?.toUpperCase()}
             </span>
             <button onClick={() => { auth.signOut(); setViewState('landing'); }} className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-black/[0.03] px-6 py-3 rounded-2xl border border-black/[0.05]">
-              Terminate
+              Log Out
             </button>
           </div>
         </header>
-        <main className="flex-1 w-full relative flex flex-col overflow-hidden">
+        <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-slate-50/20">
           {assignedRole === 'school_admin' ? (
              <SchoolDashboard onBack={() => { auth.signOut(); setViewState('landing'); }} />
           ) : (
@@ -193,15 +153,14 @@ const App: React.FC = () => {
     );
   }
 
-  // Fallback: API Key Required
   if (user && !hasApiKey) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion">
-        <div className="glass-premium p-14 rounded-[4rem] max-w-xl w-full border-white/90 shadow-2xl">
+        <div className="glass-premium p-16 rounded-[4.5rem] max-w-xl w-full border-white/90 shadow-2xl">
           <Logo size="md" showText={false} />
-          <h2 className="text-3xl font-outfit font-black mb-6 mt-8 uppercase text-slate-900">Security Uplink</h2>
-          <p className="text-slate-600 mb-12 text-lg font-medium">Please provide your institutional API Key to initialize the secure neural link.</p>
-          <button onClick={handleSelectKey} className="button-billion !py-5 !px-16">Authorize Key</button>
+          <h2 className="text-3xl font-outfit font-black mb-6 mt-10 uppercase text-slate-900">Uplink Encryption</h2>
+          <p className="text-slate-600 mb-12 text-lg font-medium leading-relaxed">Identity confirmed. To activate high-frequency neural processing, please provide an authorized Node Key.</p>
+          <button onClick={handleSelectKey} className="button-billion !py-6 !px-20">Verify Key</button>
         </div>
       </div>
     );
