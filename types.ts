@@ -1,3 +1,4 @@
+
 export interface TranscriptionEntry {
   id: string;
   type: 'user' | 'model';
@@ -10,40 +11,26 @@ export interface VisualContext {
   mimeType: string;
 }
 
-export interface CBTQuestion {
-  id: string;
-  question: string;
-  options: string[];
-  correctIndex: number;
-}
-
-export interface CBTData {
-  title: string;
-  subject: string;
-  timeLimit: number; // in minutes
-  questions: CBTQuestion[];
-}
-
 export interface WorkspaceState {
-  type: 'markdown' | 'cbt';
+  type: 'markdown';
   content: string; 
-  cbtData?: CBTData; 
   language: string;
   title: string;
   isActive: boolean;
 }
 
-export type UserRole = 'personal' | 'student' | 'teacher' | 'school_admin';
+export type UserRole = 'personal';
 
+// Fix: Added missing InstitutionMember interface for school management
 export interface InstitutionMember {
-  uid?: string;
-  email: string;
-  password?: string; // Stored for initial provisioning
   name: string;
+  email: string;
+  password?: string;
   role: 'student' | 'teacher';
   dateAdded: string;
 }
 
+// Fix: Added missing SchoolProfile interface for school management
 export interface SchoolProfile {
   id: string;
   name: string;

@@ -8,33 +8,24 @@ import {
 } from "firebase/auth";
 import { auth, googleProvider } from '../firebase';
 import Logo from './Logo';
-import { SchoolProfile, InstitutionMember } from '../types';
 
 interface AuthProps {
-  mode: 'personal' | 'school';
-  isRegisteringInstitution?: boolean;
   onBack: () => void;
   onComplete: () => void;
   errorOverride?: string | null;
 }
 
-const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onComplete, errorOverride }) => {
-  const [isLogin, setIsLogin] = useState(!isRegisteringInstitution);
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
+const Auth: React.FC<AuthProps> = ({ onBack, onComplete, errorOverride }) => {
+  const [isLogin, setIsLogin] = useState(true);
   const [isResetPassword, setIsResetPassword] = useState(false);
   
-  // Form Fields
   const [email, setEmail] = useState('');
-  const [identity, setIdentity] = useState(''); 
   const [password, setPassword] = useState('');
-  const [schoolName, setSchoolName] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'student' | 'teacher'>('student');
   
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [securityStatus, setSecurityStatus] = useState('MONITORING...');
-  const [linkedSchool, setLinkedSchool] = useState<string | null>(null);
 
   useEffect(() => {
     if (errorOverride) setError(errorOverride);
@@ -53,56 +44,11 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
     return () => clearInterval(interval);
   }, [errorOverride]);
 
-  // Real-time lookup for School UI feedback
-  useEffect(() => {
-    if (mode === 'school' && !isAdminLogin && identity.length > 2) {
-      const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
-      for (const key of allSchools) {
-        const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
-        const member = school.members?.find(m => m.name.toLowerCase() === identity.toLowerCase());
-        if (member) {
-          setLinkedSchool(school.name);
-          return;
-        }
-      }
-    }
-    setLinkedSchool(null);
-  }, [identity, mode, isAdminLogin]);
-
   const handleGoogleSignIn = async () => {
     setError('');
     setIsLoading(true);
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const userEmail = result.user.email || '';
-      const uid = result.user.uid;
-
-      if (mode === 'school') {
-        const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
-        let foundRole = '';
-        
-        for (const key of allSchools) {
-          const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
-          if (school.adminEmail === userEmail) {
-            foundRole = 'school_admin';
-            localStorage.setItem(`mine_school_id_${uid}`, school.id);
-            break;
-          }
-          const member = school.members?.find(m => m.email === userEmail || m.name.toLowerCase() === result.user.displayName?.toLowerCase());
-          if (member) {
-            foundRole = member.role;
-            localStorage.setItem(`mine_school_id_${uid}`, school.id);
-            break;
-          }
-        }
-
-        if (!foundRole) {
-          throw new Error("UNAUTHORIZED: Your Google account is not in any institution registry.");
-        }
-        localStorage.setItem(`mine_role_${uid}`, foundRole);
-      } else {
-        localStorage.setItem(`mine_role_${uid}`, 'personal');
-      }
+      await signInWithPopup(auth, googleProvider);
       onComplete();
     } catch (err: any) {
       setError(err.message || 'Google Link Interrupted.');
@@ -124,89 +70,11 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
         return;
       }
 
-      if (isRegisteringInstitution) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const newSchool: SchoolProfile = {
-          id: `school_${Date.now()}`,
-          name: schoolName,
-          adminEmail: email,
-          members: []
-        };
-        localStorage.setItem(`mine_school_data_${email}`, JSON.stringify(newSchool));
-        localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'school_admin');
-        onComplete();
-        return;
-      }
-
-      // LOGIN LOGIC
       if (isLogin) {
-        let provisionedMember: InstitutionMember | null = null;
-        let schoolData: SchoolProfile | null = null;
-
-        // School Mode Registry Check
-        if (mode === 'school') {
-          const allSchools: string[] = Object.keys(localStorage).filter(k => k.startsWith('mine_school_data_'));
-          if (isAdminLogin) {
-            for (const key of allSchools) {
-              const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
-              if (school.adminEmail === email) {
-                schoolData = school;
-                break;
-              }
-            }
-            if (!schoolData) throw new Error("ADMIN NOT FOUND: No institution linked to this email.");
-          } else {
-            for (const key of allSchools) {
-              const school: SchoolProfile = JSON.parse(localStorage.getItem(key) || '{}');
-              const member = school.members?.find(m => m.name.toLowerCase() === identity.toLowerCase());
-              if (member) {
-                provisionedMember = member;
-                schoolData = school;
-                break;
-              }
-            }
-            if (!provisionedMember) throw new Error("IDENTITY NOT FOUND: Check your spelling or ask your admin.");
-          }
-        }
-
-        const authEmail = (mode === 'school' && !isAdminLogin) 
-          ? `${identity.replace(/\s+/g, '_')}@${schoolData?.id || 'nexus'}.mine.edu` 
-          : email;
-
-        // Neural Proxy (Bypass Firebase for locally provisioned users if needed)
-        if (provisionedMember && provisionedMember.password === password) {
-          try {
-             // Try real Firebase Auth first
-             const userCredential = await signInWithEmailAndPassword(auth, authEmail, password).catch(() => 
-               createUserWithEmailAndPassword(auth, authEmail, password)
-             );
-             localStorage.setItem(`mine_role_${userCredential.user.uid}`, provisionedMember.role);
-             if (schoolData) localStorage.setItem(`mine_school_id_${userCredential.user.uid}`, schoolData.id);
-             onComplete();
-          } catch (fbErr) {
-             console.warn("Firebase handshake failed, using proxy link.");
-             const proxyUid = `proxy_${provisionedMember.name.replace(/\s+/g, '_')}`;
-             localStorage.setItem(`mine_role_${proxyUid}`, provisionedMember.role);
-             if (schoolData) localStorage.setItem(`mine_school_id_${proxyUid}`, schoolData.id);
-             onComplete();
-          }
-          return;
-        }
-
-        // Standard Login (Personal or Admin)
-        const userCredential = await signInWithEmailAndPassword(auth, authEmail, password);
-        if (mode === 'school') {
-          const role = isAdminLogin ? 'school_admin' : 'student';
-          localStorage.setItem(`mine_role_${userCredential.user.uid}`, role);
-          if (schoolData) localStorage.setItem(`mine_school_id_${userCredential.user.uid}`, schoolData.id);
-        } else {
-          localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'personal');
-        }
+        await signInWithEmailAndPassword(auth, email, password);
         onComplete();
       } else {
-        // Register Personal
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        localStorage.setItem(`mine_role_${userCredential.user.uid}`, 'personal');
+        await createUserWithEmailAndPassword(auth, email, password);
         onComplete();
       }
     } catch (err: any) {
@@ -216,8 +84,6 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
       setIsLoading(false);
     }
   };
-
-  const showIdentityField = mode === 'school' && !isAdminLogin && !isRegisteringInstitution;
 
   return (
     <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion relative bg-slate-50 overflow-hidden">
@@ -234,7 +100,7 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
         <div className="flex flex-col items-center mb-12 text-center relative z-10 pt-8">
           <Logo size="sm" showText={false} />
           <h2 className="text-4xl md:text-5xl font-outfit font-black tracking-tighter text-slate-900 uppercase mt-8">
-            {isRegisteringInstitution ? 'School Genesis' : (mode === 'school' ? (isAdminLogin ? 'Admin Command' : 'Node Uplink') : 'Personal Node')}
+            {isResetPassword ? 'Reset Access' : (isLogin ? 'Personal Node' : 'Provision Node')}
           </h2>
           <div className="mt-4 flex items-center gap-3 px-6 py-2 bg-slate-50 border border-black/[0.03] rounded-full">
              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping"></div>
@@ -259,36 +125,14 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
           )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {isRegisteringInstitution && (
-              <div className="space-y-3">
-                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Institutional Designation</label>
-                <input type="text" value={schoolName} onChange={(e) => setSchoolName(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="e.g. Nexus Academy" required />
-              </div>
-            )}
-            
-            {showIdentityField ? (
-              <div className="space-y-3">
-                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Neural Identity (Full Name)</label>
-                <div className="relative">
-                  <input type="text" value={identity} onChange={(e) => setIdentity(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="e.g. Alexander Vance" required />
-                  {linkedSchool && (
-                    <div className="absolute right-6 top-1/2 -translate-y-1/2 flex items-center gap-2 bg-green-50 text-green-600 px-4 py-1.5 rounded-full border border-green-100 animate-billion shadow-sm">
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse"></div>
-                      <span className="text-[8px] font-black uppercase tracking-widest truncate max-w-[150px]">{linkedSchool}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Handshake Address (Email)</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="identity@nexus.edu" required />
-              </div>
-            )}
+            <div className="space-y-3">
+              <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Email Address</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="identity@nexus.ai" required />
+            </div>
 
             {!isResetPassword && (
               <div className="space-y-3">
-                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Secure Access Key</label>
+                <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Access Key</label>
                 <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="••••••••" required />
               </div>
             )}
@@ -303,14 +147,17 @@ const Auth: React.FC<AuthProps> = ({ mode, isRegisteringInstitution, onBack, onC
         </div>
 
         <div className="mt-12 text-center relative z-10 flex flex-col gap-6">
-          {!isRegisteringInstitution && !isResetPassword && (
-            <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-slate-400 hover:text-cyan-600 text-[9px] font-black transition-colors uppercase tracking-[0.5em]">
-              {isLogin ? "Provision Personal Node?" : "Return to Login"}
+          <button onClick={() => { setIsLogin(!isLogin); setError(''); }} className="text-slate-400 hover:text-cyan-600 text-[9px] font-black transition-colors uppercase tracking-[0.5em]">
+            {isLogin ? "Need a Personal Node?" : "Return to Login"}
+          </button>
+          {!isResetPassword && (
+            <button onClick={() => setIsResetPassword(true)} className="text-[8px] font-black text-slate-300 hover:text-slate-500 uppercase tracking-[0.6em]">
+              Lost Access Key?
             </button>
           )}
-          {mode === 'school' && !isRegisteringInstitution && (
-            <button onClick={() => { setIsAdminLogin(!isAdminLogin); setError(''); }} className="text-[8px] font-black text-slate-300 hover:text-slate-500 uppercase tracking-[0.6em]">
-              {isAdminLogin ? "Academic Access" : "Admin Gateway"}
+          {isResetPassword && (
+            <button onClick={() => setIsResetPassword(false)} className="text-[8px] font-black text-slate-300 hover:text-slate-500 uppercase tracking-[0.6em]">
+              Return to Login
             </button>
           )}
         </div>

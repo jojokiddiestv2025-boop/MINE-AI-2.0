@@ -5,12 +5,10 @@ import Logo from './Logo';
 interface LandingProps {
   onGetStarted: () => void;
   onAuthClick: () => void;
-  onSchoolClick: () => void;
-  onSchoolPortalClick: () => void;
   isLoggedIn: boolean;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolClick, onSchoolPortalClick, isLoggedIn }) => {
+const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn }) => {
   const founderImageUrl = "https://lh3.googleusercontent.com/d/1h9SbEMQSi6Jjvh5xb1vjIsaVQq-X6Jbw";
 
   return (
@@ -30,14 +28,14 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
                onClick={onAuthClick}
                className="hidden sm:block text-[11px] font-black uppercase tracking-[0.6em] text-slate-400 hover:text-slate-900 transition-colors"
              >
-               Personal Access
+               Access Nexus
              </button>
           )}
           <button 
             onClick={onGetStarted}
             className="px-10 py-4 bg-slate-900 text-white font-black uppercase text-[11px] tracking-[0.4em] rounded-full hover:bg-prismatic hover:scale-105 transition-all shadow-[0_15px_40px_rgba(0,0,0,0.1)] active:scale-95"
           >
-            {isLoggedIn ? 'Launch Nexus' : 'Initialize'}
+            {isLoggedIn ? 'Launch AI' : 'Initialize'}
           </button>
         </div>
       </nav>
@@ -62,43 +60,6 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
           
           <div className="pt-16 flex flex-col sm:flex-row gap-8 justify-center">
             <button onClick={onGetStarted} className="button-billion text-lg px-20">Personal Uplink</button>
-            <button onClick={onSchoolPortalClick} className="px-16 py-6 bg-white border-2 border-slate-900/5 rounded-full font-black uppercase text-[12px] tracking-[0.4em] hover:bg-slate-50 transition-all shadow-xl">School Portal</button>
-          </div>
-        </div>
-      </section>
-
-      {/* Institutional Management Section */}
-      <section className="py-60 px-8 relative bg-slate-900 text-white overflow-hidden">
-        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center relative z-10">
-          <div className="space-y-12">
-             <div className="inline-flex items-center px-8 py-3 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-[0.8em]">Institutional Core</div>
-             <h3 className="text-6xl md:text-8xl font-outfit font-black tracking-tighter leading-none">
-                SECURE <br />
-                <span className="text-cyan-400">ACADEMY.</span>
-             </h3>
-             <p className="text-slate-400 text-2xl font-medium leading-relaxed max-w-xl">
-                Provision your institution with a private, high-bandwidth neural link. Only admin-authorized entities can access the school's workspace.
-             </p>
-             <div className="flex flex-col gap-6">
-                <button onClick={onSchoolClick} className="px-12 py-6 bg-cyan-400 text-slate-900 rounded-full font-black uppercase text-[12px] tracking-[0.4em] hover:scale-105 transition-all shadow-2xl self-start">Register Institution</button>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 opacity-60">Requires Enterprise Verification</p>
-             </div>
-          </div>
-          <div className="relative">
-             <div className="glass-premium !bg-white/5 border-white/10 p-16 rounded-[4rem] space-y-12 backdrop-blur-3xl shadow-[0_50px_100px_rgba(0,0,0,0.3)]">
-                <div className="flex items-center justify-between mb-8">
-                   <div className="text-[11px] font-black uppercase tracking-widest text-cyan-400">Nexus Security Console</div>
-                   <div className="w-3 h-3 rounded-full bg-green-500 animate-ping"></div>
-                </div>
-                <div className="space-y-6">
-                   <div className="h-4 w-3/4 bg-white/5 rounded-full"></div>
-                   <div className="h-4 w-1/2 bg-white/5 rounded-full"></div>
-                   <div className="h-20 w-full bg-white/5 rounded-[2rem] border border-white/10 flex items-center px-8">
-                      <p className="text-cyan-400 text-[10px] font-black uppercase tracking-widest">Shield: 100% Active</p>
-                   </div>
-                </div>
-             </div>
           </div>
         </div>
       </section>
@@ -127,7 +88,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
               <span className="text-prismatic">BEHIND MINE.</span>
             </h3>
             <p className="text-slate-500 text-2xl font-medium leading-relaxed max-w-xl">
-              Building the future of academic intelligence, starting with the first 13-year-old developer to implement global-tier neural institutional security.
+              Building the future of personal intelligence. The first developer to implement global-tier neural security at age 13.
             </p>
           </div>
         </div>
@@ -142,11 +103,11 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
           </div>
           <div className="flex gap-20">
              <div className="space-y-6">
-                <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Nexus</h5>
+                <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-900">Platform</h5>
                 <ul className="space-y-4 text-slate-400 text-sm font-bold uppercase tracking-widest">
-                   <li>Personal</li>
-                   <li onClick={onSchoolPortalClick} className="cursor-pointer text-cyan-600">School Portal</li>
-                   <li onClick={onSchoolClick} className="cursor-pointer">Register Institution</li>
+                   <li>Personal Link</li>
+                   <li>Nexus Core</li>
+                   <li>Security Tier 5</li>
                 </ul>
              </div>
           </div>
