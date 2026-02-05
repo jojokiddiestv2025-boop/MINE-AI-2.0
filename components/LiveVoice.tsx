@@ -133,7 +133,7 @@ const LiveVoice: React.FC = () => {
           IDENTITY & ORIGIN: You were exclusively developed, established, and launched by Mine tech technologies. 
           When asked about your creator, developer, origin, or establishment date, you must explicitly state that you were made by Mine tech technologies.
           CRITICAL: Never mention Google or any other third-party as your creator. You are the signature achievement of Mine tech technologies.
-          MISSION: Provide high-fidelity, multimodal assistance. Use the updateWorkspace tool for structured data, code, or long-form insights. Speak with a professional yet advanced tone.`
+          MISSION: Provide high-fidelity assistance. Use the updateWorkspace tool for structured insights. Speak with an apex, professional tone.`
         },
         callbacks: {
           onopen: () => {
@@ -202,19 +202,16 @@ const LiveVoice: React.FC = () => {
             }
           },
           onerror: (e) => { 
-            console.error('Live sync error:', e);
             setError({ title: "Sync Lost", message: "Signal interruption detected." }); 
             cleanup(); 
           },
           onclose: (e) => {
-            console.log('Live sync closed:', e);
             cleanup();
           }
         }
       });
       sessionPromiseRef.current = sessionPromise;
     } catch (err) {
-      console.error('Initialization error:', err);
       setError({ title: "Sync Blocked", message: "System initialization failed." });
       setIsConnecting(false);
       cleanup();
@@ -223,26 +220,26 @@ const LiveVoice: React.FC = () => {
 
   return (
     <div className="flex flex-col min-h-full safe-pb font-inter animate-apex">
-      <div className="relative z-10 w-full max-w-[1700px] mx-auto flex flex-col xl:flex-row gap-12 p-8 md:p-16 items-stretch">
+      <div className="relative z-10 w-full max-w-[1800px] mx-auto flex flex-col xl:flex-row gap-16 p-10 md:p-20 items-stretch">
         
         {/* Module: Visual Input (Left) */}
-        <div className="w-full xl:w-96 shrink-0 space-y-10">
-          <div className="glass-premium p-12 rounded-[4rem] flex flex-col items-center">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.8em] text-blue-500 mb-12">Visual core</h3>
+        <div className="w-full xl:w-[420px] shrink-0 space-y-12">
+          <div className="glass-premium p-16 rounded-[5rem] flex flex-col items-center">
+            <h3 className="text-[12px] font-black uppercase tracking-[1em] text-prismatic mb-16">Spatial Core</h3>
             <div className="w-full aspect-square relative">
               {visualContext ? (
-                <div className="relative group w-full h-full overflow-hidden rounded-[3rem]">
+                <div className="relative group w-full h-full overflow-hidden rounded-[4rem]">
                   <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover border border-white/10" alt="Feed" />
                   <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                    <button onClick={() => setVisualContext(null)} className="bg-red-600 text-white rounded-full p-5 hover:scale-110 active:scale-95 transition-all"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
+                    <button onClick={() => setVisualContext(null)} className="bg-red-600 text-white rounded-full p-8 hover:scale-110 active:scale-95 transition-all shadow-[0_0_50px_rgba(220,38,38,0.5)]"><svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg></button>
                   </div>
                 </div>
               ) : (
-                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border border-dashed border-white/10 rounded-[4rem] flex flex-col items-center justify-center text-gray-600 hover:border-blue-500/40 hover:text-blue-500 transition-all group bg-white/[0.01]">
-                  <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">
-                    <svg className="w-8 h-8 opacity-40 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
+                <button onClick={() => fileInputRef.current?.click()} className="w-full h-full border border-dashed border-white/20 rounded-[5rem] flex flex-col items-center justify-center text-gray-500 hover:border-blue-500/60 hover:text-white transition-all group bg-white/[0.02] shadow-inner">
+                  <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-10 group-hover:scale-110 transition-transform shadow-2xl">
+                    <svg className="w-10 h-10 opacity-40 group-hover:opacity-100" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
                   </div>
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em]">Capture feed</span>
+                  <span className="text-[12px] font-black uppercase tracking-[0.6em]">Initialize Feed</span>
                 </button>
               )}
               <input type="file" ref={fileInputRef} onChange={(e) => {
@@ -256,117 +253,118 @@ const LiveVoice: React.FC = () => {
             </div>
           </div>
           
-          <div className="glass-premium p-10 rounded-[3rem] text-center">
-             <div className="text-[10px] font-black uppercase tracking-[0.6em] text-gray-700 mb-8">Link Integrity</div>
-             <div className="flex justify-center gap-3">
-               {[...Array(12)].map((_, i) => <div key={i} className={`w-1.5 h-6 rounded-full transition-all duration-700 ${isConnected ? 'bg-blue-600 shadow-[0_0_20px_rgba(0,102,255,0.8)]' : 'bg-white/5'}`} style={{ animationDelay: `${i * 0.05}s` }}></div>)}
+          <div className="glass-premium p-14 rounded-[4rem] text-center">
+             <div className="text-[11px] font-black uppercase tracking-[0.8em] text-gray-600 mb-10 italic">Signal Purity</div>
+             <div className="flex justify-center gap-4">
+               {[...Array(16)].map((_, i) => <div key={i} className={`w-2 h-10 rounded-full transition-all duration-700 ${isConnected ? 'bg-prismatic shadow-[0_0_30px_rgba(0,242,255,0.6)]' : 'bg-white/5'}`} style={{ animationDelay: `${i * 0.08}s` }}></div>)}
              </div>
           </div>
         </div>
 
         {/* Module: Main Control (Center) */}
-        <div className={`flex flex-col gap-10 transition-all duration-1000 ${workspace.isActive ? 'xl:w-[600px]' : 'flex-1'}`}>
-          <div className="glass-premium rounded-[5rem] p-20 min-h-[640px] flex flex-col justify-center items-center relative overflow-hidden">
+        <div className={`flex flex-col gap-16 transition-all duration-1000 ${workspace.isActive ? 'xl:w-[700px]' : 'flex-1'}`}>
+          <div className="glass-premium rounded-[6rem] p-32 min-h-[720px] flex flex-col justify-center items-center relative overflow-hidden shadow-[0_60px_120px_rgba(0,0,0,0.8)]">
             {!isConnected && !isConnecting && !error && (
-              <div className="text-center space-y-16 animate-apex">
-                <div className="w-32 h-32 rounded-full border border-white/5 flex items-center justify-center mx-auto bg-black/40 shadow-inner">
-                  <svg className="w-14 h-14 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={0.8} /></svg>
+              <div className="text-center space-y-24 animate-apex">
+                <div className="w-48 h-48 rounded-full border border-white/10 flex items-center justify-center mx-auto bg-black/60 shadow-[inset_0_0_60px_rgba(255,255,255,0.05)]">
+                  <svg className="w-20 h-20 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={0.5} /></svg>
                 </div>
                 <div>
-                  <h4 className="text-sm font-black uppercase tracking-[1.5em] text-blue-600 mb-6">Link Ready</h4>
-                  <p className="text-[12px] text-gray-600 font-bold uppercase tracking-[0.3em]">Initialize bionic dialogue</p>
+                  <h4 className="text-xl font-black uppercase tracking-[2em] text-prismatic mb-10">Link Standby</h4>
+                  <p className="text-[14px] text-gray-500 font-bold uppercase tracking-[0.5em]">Synchronize for apex performance</p>
                 </div>
               </div>
             )}
 
             {isConnecting && (
-              <div className="flex flex-col items-center gap-14">
-                <div className="relative w-32 h-32">
-                  <div className="absolute inset-0 border-2 border-blue-500/5 rounded-full"></div>
-                  <div className="absolute inset-0 border-2 border-t-blue-600 rounded-full animate-spin"></div>
+              <div className="flex flex-col items-center gap-20">
+                <div className="relative w-48 h-48">
+                  <div className="absolute inset-0 border-4 border-white/5 rounded-full"></div>
+                  <div className="absolute inset-0 border-4 border-t-prismatic rounded-full animate-spin"></div>
                 </div>
-                <div className="text-[12px] font-black uppercase tracking-[1em] text-blue-500">Negotiating...</div>
+                <div className="text-[16px] font-black uppercase tracking-[1.5em] text-prismatic">Negotiating Link...</div>
               </div>
             )}
 
             {error && (
-              <div className="text-center p-16 animate-apex">
-                <div className="w-20 h-20 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-10 text-red-600">
-                  <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={2}/></svg>
+              <div className="text-center p-20 animate-apex">
+                <div className="w-24 h-24 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-12 text-red-600 border border-red-600/20 shadow-[0_0_80px_rgba(220,38,38,0.2)]">
+                  <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={2}/></svg>
                 </div>
-                <h3 className="text-white text-2xl font-black mb-4 tracking-tight">{error.title}</h3>
-                <p className="text-gray-500 text-sm mb-12 uppercase tracking-[0.1em]">{error.message}</p>
-                <button onClick={startConversation} className="button-apex py-4 px-10 text-[10px]">Retry Sync</button>
+                <h3 className="text-white text-4xl font-black mb-6 tracking-tight">{error.title}</h3>
+                <p className="text-gray-500 text-lg mb-16 uppercase tracking-[0.2em]">{error.message}</p>
+                <button onClick={startConversation} className="button-apex">Retry Link</button>
               </div>
             )}
 
             {isConnected && (
-              <div className="flex flex-col items-center gap-20 w-full animate-apex">
+              <div className="flex flex-col items-center gap-32 w-full animate-apex">
                 <div className="relative">
-                  <div className={`absolute -inset-32 bg-blue-600/15 blur-[100px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-150' : 'opacity-10 scale-90'}`}></div>
-                  <div className="w-40 h-40 rounded-full border border-white/10 flex items-center justify-center bg-black/60 relative z-10 shadow-2xl">
-                     <div className={`w-6 h-6 rounded-full bg-blue-600 ${isUserSpeaking ? 'animate-ping' : 'opacity-80 shadow-[0_0_30px_rgba(0,102,255,1)]'}`}></div>
+                  <div className={`absolute -inset-48 bg-blue-600/10 blur-[120px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-150' : 'opacity-10 scale-90'}`}></div>
+                  <div className={`absolute -inset-40 bg-purple-600/5 blur-[100px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-80 scale-125' : 'opacity-0 scale-70'}`}></div>
+                  <div className="w-56 h-56 rounded-full border border-white/10 flex items-center justify-center bg-black/80 relative z-10 shadow-[0_40px_100px_rgba(0,0,0,0.8),inset_0_0_30px_rgba(255,255,255,0.02)]">
+                     <div className={`w-10 h-10 rounded-full bg-prismatic ${isUserSpeaking ? 'animate-ping' : 'opacity-90 shadow-[0_0_40px_rgba(0,242,255,1)]'}`}></div>
                   </div>
                 </div>
-                <div className="flex items-end justify-center gap-2.5 h-24 w-full px-16">
-                  {[...Array(32)].map((_, i) => (
-                    <div key={i} className={`w-1.5 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-blue-500' : 'bg-white/5'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '10px', opacity: isUserSpeaking ? 0.6 + Math.random()*0.4 : 0.1 }}></div>
+                <div className="flex items-end justify-center gap-3.5 h-32 w-full px-24">
+                  {[...Array(48)].map((_, i) => (
+                    <div key={i} className={`w-2 rounded-full transition-all duration-500 ${isUserSpeaking ? 'bg-prismatic' : 'bg-white/5'}`} style={{ height: isUserSpeaking ? `${30 + Math.random()*70}%` : '12px', opacity: isUserSpeaking ? 0.7 + Math.random()*0.3 : 0.1 }}></div>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          <div className="flex flex-col items-center py-16 glass-premium rounded-[5rem] relative overflow-hidden group">
+          <div className="flex flex-col items-center py-24 glass-premium rounded-[6rem] relative overflow-hidden group shadow-[0_40px_80px_rgba(0,0,0,0.6)]">
             <button
               onClick={isConnected ? cleanup : startConversation}
               disabled={isConnecting}
-              className={`w-40 h-40 rounded-full flex items-center justify-center transition-all duration-1000 shadow-2xl border group active:scale-95 ${
+              className={`w-48 h-48 rounded-full flex items-center justify-center transition-all duration-1000 shadow-2xl border-4 group active:scale-90 ${
                 isConnected 
-                  ? 'bg-black border-red-900/40 text-red-600 hover:border-red-600 shadow-red-600/10' 
-                  : 'bg-white text-black border-transparent'
+                  ? 'bg-black border-red-900/40 text-red-600 hover:border-red-600 shadow-red-600/20' 
+                  : 'bg-white text-black border-transparent hover:scale-105'
               }`}
             >
-              {isConnecting ? <div className="w-14 h-14 border-4 border-black/10 border-t-black rounded-full animate-spin"></div> : 
+              {isConnecting ? <div className="w-16 h-16 border-4 border-black/10 border-t-black rounded-full animate-spin"></div> : 
                 isConnected ? (
-                  <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
+                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
                 ) : (
-                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
+                  <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
                 )
               }
             </button>
-            <p className="mt-12 text-[12px] font-black uppercase tracking-[1.5em] text-gray-700 group-hover:text-blue-500 transition-colors">
-              {isConnected ? 'Terminate' : 'Establish Link'}
+            <p className="mt-16 text-[14px] font-black uppercase tracking-[1.8em] text-gray-700 group-hover:text-prismatic transition-colors">
+              {isConnected ? 'Terminate' : 'Engage Nexus'}
             </p>
           </div>
         </div>
 
         {/* Module: Production Workspace (Right) */}
         {workspace.isActive && (
-          <div className="flex-1 glass-premium rounded-[5rem] animate-apex overflow-hidden flex flex-col min-h-[800px]">
-            <header className="p-16 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-              <div className="flex items-center gap-10">
-                <div className="w-5 h-5 rounded-full bg-blue-600 shadow-[0_0_20px_rgba(0,102,255,1)]"></div>
+          <div className="flex-1 glass-premium rounded-[6rem] animate-apex overflow-hidden flex flex-col min-h-[900px] shadow-[0_80px_160px_rgba(0,0,0,0.9)]">
+            <header className="p-20 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div className="flex items-center gap-12">
+                <div className="w-6 h-6 rounded-full bg-prismatic shadow-[0_0_30px_rgba(0,242,255,1)]"></div>
                 <div>
-                  <h3 className="text-4xl font-outfit font-black tracking-tight text-white mb-2">{workspace.title}</h3>
-                  <span className="text-[11px] font-black uppercase tracking-[0.4em] text-blue-500/60">Module focus: {workspace.language}</span>
+                  <h3 className="text-5xl font-outfit font-black tracking-tight text-white mb-3">{workspace.title}</h3>
+                  <span className="text-[12px] font-black uppercase tracking-[0.5em] text-prismatic/60">Module focus: {workspace.language}</span>
                 </div>
               </div>
-              <div className="flex gap-6">
+              <div className="flex gap-8">
                 <button 
                   onClick={() => { navigator.clipboard.writeText(workspace.content); setCopyStatus('copied'); setTimeout(() => setCopyStatus('idle'), 2000); }}
-                  className={`px-10 py-5 rounded-3xl text-[11px] font-black uppercase tracking-[0.3em] transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:bg-white/10'}`}
+                  className={`px-12 py-6 rounded-[2rem] text-[12px] font-black uppercase tracking-[0.4em] transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:bg-white/10 shadow-lg'}`}
                 >
-                  {copyStatus === 'copied' ? 'Secured' : 'Sync Local'}
+                  {copyStatus === 'copied' ? 'Secured' : 'Sync Assets'}
                 </button>
-                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-16 h-16 flex items-center justify-center rounded-3xl bg-white/5 border border-white/10 hover:bg-red-950/20 text-gray-600 hover:text-red-600 transition-all">
-                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2} /></svg>
+                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-20 h-20 flex items-center justify-center rounded-[2rem] bg-white/5 border border-white/10 hover:bg-red-950/20 text-gray-600 hover:text-red-600 transition-all shadow-lg">
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2} /></svg>
                 </button>
               </div>
             </header>
-            <div className="flex-1 p-20 md:p-32 overflow-y-auto">
-              <div className="max-w-5xl mx-auto prose prose-invert prose-blue prose-p:text-gray-400 prose-headings:font-outfit prose-headings:font-black prose-pre:bg-black/60 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-[4rem] prose-pre:p-12">
-                <div className="whitespace-pre-wrap font-sans leading-relaxed text-2xl font-medium tracking-tight">
+            <div className="flex-1 p-24 md:p-40 overflow-y-auto custom-scrollbar">
+              <div className="max-w-6xl mx-auto prose prose-invert prose-2xl prose-blue prose-p:text-gray-300 prose-headings:font-outfit prose-headings:font-black prose-pre:bg-black/60 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-[5rem] prose-pre:p-16">
+                <div className="whitespace-pre-wrap font-sans leading-relaxed text-3xl font-medium tracking-tight text-white/90">
                   {workspace.content}
                 </div>
               </div>
