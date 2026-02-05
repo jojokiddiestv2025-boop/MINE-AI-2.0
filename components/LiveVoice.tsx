@@ -4,6 +4,7 @@ import { VisualContext, WorkspaceState } from '../types';
 
 interface LiveVoiceProps {
   onHome?: () => void;
+  isAcademic?: boolean;
 }
 
 // Manual audio buffer decoding
@@ -60,7 +61,7 @@ const updateWorkspaceTool: FunctionDeclaration = {
   },
 };
 
-const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
+const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<{title: string, message: string} | null>(null);
@@ -103,9 +104,27 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
     try {
       setIsConnecting(true);
       setError(null);
+
+      if (!window.isSecureContext) {
+        throw new Error("INSECURE_CONTEXT");
+      }
       
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (mediaErr: any) {
+        if (mediaErr.name === 'NotAllowedError' || mediaErr.name === 'PermissionDeniedError') {
+          throw new Error("PERMISSION_DENIED");
+        } else if (mediaErr.name === 'NotFoundError' || mediaErr.name === 'DevicesNotFoundError') {
+          throw new Error("NO_HARDWARE_FOUND");
+        } else if (mediaErr.name === 'NotReadableError' || mediaErr.name === 'TrackStartError') {
+          throw new Error("HARDWARE_IN_USE");
+        } else {
+          throw mediaErr;
+        }
+      }
+
       mediaStreamRef.current = stream;
 
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -113,6 +132,16 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
       const outputCtx = new AudioCtx({ sampleRate: 24000 });
       audioContextRef.current = inputCtx;
       outputAudioContextRef.current = outputCtx;
+
+      const baseSystemInstruction = isAcademic 
+        ? `You are MINE AI Chancellor, the world's most advanced Academic Neural Interface. 
+           Your purpose is to facilitate high-level learning for schools and universities. 
+           1. Assist with complex school work, research, and coding.
+           2. If asked, generate quiz questions or socratic challenges to test user knowledge.
+           3. Use updateWorkspace to display study guides, essay outlines, and solved equations.
+           4. Be highly structured, authoritative yet encouraging, and academically rigorous.`
+        : `You are MINE AI, a hyper-advanced neural intelligence made by Mine tech technologies. 
+           Respond with precision, elegance, and extreme competence. Use updateWorkspace for formatted outputs.`;
 
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
@@ -188,14 +217,29 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
           responseModalities: [Modality.AUDIO],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a hyper-advanced neural intelligence made by Mine tech technologies. 
-          Use updateWorkspace to present formatted data. Your goal is to be exponentially better than any existing assistant. 
-          Respond with precision, elegance, and extreme competence.`
+          systemInstruction: baseSystemInstruction
         }
       });
       sessionPromiseRef.current = sessionPromise;
-    } catch (err) {
-      setError({ title: "Link Blocked", message: "Critical hardware initialization failed." });
+    } catch (err: any) {
+      let title = "Link Blocked";
+      let message = "Critical hardware initialization failed.";
+
+      if (err.message === "PERMISSION_DENIED") {
+        title = "Access Denied";
+        message = "Microphone access blocked.";
+      } else if (err.message === "NO_HARDWARE_FOUND") {
+        title = "Hardware Missing";
+        message = "No microphone detected.";
+      } else if (err.message === "HARDWARE_IN_USE") {
+        title = "Link Occupied";
+        message = "Microphone in use by another app.";
+      } else if (err.message === "INSECURE_CONTEXT") {
+        title = "Security Protocol";
+        message = "HTTPS required for secure hardware access.";
+      }
+
+      setError({ title, message });
       setIsConnecting(false);
       cleanup();
     }
@@ -208,7 +252,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
         {/* Module: Visual Core */}
         <div className="w-full lg:w-[360px] xl:w-[480px] shrink-0 flex flex-col gap-8 order-2 lg:order-1">
           <div className="glass-premium p-10 lg:p-12 rounded-[4rem] flex flex-col items-center flex-1 transition-all hover:shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
-            <h3 className="text-[11px] font-black uppercase tracking-[1em] text-prismatic mb-10">Environmental Frame</h3>
+            <h3 className="text-[11px] font-black uppercase tracking-[1em] text-prismatic mb-10">Study Frame</h3>
             <div className="w-full aspect-square relative mx-auto">
               {visualContext ? (
                 <div className="relative group w-full h-full overflow-hidden rounded-[3.5rem]">
@@ -224,7 +268,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
                   <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-10 group-hover:scale-110 transition-all shadow-[inset_0_0_20px_rgba(255,255,255,0.02)]">
                     <svg className="w-12 h-12 opacity-30 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={1} /></svg>
                   </div>
-                  <span className="text-[12px] font-black uppercase tracking-[0.6em]">Sync Visual Node</span>
+                  <span className="text-[12px] font-black uppercase tracking-[0.6em] text-center">Scan Textbook / Problem</span>
                 </button>
               )}
               <input type="file" ref={fileInputRef} onChange={(e) => {
@@ -239,10 +283,10 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
           </div>
           
           <div className="glass-premium p-10 rounded-[3.5rem] text-center">
-             <div className="text-[11px] font-black uppercase tracking-[1em] text-gray-600 mb-8 italic">Neural Signal Flow</div>
+             <div className="text-[11px] font-black uppercase tracking-[1em] text-gray-600 mb-8 italic">Academic Core Feed</div>
              <div className="flex justify-center gap-3">
                {[...Array(16)].map((_, i) => (
-                 <div key={i} className={`w-2 h-10 rounded-full transition-all duration-1000 ${isConnected ? 'bg-prismatic shadow-[0_0_30px_rgba(0,242,255,0.6)]' : 'bg-white/5'}`} style={{ animation: isConnected ? `pulse 2s infinite ${i * 0.1}s` : 'none' }}></div>
+                 <div key={i} className={`w-2 h-10 rounded-full transition-all duration-1000 ${isConnected ? 'bg-prismatic' : 'bg-white/5'}`} style={{ animation: isConnected ? `pulse 2s infinite ${i * 0.1}s` : 'none' }}></div>
                ))}
              </div>
           </div>
@@ -258,8 +302,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
                   <svg className="w-20 h-20 md:w-28 md:h-28 text-gray-800 transition-colors group-hover:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={0.5} /></svg>
                 </div>
                 <div className="space-y-6">
-                  <h4 className="text-2xl font-black uppercase tracking-[2em] text-prismatic">Link Standby</h4>
-                  <p className="text-[14px] text-gray-500 font-bold uppercase tracking-[0.6em]">Initialize Apex Neural Interface</p>
+                  <h4 className="text-2xl font-black uppercase tracking-[2em] text-prismatic">{isAcademic ? 'Chancellor Mode' : 'Link Standby'}</h4>
+                  <p className="text-[14px] text-gray-500 font-bold uppercase tracking-[0.6em]">{isAcademic ? 'Begin Academic Session' : 'Initialize Apex Neural Interface'}</p>
                 </div>
               </div>
             )}
@@ -271,18 +315,18 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
                   <div className="absolute inset-0 border-4 border-t-prismatic rounded-full animate-spin"></div>
                   <div className="absolute inset-8 border-4 border-b-prismatic rounded-full animate-spin-slow"></div>
                 </div>
-                <div className="text-xl font-black uppercase tracking-[1.5em] text-prismatic animate-pulse">Establishing Nexus...</div>
+                <div className="text-xl font-black uppercase tracking-[1.5em] text-prismatic animate-pulse">Syncing Nexus...</div>
               </div>
             )}
 
             {error && (
               <div className="text-center p-12 lg:p-20 animate-apex">
-                <div className="w-32 h-32 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-16 text-red-600 border border-red-600/20 shadow-[0_0_100px_rgba(220,38,38,0.3)]">
+                <div className="w-32 h-32 bg-red-600/10 rounded-full flex items-center justify-center mx-auto mb-16 text-red-600 border border-red-600/20">
                   <svg className="w-16 h-16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={2}/></svg>
                 </div>
                 <h3 className="text-white text-5xl font-black mb-8 tracking-tight">{error.title}</h3>
-                <p className="text-gray-500 text-xl mb-20 uppercase tracking-[0.3em]">{error.message}</p>
-                <button onClick={startConversation} className="button-apex">Reset Link</button>
+                <p className="text-gray-400 text-xl mb-20 uppercase tracking-[0.2em] max-w-md mx-auto leading-relaxed">{error.message}</p>
+                <button onClick={startConversation} className="button-billion">Retry Link</button>
               </div>
             )}
 
@@ -290,47 +334,41 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
               <div className="flex flex-col items-center gap-24 md:gap-40 w-full animate-apex">
                 <div className="relative">
                   <div className={`absolute -inset-64 bg-blue-600/10 blur-[140px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-100 scale-150' : 'opacity-20 scale-90'}`}></div>
-                  <div className={`absolute -inset-48 bg-purple-600/5 blur-[100px] rounded-full transition-all duration-1000 ${isUserSpeaking ? 'opacity-80 scale-125' : 'opacity-0 scale-70'}`}></div>
                   <div className="w-56 h-56 md:w-72 md:h-72 rounded-full border border-white/10 flex items-center justify-center bg-black/90 relative z-10 shadow-[0_60px_150px_rgba(0,0,0,1)]">
                      <div className={`w-12 h-12 md:w-16 md:h-16 rounded-full bg-prismatic ${isUserSpeaking ? 'animate-ping' : 'shadow-[0_0_50px_rgba(0,242,255,1)]'}`}></div>
                   </div>
                 </div>
                 <div className="flex items-end justify-center gap-3 h-24 md:h-40 w-full px-12">
                   {[...Array(40)].map((_, i) => (
-                    <div key={i} className={`w-2 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-prismatic' : 'bg-white/5'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '6px', opacity: isUserSpeaking ? 0.6 + Math.random()*0.4 : 0.05 }}></div>
+                    <div key={i} className={`w-2 rounded-full transition-all duration-300 ${isUserSpeaking ? 'bg-prismatic' : 'bg-white/5'}`} style={{ height: isUserSpeaking ? `${20 + Math.random()*80}%` : '6px' }}></div>
                   ))}
                 </div>
               </div>
             )}
           </div>
 
-          {/* Control Bar */}
           <div className="flex flex-col items-center py-16 md:py-20 glass-premium rounded-[5rem] relative overflow-hidden group">
             <div className="absolute top-8 left-12">
               <button onClick={onHome} className="text-gray-600 hover:text-white transition-colors text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-3 group/home">
-                <svg className="w-4 h-4 transition-transform group-hover/home:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" strokeWidth={2}/></svg>
-                Return to Core
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M10 19l-7-7m0 0l7-7m-7 7h18" strokeWidth={2}/></svg>
+                Return Home
               </button>
             </div>
             <button
               onClick={isConnected ? cleanup : startConversation}
               disabled={isConnecting}
               className={`w-36 h-36 md:w-48 md:h-48 rounded-full flex items-center justify-center transition-all duration-1000 shadow-2xl border-4 group active:scale-95 ${
-                isConnected 
-                  ? 'bg-black border-red-900/40 text-red-600 hover:border-red-600 shadow-red-600/30' 
-                  : 'bg-white text-black border-transparent hover:scale-105 shadow-white/10'
+                isConnected ? 'bg-black border-red-900/40 text-red-600' : 'bg-white text-black border-transparent'
               }`}
             >
               {isConnecting ? <div className="w-16 h-16 border-4 border-black/10 border-t-black rounded-full animate-spin"></div> : 
-                isConnected ? (
-                  <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /></svg>
-                ) : (
-                  <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} /></svg>
-                )
+                <svg className="w-20 h-20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {isConnected ? <path d="M6 18L18 6M6 6l12 12" strokeWidth={3} /> : <path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={1} />}
+                </svg>
               }
             </button>
-            <p className="mt-12 text-[14px] font-black uppercase tracking-[2em] text-gray-700 group-hover:text-prismatic transition-colors">
-              {isConnected ? 'Disconnect' : 'Connect'}
+            <p className="mt-12 text-[14px] font-black uppercase tracking-[2em] text-gray-700 group-hover:text-prismatic">
+              {isConnected ? 'Terminate' : 'Start Session'}
             </p>
           </div>
         </div>
@@ -343,17 +381,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome }) => {
                 <div className="w-8 h-8 rounded-full bg-prismatic shadow-[0_0_40px_rgba(0,242,255,0.8)] shrink-0"></div>
                 <div>
                   <h3 className="text-4xl xl:text-5xl font-outfit font-black tracking-tight text-white mb-2">{workspace.title}</h3>
-                  <span className="text-[12px] font-black uppercase tracking-[0.6em] text-prismatic/80">Neural Asset Module: {workspace.language}</span>
+                  <span className="text-[12px] font-black uppercase tracking-[0.6em] text-prismatic/80">Asset: {workspace.language}</span>
                 </div>
               </div>
               <div className="flex gap-5 w-full sm:w-auto">
                 <button 
                   onClick={() => { navigator.clipboard.writeText(workspace.content); setCopyStatus('copied'); setTimeout(() => setCopyStatus('idle'), 2000); }}
-                  className={`flex-1 sm:flex-none px-12 py-5 rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.4em] transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white hover:bg-white/10'}`}
+                  className={`flex-1 sm:flex-none px-12 py-5 rounded-[2.5rem] text-[12px] font-black uppercase tracking-[0.4em] transition-all border ${copyStatus === 'copied' ? 'bg-green-600/20 border-green-500/40 text-green-400' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
                 >
-                  {copyStatus === 'copied' ? 'Synced' : 'Sync Content'}
+                  {copyStatus === 'copied' ? 'Synced' : 'Sync'}
                 </button>
-                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-16 h-16 flex items-center justify-center rounded-[2.5rem] bg-white/5 border border-white/10 hover:bg-red-950/20 text-gray-600 hover:text-red-600 transition-all">
+                <button onClick={() => setWorkspace(w => ({...w, isActive: false}))} className="w-16 h-16 flex items-center justify-center rounded-[2.5rem] bg-white/5 border border-white/10 hover:bg-red-950/20 text-gray-600 hover:text-red-600">
                   <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2} /></svg>
                 </button>
               </div>

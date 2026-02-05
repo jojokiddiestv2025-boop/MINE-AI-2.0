@@ -30,7 +30,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           )}
           <button 
             onClick={onGetStarted}
-            className="px-10 py-4 bg-white text-black font-black uppercase text-[11px] tracking-[0.4em] rounded-full hover:bg-prismatic hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] hover:shadow-cyan-500/40 active:scale-95"
+            className="px-10 py-4 bg-white text-black font-black uppercase text-[11px] tracking-[0.4em] rounded-full hover:bg-prismatic hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] active:scale-95"
           >
             {isLoggedIn ? 'Launch Interface' : 'Get Started'}
           </button>
@@ -46,8 +46,8 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
         </div>
 
         <div className="max-w-7xl mx-auto text-center space-y-12 animate-billion">
-          <div className="inline-flex items-center px-10 py-3 rounded-full border border-white/10 bg-white/[0.02] text-prismatic text-[11px] font-black uppercase tracking-[0.8em] shadow-2xl">
-            Established Neural Nexus v4.0
+          <div className="inline-flex items-center px-10 py-3 rounded-full border border-white/10 bg-white/[0.02] text-prismatic text-[11px] font-black uppercase tracking-[0.8em]">
+            Neural Nexus v4.0 Active
           </div>
           
           <h2 className="text-7xl sm:text-8xl lg:text-[13rem] font-outfit font-black tracking-[-0.05em] leading-[0.8] text-white">
@@ -56,7 +56,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           </h2>
           
           <p className="text-gray-400 text-xl sm:text-3xl max-w-4xl mx-auto leading-tight font-medium opacity-90 tracking-tight px-4">
-            A high-fidelity multimodal superintelligence. Engineered for those who demand the <span className="text-white font-bold">Absolute Apex.</span>
+            A high-fidelity multimodal superintelligence. Engineered for the <span className="text-white font-bold">Absolute Apex.</span>
           </p>
 
           <div className="pt-16">
@@ -70,12 +70,51 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
         </div>
 
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 flex flex-col items-center space-y-4 opacity-30 animate-bounce">
-            <span className="text-[10px] font-black uppercase tracking-[0.6em]">Scroll to Descend</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.6em]">Scroll to Discover</span>
             <div className="w-1 h-12 bg-gradient-to-b from-white to-transparent rounded-full"></div>
         </div>
       </section>
 
-      {/* Features Section - Exploding with color */}
+      {/* School Section */}
+      <section className="py-60 px-8 bg-white/[0.01] border-y border-white/[0.03]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
+          <div className="relative order-2 lg:order-1">
+             <div className="absolute -inset-10 bg-cyan-500/20 blur-[120px] rounded-full"></div>
+             <div className="relative glass-premium p-16 rounded-[4rem] space-y-12">
+                <div className="flex gap-4">
+                  {[...Array(5)].map((_, i) => (
+                    <div key={i} className="flex-1 h-2 bg-prismatic rounded-full opacity-40"></div>
+                  ))}
+                </div>
+                <h4 className="text-4xl font-outfit font-black">ACADEMIC CHANCELLOR</h4>
+                <div className="space-y-6">
+                   <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
+                      <p className="text-cyan-400 text-sm font-black uppercase tracking-widest mb-4">Live Quiz Generation</p>
+                      <p className="text-gray-400 font-medium">"I have prepared 5 questions on quantum thermodynamics based on your scan."</p>
+                   </div>
+                   <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
+                      <p className="text-purple-400 text-sm font-black uppercase tracking-widest mb-4">Socratic Tutoring</p>
+                      <p className="text-gray-400 font-medium">"Before I give you the answer, what do you think the first variable represents?"</p>
+                   </div>
+                </div>
+             </div>
+          </div>
+          <div className="space-y-12 order-1 lg:order-2">
+             <h3 className="text-6xl md:text-8xl font-outfit font-black tracking-tighter leading-none">
+                MINE AI <br />
+                <span className="text-prismatic">FOR SCHOOLS.</span>
+             </h3>
+             <p className="text-gray-400 text-2xl font-medium leading-relaxed">
+                Empower your institution with private neural clusters. Provision accounts, monitor academic load, and give every student an Apex Chancellor.
+             </p>
+             <button onClick={onAuthClick} className="button-billion !bg-transparent border-2 border-white/20 hover:border-cyan-400 hover:text-cyan-400 !text-white px-16">
+                Register Institution
+             </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Standard Features */}
       <section className="py-60 px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
         <div className="space-y-16">
           <div className="space-y-6">
@@ -84,14 +123,14 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               <span className="text-prismatic">Refined.</span>
             </h3>
             <p className="text-gray-400 text-2xl leading-relaxed font-medium">
-              MINE AI doesn't just process text; it perceives reality through high-chrome visual analysis and environmental reasoning.
+              MINE AI perceives reality through high-chrome visual analysis and environmental reasoning.
             </p>
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
             <div className="p-10 glass-premium rounded-[3rem] space-y-6 group hover:border-cyan-500/40 transition-all">
               <div className="w-14 h-14 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth={2}/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" strokeWidth={2}/></svg>
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth={2}/></svg>
               </div>
               <h4 className="text-2xl font-bold font-outfit">Visual Cortex</h4>
               <p className="text-gray-500 font-medium">Real-time object detection and spatial context mapping.</p>
@@ -101,7 +140,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={2}/></svg>
               </div>
               <h4 className="text-2xl font-bold font-outfit">Neural Voice</h4>
-              <p className="text-gray-500 font-medium">Bionic prosody and zero-latency human inflection modeling.</p>
+              <p className="text-gray-500 font-medium">Bionic prosody and human inflection modeling.</p>
             </div>
           </div>
         </div>
@@ -113,37 +152,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               <div className="absolute inset-0 flex items-center justify-center">
                  <Logo size="lg" showText={false} />
               </div>
-              <div className="absolute bottom-16 left-16 right-16">
-                 <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full w-2/3 bg-prismatic animate-[shimmer_2s_infinite]"></div>
-                 </div>
-                 <div className="mt-6 flex justify-between text-[10px] font-black uppercase tracking-[0.4em] text-gray-500">
-                    <span>Processing Neural Load</span>
-                    <span>94.2% Synaptic Sync</span>
-                 </div>
-              </div>
            </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-60 px-8 text-center bg-white/[0.01] border-y border-white/[0.03]">
-        <div className="max-w-5xl mx-auto space-y-16">
-          <h3 className="text-6xl md:text-9xl font-outfit font-black tracking-tight leading-none">
-            READY TO <br />
-            <span className="text-prismatic">ASCEND?</span>
-          </h3>
-          <p className="text-gray-500 text-2xl md:text-3xl font-medium tracking-tight">
-            The billion-dollar experience is just one link away. Join the apex tier of neural computing.
-          </p>
-          <div className="pt-10">
-             <button 
-              onClick={onGetStarted}
-              className="button-billion text-xl px-20 py-8"
-            >
-              Enter Interface
-            </button>
-          </div>
         </div>
       </section>
 
@@ -158,23 +167,20 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               </h1>
             </div>
             <p className="text-gray-500 text-xl max-w-sm font-medium leading-relaxed">
-              Pioneering the next generation of high-bandwidth human-AI symbiosis.
+              High-bandwidth human-AI symbiosis for the next generation.
             </p>
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-24">
             <FooterColumn title="Protocol" links={['Neural Link', 'Spatial Core', 'Bionic Voice']} />
-            <FooterColumn title="Network" links={['Security', 'Nodes', 'Global Grid']} />
-            <FooterColumn title="Corporate" links={['Privacy', 'Intelligence', 'Contact']} />
+            <FooterColumn title="Institutional" links={['School Nexus', 'Matrix Access', 'Academic Tier']} />
+            <FooterColumn title="Network" links={['Security', 'Status', 'Contact']} />
           </div>
         </div>
         
         <div className="max-w-[1600px] mx-auto mt-40 pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 opacity-40 text-[10px] font-black uppercase tracking-[0.6em]">
           <span>© 2025 Mine Tech Technologies</span>
-          <div className="flex gap-12">
-            <span>Status: Optimal</span>
-            <span>Latency: 2ms</span>
-          </div>
+          <span>Status: Optimal</span>
         </div>
       </footer>
     </div>
