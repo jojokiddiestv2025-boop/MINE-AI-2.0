@@ -18,15 +18,15 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
     <div className={`flex flex-col items-center justify-center ${className}`}>
       <div className={`${sizes[size]} aspect-square relative group select-none`}>
         {/* Dynamic Multi-Layer Glow */}
-        <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full scale-110 group-hover:scale-150 transition-all duration-[2s]"></div>
-        <div className="absolute inset-0 bg-purple-500/10 blur-[80px] rounded-full scale-90 group-hover:scale-125 transition-all duration-[3s] animate-pulse"></div>
-        <div className="absolute inset-0 bg-pink-500/5 blur-[120px] rounded-full group-hover:scale-110 transition-all duration-[4s]"></div>
+        <div className="absolute inset-0 bg-blue-400/20 blur-[100px] rounded-full scale-110 group-hover:scale-150 transition-all duration-[2s]"></div>
+        <div className="absolute inset-0 bg-purple-400/20 blur-[80px] rounded-full scale-90 group-hover:scale-125 transition-all duration-[3s] animate-pulse"></div>
+        <div className="absolute inset-0 bg-pink-400/10 blur-[120px] rounded-full group-hover:scale-110 transition-all duration-[4s]"></div>
         
-        <svg viewBox="0 0 400 400" className="w-full h-full relative z-10 drop-shadow-[0_40px_80px_rgba(0,0,0,0.9)] transition-transform duration-700 group-hover:scale-[1.02]">
+        <svg viewBox="0 0 400 400" className="w-full h-full relative z-10 drop-shadow-[0_20px_40px_rgba(0,0,0,0.1)] transition-transform duration-700 group-hover:scale-[1.02]">
           <defs>
             <linearGradient id="hexBaseGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#2c3e50" />
-              <stop offset="100%" stopColor="#000000" />
+              <stop offset="0%" stopColor="#ffffff" />
+              <stop offset="100%" stopColor="#f1f5f9" />
             </linearGradient>
             <linearGradient id="circuitPrismatic" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stopColor="#00f2ff" />
@@ -34,12 +34,12 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
               <stop offset="100%" stopColor="#ff00ea" />
             </linearGradient>
             <linearGradient id="chromeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#ffffff" />
-              <stop offset="30%" stopColor="#f8fafc" />
+              <stop offset="0%" stopColor="#0f172a" />
+              <stop offset="30%" stopColor="#334155" />
               <stop offset="100%" stopColor="#64748b" />
             </linearGradient>
             <filter id="hyperGlow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+              <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
               <feComposite in="SourceGraphic" in2="blur" operator="over" />
             </filter>
             <filter id="prismaticBloom">
@@ -49,8 +49,8 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
           </defs>
 
           {/* Hexagon Core Shell */}
-          <path d="M200 10 L370 110 L370 290 L200 390 L30 290 L30 110 Z" fill="rgba(255,255,255,0.03)" />
-          <path d="M200 20 L360 110 L360 290 L200 380 L40 290 L40 110 Z" fill="url(#hexBaseGrad)" stroke="rgba(255,255,255,0.1)" strokeWidth="0.5" />
+          <path d="M200 10 L370 110 L370 290 L200 390 L30 290 L30 110 Z" fill="rgba(0,0,0,0.02)" />
+          <path d="M200 20 L360 110 L360 290 L200 380 L40 290 L40 110 Z" fill="url(#hexBaseGrad)" stroke="rgba(0,0,0,0.05)" strokeWidth="0.5" />
 
           {/* Prismatic Neural Flow */}
           <g transform="translate(200, 200) scale(0.9) translate(-200, -200)" filter="url(#prismaticBloom)">
@@ -62,26 +62,26 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
           <g transform="rotate(-45, 200, 200) translate(0, -10)" filter="url(#hyperGlow)">
             {/* Precision Shaft */}
             <rect x="185" y="130" width="30" height="200" rx="15" fill="url(#chromeGrad)" />
-            <rect x="194" y="145" width="8" height="170" rx="4" fill="rgba(255,255,255,0.9)" />
+            <rect x="194" y="145" width="8" height="170" rx="4" fill="rgba(255,255,255,0.2)" />
             
             {/* Prismatic Head */}
             <path d="M80 150 Q200 0 320 150 L200 130 Z" fill="url(#chromeGrad)" />
-            <path d="M200 0 L320 150 L200 130 Z" fill="rgba(112,0,255,0.2)" />
-            <path d="M80 150 Q200 0 200 130 Z" fill="rgba(0,242,255,0.2)" />
+            <path d="M200 0 L320 150 L200 130 Z" fill="rgba(112,0,255,0.3)" />
+            <path d="M80 150 Q200 0 200 130 Z" fill="rgba(0,242,255,0.3)" />
           </g>
         </svg>
       </div>
       
       {showText && (
-        <div className="mt-12 animate-apex text-center">
+        <div className="mt-12 animate-billion text-center">
           <h1 className="font-outfit font-black tracking-[-0.08em] text-prismatic" 
               style={{ fontSize: size === 'xl' ? '8rem' : size === 'lg' ? '5rem' : '3.5rem' }}>
             Mine AI
           </h1>
           <div className="flex items-center justify-center gap-6 opacity-60 mt-4">
-            <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-white"></div>
-            <span className="text-[12px] font-black uppercase tracking-[0.8em] text-white">Neural Superintelligence</span>
-            <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-white"></div>
+            <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-slate-900"></div>
+            <span className="text-[12px] font-black uppercase tracking-[0.8em] text-slate-900">Neural Superintelligence</span>
+            <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-slate-900"></div>
           </div>
         </div>
       )}

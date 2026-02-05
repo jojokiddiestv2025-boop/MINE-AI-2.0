@@ -57,7 +57,7 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center p-6 animate-billion">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion">
         <Logo size="md" showText={false} />
         <div className="mt-12 w-16 h-1 bg-prismatic rounded-full animate-pulse"></div>
       </div>
@@ -96,21 +96,21 @@ const App: React.FC = () => {
   if (user && viewState === 'app') {
     if (!hasApiKey) {
       return (
-        <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center p-6 text-center animate-billion">
+        <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion">
           <div className="mb-12 scale-75 md:scale-100">
             <Logo size="lg" showText={true} />
           </div>
           <div className="glass-premium p-10 md:p-14 rounded-[4rem] max-w-xl w-full">
-            <div className="w-20 h-20 rounded-full bg-cyan-600/10 flex items-center justify-center mx-auto mb-10 border border-cyan-600/30 shadow-[0_0_40px_rgba(0,242,255,0.1)]">
+            <div className="w-20 h-20 rounded-full bg-cyan-600/5 flex items-center justify-center mx-auto mb-10 border border-cyan-500/20 shadow-[0_10px_40px_rgba(0,242,255,0.1)]">
               <svg className="w-10 h-10 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-outfit font-black mb-6 uppercase tracking-tight text-white">Neural Uplink Required</h2>
-            <p className="text-gray-400 mb-12 leading-relaxed text-lg font-medium">
+            <h2 className="text-3xl font-outfit font-black mb-6 uppercase tracking-tight text-slate-900">Neural Uplink Required</h2>
+            <p className="text-slate-600 mb-12 leading-relaxed text-lg font-medium">
               Please authorize your secure API credentials to establish a high-bandwidth link with MINE AI.
               <br />
-              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline mt-4 inline-block hover:text-cyan-300 transition-colors">Billing Documentation</a>
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-600 underline mt-4 inline-block hover:text-cyan-500 transition-colors">Billing Documentation</a>
             </p>
             <button 
               onClick={handleSelectKey} 
@@ -124,8 +124,8 @@ const App: React.FC = () => {
     }
 
     return (
-      <div className="flex flex-col min-h-screen w-full bg-[#000] font-inter overflow-x-hidden">
-        <header className="sticky top-0 h-auto flex items-center px-6 md:px-14 lg:px-24 bg-black/50 backdrop-blur-3xl border-b border-white/[0.08] z-50 shrink-0 safe-pt py-6">
+      <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden">
+        <header className="sticky top-0 h-auto flex items-center px-6 md:px-14 lg:px-24 bg-white/30 backdrop-blur-3xl border-b border-black/[0.05] z-50 shrink-0 safe-pt py-6">
           <div 
             className="flex items-center space-x-4 md:space-x-8 group cursor-pointer active:scale-95 transition-transform" 
             onClick={() => setViewState('landing')}
@@ -133,7 +133,7 @@ const App: React.FC = () => {
             <div className="scale-75 md:scale-90">
               <Logo size="sm" showText={false} />
             </div>
-            <h1 className="text-2xl md:text-4xl font-outfit font-black tracking-[-0.1em] uppercase whitespace-nowrap text-white">
+            <h1 className="text-2xl md:text-4xl font-outfit font-black tracking-[-0.1em] uppercase whitespace-nowrap text-slate-900">
               MINE <span className="text-prismatic">AI</span>
             </h1>
           </div>
@@ -141,7 +141,7 @@ const App: React.FC = () => {
           <div className="ml-auto flex items-center space-x-6 md:space-x-12">
             <button 
               onClick={() => { auth.signOut(); setViewState('landing'); }}
-              className="text-[11px] uppercase font-black tracking-[0.4em] text-white/50 hover:text-white transition-all bg-white/[0.05] hover:bg-white/[0.1] px-8 py-4 rounded-3xl border border-white/10"
+              className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-500 hover:text-slate-900 transition-all bg-black/[0.03] hover:bg-black/[0.08] px-8 py-4 rounded-3xl border border-black/[0.05]"
             >
               Disconnect Node
             </button>
