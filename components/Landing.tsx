@@ -9,8 +9,8 @@ interface LandingProps {
 }
 
 const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolClick, isLoggedIn }) => {
-  // Direct view URL for the provided Google Drive link
-  const founderImageUrl = "https://drive.google.com/uc?export=view&id=1h9SbEMQSi6Jjvh5xb1vjIsaVQq-X6Jbw";
+  // Direct access URL for the provided Google Drive image ID
+  const founderImageUrl = "https://lh3.googleusercontent.com/d/1h9SbEMQSi6Jjvh5xb1vjIsaVQq-X6Jbw";
 
   return (
     <div className="min-h-screen w-full text-white bg-black/20 font-inter selection:bg-cyan-500 selection:text-black">
@@ -131,11 +131,11 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolCl
                     src={founderImageUrl}
                     alt="Joshua - The 13 Year Old Developer" 
                     className="w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110"
+                    loading="lazy"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      console.error("Founder image at provided Google Drive link failed to load.");
-                      // Fallback to local path if URL fails
-                      target.src = "/joshua/joshua_suit.jpg";
+                      console.error("Founder image failed to load. Attempting fallback...");
+                      target.src = "https://drive.google.com/uc?export=view&id=1h9SbEMQSi6Jjvh5xb1vjIsaVQq-X6Jbw";
                     }}
                   />
                   <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_4px,3px_100%]"></div>

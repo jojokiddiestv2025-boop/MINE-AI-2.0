@@ -40,6 +40,21 @@ const App: React.FC = () => {
     user ? setViewState('school_admin') : setViewState('auth');
   };
 
+  const handleSelectKey = async () => {
+    try {
+      const aistudio = (window as any).aistudio;
+      if (aistudio && aistudio.openSelectKey) {
+        await aistudio.openSelectKey();
+        // Assume selection was successful and proceed to bypass the offline screen
+        setViewState('app');
+      } else {
+        console.warn("AI Studio key selection interface not found.");
+      }
+    } catch (e) {
+      console.error("Key selection error:", e);
+    }
+  };
+
   if (isInitializing) {
     return (
       <div className="min-h-screen w-full bg-black flex flex-col items-center justify-center p-6 animate-billion">
@@ -86,16 +101,23 @@ const App: React.FC = () => {
             <Logo size="lg" showText={true} />
           </div>
           <div className="glass-premium p-10 md:p-14 rounded-[4rem] max-w-xl w-full">
-            <div className="w-20 h-20 rounded-full bg-red-600/10 flex items-center justify-center mx-auto mb-10 border border-red-600/30">
-              <svg className="w-10 h-10 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div className="w-20 h-20 rounded-full bg-cyan-600/10 flex items-center justify-center mx-auto mb-10 border border-cyan-600/30 shadow-[0_0_40px_rgba(0,242,255,0.1)]">
+              <svg className="w-10 h-10 text-cyan-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
               </svg>
             </div>
-            <h2 className="text-3xl font-outfit font-black mb-6 uppercase tracking-tight">Configuration Link Offline</h2>
+            <h2 className="text-3xl font-outfit font-black mb-6 uppercase tracking-tight text-white">Neural Uplink Required</h2>
             <p className="text-gray-400 mb-12 leading-relaxed text-lg font-medium">
-              The personal neural pipeline requires a valid <code>API_KEY</code>.
+              Please authorize your secure API credentials to establish a high-bandwidth link with MINE AI.
+              <br />
+              <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="text-cyan-400 underline mt-4 inline-block hover:text-cyan-300 transition-colors">Billing Documentation</a>
             </p>
-            <button onClick={() => window.location.reload()} className="button-billion !py-5 !px-16">Restart Connection</button>
+            <button 
+              onClick={handleSelectKey} 
+              className="button-billion !py-5 !px-16"
+            >
+              Establish Node Link
+            </button>
           </div>
         </div>
       );
