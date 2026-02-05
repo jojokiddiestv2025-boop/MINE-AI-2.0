@@ -30,7 +30,8 @@ const App: React.FC = () => {
     );
   }
 
-  if (showLanding && !user) {
+  // Allow returning to landing page if user is authenticated but wants to see the cinematic view
+  if (showLanding) {
     return <Landing onEnter={() => setShowLanding(false)} />;
   }
 
@@ -66,33 +67,44 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen w-full bg-[#02040a] font-inter overflow-x-hidden">
-      <header className="sticky top-0 h-auto flex items-center px-4 md:px-10 lg:px-20 bg-black/60 backdrop-blur-3xl border-b border-white/[0.03] z-50 shrink-0 safe-pt py-3 md:py-4">
-        <div className="flex items-center space-x-3 md:space-x-6 group cursor-pointer" onClick={() => setShowLanding(true)}>
+    <div className="flex flex-col min-h-screen w-full bg-[#010204] font-inter overflow-x-hidden">
+      <header className="sticky top-0 h-auto flex items-center px-4 md:px-10 lg:px-20 bg-black/40 backdrop-blur-2xl border-b border-white/[0.05] z-50 shrink-0 safe-pt py-4">
+        <div 
+          className="flex items-center space-x-3 md:space-x-6 group cursor-pointer active:scale-95 transition-transform" 
+          onClick={() => setShowLanding(true)}
+        >
           <div className="scale-75 md:scale-100">
             <Logo size="sm" showText={false} />
           </div>
-          <h1 className="text-lg md:text-2xl font-outfit font-black tracking-[-0.08em] uppercase whitespace-nowrap text-white">
-            Mine <span className="text-blue-600">Ai</span>
+          <h1 className="text-xl md:text-3xl font-outfit font-black tracking-[-0.1em] uppercase whitespace-nowrap text-white">
+            MINE <span className="text-prismatic">AI</span>
           </h1>
         </div>
         
-        <div className="ml-auto flex items-center space-x-4 md:space-x-12">
-          <div className="hidden md:flex items-center space-x-4 text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] lg:tracking-[0.5em] text-gray-600">
-            <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_15px_rgba(0,102,255,0.8)]"></span>
-            <span>Link established</span>
+        <div className="ml-auto flex items-center space-x-4 md:space-x-10">
+          <div className="hidden md:flex items-center space-x-5 text-[10px] lg:text-[11px] font-black uppercase tracking-[0.6em] text-gray-500">
+            <div className="flex items-center space-x-2">
+              <span className="w-2 h-2 rounded-full bg-blue-600 animate-pulse shadow-[0_0_15px_rgba(0,102,255,0.8)]"></span>
+              <span>Node Active</span>
+            </div>
+            <button 
+              onClick={() => setShowLanding(true)}
+              className="hover:text-white transition-colors cursor-pointer"
+            >
+              Home
+            </button>
           </div>
           <button 
             onClick={() => auth.signOut()}
-            className="text-[9px] md:text-[10px] uppercase font-black tracking-[0.2em] md:tracking-[0.4em] text-gray-500 hover:text-white transition-all bg-white/[0.03] px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl border border-white/5 whitespace-nowrap"
+            className="text-[10px] uppercase font-black tracking-[0.3em] text-white/40 hover:text-white transition-all bg-white/[0.05] hover:bg-white/[0.1] px-5 py-3 rounded-2xl border border-white/5 whitespace-nowrap"
           >
-            Disconnect
+            Sign Out
           </button>
         </div>
       </header>
 
-      <main className="flex-1 w-full relative flex flex-col">
-        <LiveVoice />
+      <main className="flex-1 w-full relative flex flex-col overflow-hidden">
+        <LiveVoice onHome={() => setShowLanding(true)} />
       </main>
     </div>
   );
