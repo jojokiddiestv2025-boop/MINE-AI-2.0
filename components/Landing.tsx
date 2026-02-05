@@ -115,7 +115,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       </section>
 
       {/* Founder Section */}
-      <section className="py-60 px-8 relative overflow-hidden bg-black/40">
+      <section id="founder" className="py-60 px-8 relative overflow-hidden bg-black/40">
         <div className="absolute top-0 right-0 text-[30rem] font-black opacity-[0.03] select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-white">13</div>
         <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24 lg:gap-40">
           
@@ -124,15 +124,13 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 {/* Image Frame with Prismatic Border Glow */}
                 <div className="absolute -inset-6 bg-prismatic opacity-20 blur-3xl group-hover:opacity-40 transition-all duration-1000"></div>
                 <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_60px_120px_rgba(0,0,0,0.9)] bg-[#0a0a0a]">
-                  {/* Using exact path requested: joshua/joshua_suit.jpg */}
+                  {/* Strictly using joshua/joshua_suit.jpg as requested */}
                   <img 
                     src="joshua/joshua_suit.jpg" 
                     alt="Joshua - The 13 Year Old Developer" 
                     className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                     onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      // Fallback for visual confirmation in non-file environments, though user asked not to customize
-                      console.warn("Founder image at joshua/joshua_suit.jpg not found. Ensure folder and file exist.");
+                      console.warn("Founder image at joshua/joshua_suit.jpg could not be loaded. Please ensure the path is correct in your file explorer.");
                     }}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
