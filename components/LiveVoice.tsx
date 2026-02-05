@@ -175,7 +175,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
               }
             }, 3500);
           },
-          onmessage: async (m) => {
+          onmessage: async (m: LiveServerMessage) => {
             if (m.toolCall) {
               for (const fc of m.toolCall.functionCalls) {
                 if (fc.name === 'updateWorkspace') {
@@ -208,7 +208,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ onHome, isAcademic = false }) => 
             }
           },
           onerror: (e) => { 
-            setError({ title: "Signal Lost", message: "The neural link has been unexpectedly terminated." }); 
+            console.error('Neural Link Error:', e);
+            setError({ title: "Signal Lost", message: "The neural link has been unexpectedly terminated. Check your API key and connection." }); 
             cleanup(); 
           },
           onclose: () => cleanup()

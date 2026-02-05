@@ -114,6 +114,58 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
         </div>
       </section>
 
+      {/* Founder Section */}
+      <section className="py-60 px-8 relative overflow-hidden">
+        <div className="absolute top-0 right-0 text-[30rem] font-black opacity-5 select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-prismatic">13</div>
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-32">
+          <div className="flex-1 space-y-12">
+            <div className="inline-flex items-center px-8 py-2 rounded-full border border-prismatic/20 bg-prismatic/5 text-prismatic text-[10px] font-black uppercase tracking-[0.4em]">
+              The Architect
+            </div>
+            <h3 className="text-7xl md:text-9xl font-outfit font-black tracking-tighter leading-none">
+              MEET <br />
+              <span className="text-prismatic">JOSHUA.</span>
+            </h3>
+            <p className="text-gray-400 text-2xl font-medium leading-relaxed max-w-xl">
+              At just 13 years old, Joshua is the visionary behind MINE AI. His mission: to bridge the gap between human potential and neural superintelligence through zero-friction technology.
+            </p>
+            <div className="flex gap-10">
+              <div className="p-8 glass-premium rounded-3xl">
+                <div className="text-3xl font-black text-white">13</div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-gray-500">Age of Inception</div>
+              </div>
+              <div className="p-8 glass-premium rounded-3xl">
+                <div className="text-3xl font-black text-white">4.0</div>
+                <div className="text-[10px] uppercase font-black tracking-widest text-gray-500">Nexus Version</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="w-full lg:w-[500px] shrink-0">
+             <div className="relative group">
+                {/* Image Frame with Prismatic Border Glow */}
+                <div className="absolute -inset-4 bg-prismatic opacity-20 blur-2xl group-hover:opacity-40 transition-all"></div>
+                <div className="relative aspect-[3/4] rounded-[4rem] overflow-hidden border border-white/20 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+                  <img 
+                    src="/joshua/image.jpg" 
+                    alt="Joshua - The Founder" 
+                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      target.src = "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop";
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
+                  <div className="absolute bottom-12 left-12 right-12">
+                     <p className="text-white text-3xl font-black font-outfit uppercase tracking-tighter">Joshua</p>
+                     <p className="text-prismatic text-sm font-black uppercase tracking-[0.4em]">Founder & Lead Architect</p>
+                  </div>
+                </div>
+             </div>
+          </div>
+        </div>
+      </section>
+
       {/* Standard Features */}
       <section className="py-60 px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
         <div className="space-y-16">
