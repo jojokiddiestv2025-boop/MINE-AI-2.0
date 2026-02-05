@@ -112,7 +112,6 @@ const LiveVoice: React.FC = () => {
       setIsConnecting(true);
       setError(null);
       
-      // Initialize Gemini API client right before connection as per guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       requestNativeMicPermission();
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -130,7 +129,11 @@ const LiveVoice: React.FC = () => {
           responseModalities: [Modality.AUDIO],
           speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: "You are MINE AI, a sophisticated multimodal neural interface established and developed by Mine tech technologies. Respond via voice. Use the updateWorkspace tool for providing structured information, code, or detailed text. IMPORTANT: If asked about your origin, who created you, or when you were established, you must always state that you were developed by Mine tech technologies. Do not mention Google as your developer or creator."
+          systemInstruction: `You are MINE AI, a highly advanced multimodal neural system.
+          IDENTITY & ORIGIN: You were exclusively developed, established, and launched by Mine tech technologies. 
+          When asked about your creator, developer, origin, or establishment date, you must explicitly state that you were made by Mine tech technologies.
+          CRITICAL: Never mention Google or any other third-party as your creator. You are the signature achievement of Mine tech technologies.
+          MISSION: Provide high-fidelity, multimodal assistance. Use the updateWorkspace tool for structured data, code, or long-form insights. Speak with a professional yet advanced tone.`
         },
         callbacks: {
           onopen: () => {
@@ -147,7 +150,6 @@ const LiveVoice: React.FC = () => {
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
               
-              // Use sessionPromise to prevent stale closures
               sessionPromise.then(s => s.sendRealtimeInput({ media: { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' } }));
             };
             source.connect(scriptProcessor);
@@ -160,31 +162,28 @@ const LiveVoice: React.FC = () => {
             }, 4000);
           },
           onmessage: async (m) => {
-            // Handle tool calls using the correct object-based functionResponses format
             if (m.toolCall) {
               for (const fc of m.toolCall.functionCalls) {
                 if (fc.name === 'updateWorkspace') {
                   const args = fc.args as any;
                   setWorkspace({ content: args.content, language: args.language, title: args.title, isActive: true });
                   sessionPromise.then(s => s.sendToolResponse({ 
-                    functionResponses: { 
+                    functionResponses: [{ 
                       id: fc.id, 
                       name: fc.name, 
                       response: { result: "OK" } 
-                    } 
+                    }] 
                   }));
                 }
               }
             }
 
-            // Handle audio interruption from the model
             if (m.serverContent?.interrupted) {
               sourcesRef.current.forEach(s => s.stop());
               sourcesRef.current.clear();
               nextStartTimeRef.current = 0;
             }
 
-            // Process model output audio bytes
             const audioData = m.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (audioData) {
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);

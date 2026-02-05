@@ -61,7 +61,7 @@ const Landing: React.FC<LandingProps> = ({ onEnter }) => {
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10 opacity-30 text-[10px] font-black uppercase tracking-[0.8em] text-white">
           <div className="flex items-center gap-6">
             <div className="w-2.5 h-2.5 rounded-full bg-blue-600 shadow-[0_0_20px_rgba(0,102,255,1)]"></div>
-            Core Infrastructure Online
+            Mine tech technologies | Core Infrastructure Online
           </div>
           <div className="flex gap-16">
             <span className="cursor-none hover:text-blue-500 transition-colors">Neural Hub</span>
