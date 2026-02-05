@@ -86,7 +86,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                     <div key={i} className="flex-1 h-2 bg-prismatic rounded-full opacity-40"></div>
                   ))}
                 </div>
-                <h4 className="text-4xl font-outfit font-black">ACADEMIC CHANCELLOR</h4>
+                <h4 className="text-4xl font-outfit font-black uppercase">Academic Chancellor</h4>
                 <div className="space-y-6">
                    <div className="p-8 bg-white/5 rounded-3xl border border-white/10">
                       <p className="text-cyan-400 text-sm font-black uppercase tracking-widest mb-4">Live Quiz Generation</p>
@@ -99,12 +99,12 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 </div>
              </div>
           </div>
-          <div className="space-y-12 order-1 lg:order-2">
+          <div className="space-y-12 order-1 lg:order-2 text-right">
              <h3 className="text-6xl md:text-8xl font-outfit font-black tracking-tighter leading-none">
                 MINE AI <br />
                 <span className="text-prismatic">FOR SCHOOLS.</span>
              </h3>
-             <p className="text-gray-400 text-2xl font-medium leading-relaxed">
+             <p className="text-gray-400 text-2xl font-medium leading-relaxed ml-auto max-w-xl">
                 Empower your institution with private neural clusters. Provision accounts, monitor academic load, and give every student an Apex Chancellor.
              </p>
              <button onClick={onAuthClick} className="button-billion !bg-transparent border-2 border-white/20 hover:border-cyan-400 hover:text-cyan-400 !text-white px-16">
@@ -115,54 +115,73 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       </section>
 
       {/* Founder Section */}
-      <section className="py-60 px-8 relative overflow-hidden">
-        <div className="absolute top-0 right-0 text-[30rem] font-black opacity-5 select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-prismatic">13</div>
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-32">
-          <div className="flex-1 space-y-12">
-            <div className="inline-flex items-center px-8 py-2 rounded-full border border-prismatic/20 bg-prismatic/5 text-prismatic text-[10px] font-black uppercase tracking-[0.4em]">
-              The Architect
-            </div>
-            <h3 className="text-7xl md:text-9xl font-outfit font-black tracking-tighter leading-none">
-              MEET <br />
-              <span className="text-prismatic">JOSHUA.</span>
-            </h3>
-            <p className="text-gray-400 text-2xl font-medium leading-relaxed max-w-xl">
-              At just 13 years old, Joshua is the visionary behind MINE AI. His mission: to bridge the gap between human potential and neural superintelligence through zero-friction technology.
-            </p>
-            <div className="flex gap-10">
-              <div className="p-8 glass-premium rounded-3xl">
-                <div className="text-3xl font-black text-white">13</div>
-                <div className="text-[10px] uppercase font-black tracking-widest text-gray-500">Age of Inception</div>
-              </div>
-              <div className="p-8 glass-premium rounded-3xl">
-                <div className="text-3xl font-black text-white">4.0</div>
-                <div className="text-[10px] uppercase font-black tracking-widest text-gray-500">Nexus Version</div>
-              </div>
-            </div>
-          </div>
+      <section className="py-60 px-8 relative overflow-hidden bg-black/40">
+        <div className="absolute top-0 right-0 text-[30rem] font-black opacity-[0.03] select-none pointer-events-none -translate-y-1/2 translate-x-1/4 text-white">13</div>
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-24 lg:gap-40">
           
-          <div className="w-full lg:w-[500px] shrink-0">
+          <div className="w-full lg:w-[500px] xl:w-[600px] shrink-0 order-2 lg:order-1">
              <div className="relative group">
                 {/* Image Frame with Prismatic Border Glow */}
-                <div className="absolute -inset-4 bg-prismatic opacity-20 blur-2xl group-hover:opacity-40 transition-all"></div>
-                <div className="relative aspect-[3/4] rounded-[4rem] overflow-hidden border border-white/20 shadow-[0_40px_100px_rgba(0,0,0,0.8)]">
+                <div className="absolute -inset-6 bg-prismatic opacity-20 blur-3xl group-hover:opacity-40 transition-all duration-1000"></div>
+                <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_60px_120px_rgba(0,0,0,0.9)] bg-[#0a0a0a]">
+                  {/* Primary Image: /joshua/image.jpg */}
                   <img 
                     src="/joshua/image.jpg" 
-                    alt="Joshua - The Founder" 
-                    className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                    alt="Joshua - The 13 Year Old Developer" 
+                    className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      target.src = "https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2070&auto=format&fit=crop";
+                      // Fallback to a placeholder if the local file is not found in the preview environment
+                      target.src = "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1974&auto=format&fit=crop";
                     }}
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
-                  <div className="absolute bottom-12 left-12 right-12">
-                     <p className="text-white text-3xl font-black font-outfit uppercase tracking-tighter">Joshua</p>
-                     <p className="text-prismatic text-sm font-black uppercase tracking-[0.4em]">Founder & Lead Architect</p>
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80"></div>
+                  <div className="absolute bottom-16 left-16 right-16 space-y-4">
+                     <div className="h-1 w-20 bg-prismatic rounded-full"></div>
+                     <p className="text-white text-5xl font-black font-outfit uppercase tracking-tighter">Joshua</p>
+                     <p className="text-prismatic text-lg font-black uppercase tracking-[0.5em] opacity-80">Lead Architect • Age 13</p>
                   </div>
+                </div>
+                {/* Decorative Elements */}
+                <div className="absolute -bottom-8 -right-8 w-32 h-32 glass-premium rounded-full flex items-center justify-center animate-bounce duration-[3s]">
+                  <span className="text-2xl font-black text-white">MINE</span>
                 </div>
              </div>
           </div>
+
+          <div className="flex-1 space-y-16 order-1 lg:order-2">
+            <div className="space-y-8">
+              <div className="inline-flex items-center px-8 py-3 rounded-full border border-white/5 bg-white/[0.02] text-prismatic text-[11px] font-black uppercase tracking-[0.8em]">
+                The Visionary Architect
+              </div>
+              <h3 className="text-7xl md:text-9xl font-outfit font-black tracking-tighter leading-none">
+                THE MIND <br />
+                <span className="text-prismatic">BEHIND MINE.</span>
+              </h3>
+            </div>
+
+            <p className="text-gray-400 text-3xl font-medium leading-tight max-w-2xl tracking-tight">
+              "Building the future isn't about age, it's about the <span className="text-white font-bold">bandwidth of your ideas.</span>"
+            </p>
+
+            <div className="space-y-10">
+              <p className="text-gray-500 text-xl font-medium leading-relaxed max-w-xl">
+                Joshua, a 13-year-old developer, engineered MINE AI to be the first high-fidelity neural link that works at the speed of human thought. His mission is to democratize superintelligence for students and professionals globally.
+              </p>
+              
+              <div className="flex flex-wrap gap-8">
+                <div className="px-10 py-8 glass-premium rounded-[2.5rem] border-white/5">
+                  <div className="text-4xl font-black text-white mb-1">13</div>
+                  <div className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-600">Founder Age</div>
+                </div>
+                <div className="px-10 py-8 glass-premium rounded-[2.5rem] border-white/5">
+                  <div className="text-4xl font-black text-white mb-1">∞</div>
+                  <div className="text-[10px] uppercase font-black tracking-[0.4em] text-gray-600">Neural Scale</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -232,6 +251,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
         
         <div className="max-w-[1600px] mx-auto mt-40 pt-16 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-10 opacity-40 text-[10px] font-black uppercase tracking-[0.6em]">
           <span>© 2025 Mine Tech Technologies</span>
+          <span>Founder: Joshua (13)</span>
           <span>Status: Optimal</span>
         </div>
       </footer>
