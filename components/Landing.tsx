@@ -4,10 +4,14 @@ import Logo from './Logo';
 interface LandingProps {
   onGetStarted: () => void;
   onAuthClick: () => void;
+  onSchoolClick: () => void;
   isLoggedIn: boolean;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn }) => {
+const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onSchoolClick, isLoggedIn }) => {
+  // Direct view URL for the provided Google Drive link
+  const founderImageUrl = "https://drive.google.com/uc?export=view&id=1h9SbEMQSi6Jjvh5xb1vjIsaVQq-X6Jbw";
+
   return (
     <div className="min-h-screen w-full text-white bg-black/20 font-inter selection:bg-cyan-500 selection:text-black">
       
@@ -107,7 +111,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
              <p className="text-gray-400 text-2xl font-medium leading-relaxed ml-auto max-w-xl">
                 Empower your institution with private neural clusters. Provision accounts, monitor academic load, and give every student an Apex Chancellor.
              </p>
-             <button onClick={onAuthClick} className="button-billion !bg-transparent border-2 border-white/20 hover:border-cyan-400 hover:text-cyan-400 !text-white px-16">
+             <button onClick={onSchoolClick} className="button-billion !bg-transparent border-2 border-white/20 hover:border-cyan-400 hover:text-cyan-400 !text-white px-16">
                 Register Institution
              </button>
           </div>
@@ -121,25 +125,21 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           
           <div className="w-full lg:w-[500px] xl:w-[600px] shrink-0 order-2 lg:order-1">
              <div className="relative group">
-                {/* Image Frame with Prismatic Border Glow */}
                 <div className="absolute -inset-8 bg-prismatic opacity-20 blur-[100px] group-hover:opacity-40 transition-all duration-1000"></div>
                 <div className="relative aspect-[3/4.5] rounded-[4.5rem] overflow-hidden border border-white/10 shadow-[0_80px_160px_rgba(0,0,0,1)] bg-[#0a0a0a]">
-                  {/* Using /joshua/joshua_suit.jpg with absolute path for better reliability */}
                   <img 
-                    src="/joshua/joshua_suit.jpg" 
+                    src={founderImageUrl}
                     alt="Joshua - The 13 Year Old Developer" 
                     className="w-full h-full object-cover transition-transform duration-[2.5s] group-hover:scale-110"
                     onError={(e) => {
                       const target = e.target as HTMLImageElement;
-                      console.error("Founder image at /joshua/joshua_suit.jpg failed to load.");
+                      console.error("Founder image at provided Google Drive link failed to load.");
+                      // Fallback to local path if URL fails
+                      target.src = "/joshua/joshua_suit.jpg";
                     }}
                   />
-                  
-                  {/* Neural Scanline Effect Overlay */}
                   <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.02),rgba(0,255,0,0.01),rgba(0,0,255,0.02))] z-10 bg-[length:100%_4px,3px_100%]"></div>
-                  
                   <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-90"></div>
-                  
                   <div className="absolute bottom-16 left-16 right-16 space-y-6 z-20">
                      <div className="flex items-center gap-4">
                         <div className="h-1 w-16 bg-prismatic rounded-full"></div>
@@ -151,8 +151,6 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                      </div>
                   </div>
                 </div>
-
-                {/* Decorative Floaties */}
                 <div className="absolute -top-10 -left-10 w-24 h-24 glass-premium rounded-3xl flex items-center justify-center animate-bounce duration-[4s] shadow-[0_20px_40px_rgba(0,0,0,0.5)] border-white/10 z-30">
                   <div className="text-[12px] font-black text-prismatic">13yo</div>
                 </div>
@@ -172,19 +170,16 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                 <span className="text-prismatic">BEHIND MINE.</span>
               </h3>
             </div>
-
             <div className="relative">
               <div className="absolute -left-12 top-0 text-8xl font-black text-white/5 pointer-events-none">"</div>
               <p className="text-gray-300 text-3xl md:text-4xl font-medium leading-[1.1] max-w-2xl tracking-tight relative z-10">
                 Building the future isn't about age, it's about the <span className="text-white font-bold underline decoration-prismatic decoration-4 underline-offset-8">bandwidth of your ideas.</span>
               </p>
             </div>
-
             <div className="space-y-12">
               <p className="text-gray-500 text-2xl font-medium leading-relaxed max-w-xl">
                 Joshua, at age 13, engineered MINE AI to bridge the latency between human intuition and machine intelligence. This is the first neural link optimized for the speed of modern academic thought.
               </p>
-              
               <div className="flex flex-wrap gap-10">
                 <div className="px-12 py-10 glass-premium rounded-[3rem] border-white/5 hover:border-prismatic/20 transition-colors group/stat">
                   <div className="text-5xl font-black text-white mb-2 group-hover/stat:text-prismatic transition-colors">13</div>
@@ -197,49 +192,6 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               </div>
             </div>
           </div>
-
-        </div>
-      </section>
-
-      {/* Standard Features */}
-      <section className="py-60 px-8 max-w-[1600px] mx-auto grid grid-cols-1 lg:grid-cols-2 gap-32 items-center">
-        <div className="space-y-16">
-          <div className="space-y-6">
-            <h3 className="text-5xl md:text-7xl font-outfit font-black tracking-tighter leading-none">
-              Spatial Intelligence <br />
-              <span className="text-prismatic">Refined.</span>
-            </h3>
-            <p className="text-gray-400 text-2xl leading-relaxed font-medium">
-              MINE AI perceives reality through high-chrome visual analysis and environmental reasoning.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-            <div className="p-10 glass-premium rounded-[3rem] space-y-6 group hover:border-cyan-500/40 transition-all">
-              <div className="w-14 h-14 rounded-full bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" strokeWidth={2}/></svg>
-              </div>
-              <h4 className="text-2xl font-bold font-outfit">Visual Cortex</h4>
-              <p className="text-gray-500 font-medium">Real-time object detection and spatial context mapping.</p>
-            </div>
-            <div className="p-10 glass-premium rounded-[3rem] space-y-6 group hover:border-purple-500/40 transition-all">
-               <div className="w-14 h-14 rounded-full bg-purple-500/10 flex items-center justify-center text-purple-400">
-                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={2}/></svg>
-              </div>
-              <h4 className="text-2xl font-bold font-outfit">Neural Voice</h4>
-              <p className="text-gray-500 font-medium">Bionic prosody and human inflection modeling.</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="relative group">
-           <div className="absolute -inset-10 bg-prismatic opacity-20 blur-[100px] group-hover:opacity-40 transition-all duration-1000"></div>
-           <div className="relative glass-premium aspect-square rounded-[5rem] overflow-hidden shadow-[0_100px_200px_rgba(0,0,0,1)] border-white/20">
-              <div className="absolute inset-0 bg-black/40"></div>
-              <div className="absolute inset-0 flex items-center justify-center">
-                 <Logo size="lg" showText={false} />
-              </div>
-           </div>
         </div>
       </section>
 
