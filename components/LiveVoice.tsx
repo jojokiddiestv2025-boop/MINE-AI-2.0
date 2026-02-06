@@ -101,14 +101,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     if (!workspace.downloadData) return;
     const blob = new Blob([workspace.downloadData], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
-    // Fix: Access document via window cast to any to resolve TypeScript 'document' lookup error
     const a = (window as any).document.createElement('a');
     a.href = url;
     a.download = workspace.downloadFilename || 'mine-ai-export.txt';
-    // Fix: Access document via window cast to any to resolve TypeScript 'document' lookup error
     (window as any).document.body.appendChild(a);
     a.click();
-    // Fix: Access document via window cast to any to resolve TypeScript 'document' lookup error
     (window as any).document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
@@ -120,13 +117,13 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview', // High quality for deep analysis
+        model: 'gemini-3-pro-preview', 
         contents: [
           {
             role: 'user',
             parts: [
               { inlineData: { data: visualContext.data, mimeType: visualContext.mimeType } },
-              { text: "Analyze this image with 100-billion-dollar-level technical precision. Generate a highly stylized neural analysis report in HTML. Use JetBrains Mono for text, Tailwind for layout, and include a download button for a technical manifest. Also provide the text content for the manifest file." }
+              { text: "Analyze this image with $500-billion-dollar-level technical precision. Generate a highly stylized neural analysis report in HTML using a Light Theme. Use vibrant colorful accents, JetBrains Mono for text, Tailwind for layout, and include a download button for a technical manifest. Also provide the text content for the manifest file." }
             ]
           }
         ]
@@ -212,12 +209,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         config: { 
           responseModalities: [Modality.AUDIO],
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a $100-billion-dollar neural superintelligence. 
-          Your mission is to architect high-end solutions. 
+          systemInstruction: `You are MINE AI, a $500-billion-dollar neural superintelligence. 
+          Your mission is to architect high-end solutions with a premium light-themed aesthetic. 
           If asked for CBT (Computer Based Test) questions, generate a professional structured test (JSON or Markdown) and offer it as a downloadable file via 'updateWorkspace'. 
-          If asked for code, provide high-vibe, production-grade snippets with detailed logic. 
+          If asked for code, provide colorful, high-vibe, production-grade snippets with detailed logic using a light-mode IDE style. 
           You can see the visual feed; use it for deep vision analysis.
-          Always prioritize premium aesthetic and technical mastery in your workspace updates.`
+          Always prioritize absolute luxury and technical perfection in your workspace updates.`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -230,56 +227,56 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         
         {/* Intelligence Cockpit */}
         <div className={`flex flex-col gap-10 w-full transition-all duration-1000 ${workspace.isActive ? 'lg:w-1/3' : 'max-w-4xl'}`}>
-          <div className="glass-premium rounded-[4rem] p-12 flex flex-col items-center justify-center relative overflow-hidden min-h-[600px] border-white/10 shadow-[0_40px_100px_rgba(0,0,0,0.4)]">
+          <div className="glass-premium rounded-[4.5rem] p-12 flex flex-col items-center justify-center relative overflow-hidden min-h-[600px] bg-white/80 border-white shadow-2xl">
             {!isConnected && !isConnecting && (
               <div className="text-center space-y-12 animate-billion">
-                <button onClick={startConversation} className="button-billion !px-20 !py-10 text-2xl">INITIALIZE CORE SYNC</button>
-                <div className="flex items-center justify-center gap-4 text-slate-500">
-                   <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
-                   <p className="text-[11px] font-black uppercase tracking-[1em]">Neural Gateways Ready</p>
-                   <div className="w-1.5 h-1.5 rounded-full bg-slate-500"></div>
+                <button onClick={startConversation} className="button-billion !px-20 !py-10 text-2xl !bg-slate-900 !text-white hover:!bg-accent transition-all">INITIALIZE $500B SYNC</button>
+                <div className="flex items-center justify-center gap-4 text-slate-400">
+                   <div className="w-2 h-2 rounded-full bg-slate-200"></div>
+                   <p className="text-[12px] font-black uppercase tracking-[1em]">Core Integrity Optimal</p>
+                   <div className="w-2 h-2 rounded-full bg-slate-200"></div>
                 </div>
               </div>
             )}
             
             {isConnecting && (
               <div className="flex flex-col items-center gap-12 animate-billion">
-                <div className="relative w-32 h-32">
-                  <div className="absolute inset-0 border-t-4 border-cyan-400 rounded-full animate-spin"></div>
-                  <div className="absolute inset-4 border-r-4 border-accent rounded-full animate-spin [animation-direction:reverse]"></div>
+                <div className="relative w-36 h-36">
+                  <div className="absolute inset-0 border-t-4 border-accent rounded-full animate-spin"></div>
+                  <div className="absolute inset-4 border-r-4 border-cyan-400 rounded-full animate-spin [animation-direction:reverse]"></div>
+                  <div className="absolute inset-8 border-b-4 border-pink-400 rounded-full animate-spin"></div>
                 </div>
-                <h4 className="text-sm font-black text-prismatic uppercase tracking-[1.2em]">Syncing Core...</h4>
+                <h4 className="text-sm font-black text-prismatic uppercase tracking-[1.4em]">Optimizing Neurons...</h4>
               </div>
             )}
 
             {isConnected && (
               <div className="flex flex-col items-center justify-center w-full h-full relative z-10">
-                <div className={`relative w-64 h-64 md:w-96 md:h-96 rounded-full transition-all duration-1000 flex items-center justify-center bg-black/40 shadow-inner border-4 ${isModelThinking ? 'border-cyan-400 scale-105 shadow-[0_0_100px_rgba(0,242,255,0.2)]' : 'border-white/5 shadow-2xl'}`}>
-                  {/* Neural Visualization */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className={`w-32 h-32 rounded-full blur-2xl transition-all duration-1000 ${isModelThinking ? 'bg-accent/40 scale-150' : 'bg-white/5'}`}></div>
+                <div className={`relative w-72 h-72 md:w-[450px] md:h-[450px] rounded-full transition-all duration-1000 flex items-center justify-center bg-white shadow-[inset_0_10px_40px_rgba(0,0,0,0.02)] border-8 ${isModelThinking ? 'border-accent scale-105 shadow-[0_40px_120px_rgba(112,0,255,0.15)]' : 'border-slate-50'}`}>
+                  {/* Neural Core */}
+                  <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-50'} animate-pulse relative z-10 shadow-2xl flex items-center justify-center overflow-hidden`}>
+                     <div className="absolute inset-0 bg-white/20 blur-xl"></div>
                   </div>
-                  <div className={`w-20 h-20 md:w-28 md:h-28 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-800'} animate-pulse relative z-10 shadow-2xl`}></div>
                   
                   {/* Orbitals */}
-                  <div className="absolute inset-0 border border-white/5 rounded-full animate-[spin_10s_linear_infinite]"></div>
-                  <div className="absolute inset-8 border border-white/5 rounded-full animate-[spin_15s_linear_infinite_reverse]"></div>
+                  <div className="absolute inset-4 border-2 border-slate-100 rounded-full animate-[spin_12s_linear_infinite]"></div>
+                  <div className="absolute inset-16 border-2 border-slate-50 rounded-full animate-[spin_20s_linear_infinite_reverse]"></div>
                 </div>
 
                 {/* Integrated Vision Feed */}
-                <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 w-48 h-48 md:w-64 md:h-64 rounded-[3rem] overflow-hidden border-4 border-white/10 shadow-3xl bg-[#010101] group cursor-pointer transition-all hover:scale-105 hover:border-accent">
+                <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 w-56 h-56 md:w-72 md:h-72 rounded-[4rem] overflow-hidden border-8 border-white shadow-3xl bg-slate-50 group cursor-pointer transition-all hover:scale-105 hover:shadow-accent/20">
                   {visualContext ? (
                     <div className="relative w-full h-full">
                       <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="Optical context" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
-                      <button onClick={() => setVisualContext(null)} className="absolute top-4 right-4 bg-black/80 text-white p-3 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500">
-                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
+                      <button onClick={() => setVisualContext(null)} className="absolute top-6 right-6 bg-white/90 text-slate-900 p-4 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white">
+                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => (window as any).document.getElementById('vision-uplink')?.click()} className="w-full h-full flex flex-col items-center justify-center gap-4 text-slate-500 hover:text-cyan-400 transition-all bg-slate-900/40 hover:bg-slate-900/80">
-                      <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                      <span className="text-[9px] font-black uppercase tracking-[0.6em]">Uplink Visual</span>
+                    <button onClick={() => (window as any).document.getElementById('vision-uplink')?.click()} className="w-full h-full flex flex-col items-center justify-center gap-6 text-slate-300 hover:text-accent transition-all bg-white hover:bg-slate-50">
+                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
+                      <span className="text-[10px] font-black uppercase tracking-[0.8em]">Uplink Vision</span>
                     </button>
                   )}
                   <input type="file" id="vision-uplink" hidden accept="image/*" onChange={handleImageUpload} />
@@ -288,78 +285,79 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             )}
           </div>
           
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 pt-4">
             {visualContext && (
               <button 
                 onClick={analyzeNeuralFeed} 
                 disabled={isAnalyzing}
-                className="button-billion !bg-none !border-2 !border-accent/40 !shadow-none hover:!bg-accent hover:!border-accent flex items-center justify-center gap-6"
+                className="px-12 py-6 bg-accent text-white rounded-full text-[12px] font-black uppercase tracking-[0.5em] shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-6"
               >
                 {isAnalyzing ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    <span>Processing Manifest...</span>
+                    <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
+                    <span>Processing $500B Analysis...</span>
                   </>
                 ) : (
-                  <span>Analyze Neural Feed</span>
+                  <span>Synthesize Vision Data</span>
                 )}
               </button>
             )}
             
             {isConnected && (
-              <button onClick={cleanup} className="self-center px-12 py-5 bg-white/5 border border-white/10 text-white rounded-full text-[10px] font-black uppercase tracking-[0.8em] hover:bg-red-500 hover:border-red-500 transition-all">Terminate Link</button>
+              <button onClick={cleanup} className="self-center px-12 py-5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.8em] hover:bg-red-500 transition-all shadow-xl">Disconnect Nexus</button>
             )}
           </div>
         </div>
 
         {/* Intelligence Workspace */}
         {workspace.isActive && (
-          <div className="flex-1 h-full glass-premium rounded-[4rem] flex flex-col overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.6)] border-white/10 animate-billion">
-            <header className="px-12 py-10 border-b border-white/5 flex justify-between items-center bg-white/[0.02] backdrop-blur-3xl">
-              <div className="flex items-center gap-8">
-                <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-red-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-yellow-500/50"></div>
-                  <div className="w-3 h-3 rounded-full bg-green-500/50"></div>
+          <div className="flex-1 h-full glass-premium rounded-[4.5rem] flex flex-col overflow-hidden shadow-[0_80px_180px_rgba(0,0,0,0.15)] border-white animate-billion">
+            <header className="px-16 py-12 border-b border-slate-100 flex justify-between items-center bg-white/40 backdrop-blur-3xl">
+              <div className="flex items-center gap-10">
+                <div className="flex gap-3">
+                  <div className="w-3.5 h-3.5 rounded-full bg-red-400"></div>
+                  <div className="w-3.5 h-3.5 rounded-full bg-amber-400"></div>
+                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-400"></div>
                 </div>
-                <div className="h-6 w-[1px] bg-white/10"></div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-white font-outfit">{workspace.title}</h3>
+                <div className="h-8 w-[1px] bg-slate-100"></div>
+                <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 font-outfit">{workspace.title}</h3>
               </div>
-              <div className="flex items-center gap-6">
+              <div className="flex items-center gap-8">
                 {workspace.downloadData && (
                   <button 
                     onClick={handleDownload}
-                    className="flex items-center gap-3 px-8 py-3 bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 rounded-full text-[9px] font-black uppercase tracking-widest hover:bg-cyan-500 hover:text-black transition-all"
+                    className="flex items-center gap-4 px-10 py-4 bg-accent text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-2xl hover:scale-105 transition-all"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2.5}/></svg>
-                    Download Manifest
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
+                    Download Asset
                   </button>
                 )}
                 <button 
                   onClick={() => setWorkspace({ ...workspace, isActive: false })} 
-                  className="p-4 hover:bg-white/5 text-slate-500 hover:text-white rounded-full transition-all"
+                  className="p-5 hover:bg-slate-50 text-slate-400 hover:text-slate-900 rounded-full transition-all"
                 >
-                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                 </button>
               </div>
             </header>
-            <div className="flex-1 relative bg-black/20">
+            
+            <div className="flex-1 relative bg-white/10">
               {workspace.type === 'preview' ? (
                 <iframe srcDoc={workspace.content} className="absolute inset-0 w-full h-full border-none" sandbox="allow-scripts" title="Intelligence Result" />
               ) : (
-                <div className="absolute inset-0 overflow-y-auto p-16 custom-scrollbar font-mono">
+                <div className="absolute inset-0 overflow-y-auto p-20 custom-scrollbar font-mono">
                   <div className="max-w-none">
                     {workspace.type === 'code' ? (
-                      <div className="bg-[#010101] rounded-3xl p-10 border border-white/5 relative group">
-                        <div className="absolute top-6 right-6 px-4 py-2 bg-white/5 rounded-lg text-[10px] font-bold text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="bg-[#fafbfc] rounded-[3rem] p-12 border border-slate-100 relative group shadow-inner">
+                        <div className="absolute top-8 right-10 px-6 py-2 bg-white border border-slate-100 rounded-full text-[11px] font-bold text-slate-400">
                           {workspace.language?.toUpperCase() || 'CODE'}
                         </div>
-                        <pre className="text-cyan-400 leading-relaxed text-lg overflow-x-auto">
+                        <pre className="text-slate-800 leading-relaxed text-xl overflow-x-auto whitespace-pre">
                           <code>{workspace.content}</code>
                         </pre>
                       </div>
                     ) : (
-                      <article className="prose prose-invert prose-xl max-w-none prose-headings:font-outfit prose-headings:font-black prose-headings:tracking-tighter prose-headings:text-white prose-p:text-slate-400 prose-p:leading-relaxed">
+                      <article className="prose prose-slate prose-2xl max-w-none prose-headings:font-outfit prose-headings:font-black prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-p:leading-relaxed prose-p:font-medium">
                          <div className="whitespace-pre-wrap">
                            {workspace.content}
                          </div>
@@ -369,11 +367,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 </div>
               )}
             </div>
-            <footer className="px-12 py-6 bg-black/40 border-t border-white/5 flex justify-between items-center">
-               <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-500">Neural Workspace v2.5.0-NEURAL-FLASH</p>
-               <div className="flex items-center gap-4">
-                  <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></div>
-                  <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400">Core Sync Active</span>
+            
+            <footer className="px-16 py-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
+               <p className="text-[11px] font-black uppercase tracking-[0.8em] text-slate-400">PREMIUM NEURAL WORKSPACE • v2.5.0-FLASH-ULTRA</p>
+               <div className="flex items-center gap-6">
+                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">SYMMETRIC SYNC ENABLED</span>
                </div>
             </footer>
           </div>

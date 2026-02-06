@@ -15,7 +15,6 @@ const App: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [viewState, setViewState] = useState<AppView>('landing');
   const [assignedRole, setAssignedRole] = useState<UserRole | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
 
@@ -52,7 +51,6 @@ const App: React.FC = () => {
       const aistudio = (window as any).aistudio;
       if (aistudio && aistudio.openSelectKey) {
         await aistudio.openSelectKey();
-        // Fix: Cast window to any to access location.reload() when Window type is restricted
         (window as any).location.reload(); 
       }
     } catch (e) {
@@ -62,13 +60,13 @@ const App: React.FC = () => {
 
   if (isInitializing) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion bg-slate-50">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion bg-white">
         <Logo size="sm" showText={false} />
-        <div className="mt-12 w-32 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-           <div className="h-full bg-prismatic animate-[loading_2s_infinite]"></div>
+        <div className="mt-16 w-48 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
+           <div className="h-full bg-gradient-to-r from-cyan-400 via-accent to-pink-500 animate-[loading_2.5s_infinite]"></div>
         </div>
-        <p className="mt-6 text-[9px] font-black uppercase tracking-[0.8em] text-slate-400">Verifying Identity...</p>
-        <style>{`@keyframes loading { 0% { width: 0%; } 50% { width: 100%; } 100% { width: 0%; } }`}</style>
+        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Synchronizing Global Core...</p>
+        <style>{`@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
       </div>
     );
   }
@@ -84,25 +82,26 @@ const App: React.FC = () => {
 
   if (user && hasApiKey) {
     return (
-      <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden">
-        <header className="sticky top-0 h-auto flex items-center px-6 md:px-14 lg:px-24 bg-white/30 backdrop-blur-3xl border-b border-black/[0.05] z-50 shrink-0 py-6">
-          <div className="flex items-center space-x-6 cursor-pointer" onClick={() => setViewState('landing')}>
+      <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden bg-[#ffffff]">
+        <header className="sticky top-0 h-auto flex items-center px-8 md:px-20 lg:px-32 bg-white/70 backdrop-blur-3xl border-b border-slate-100 z-50 shrink-0 py-8">
+          <div className="flex items-center space-x-8 cursor-pointer group" onClick={() => setViewState('landing')}>
             <Logo size="sm" showText={false} />
-            <h1 className="text-2xl md:text-4xl font-outfit font-black tracking-[-0.1em] uppercase text-slate-900">
+            <h1 className="text-3xl md:text-5xl font-outfit font-black tracking-[-0.08em] uppercase text-slate-900">
               MINE <span className="text-prismatic">AI</span>
             </h1>
           </div>
-          <div className="ml-auto flex items-center gap-6">
-            <div className="flex items-center gap-3 px-6 py-2 bg-green-50 rounded-full border border-green-100 shadow-sm">
-               <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-               <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">Shield Active</span>
+          <div className="ml-auto flex items-center gap-10">
+            <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-emerald-50 rounded-full border border-emerald-100 shadow-sm">
+               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
+               <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Shield Active</span>
             </div>
-            <button onClick={handleLogout} className="text-[10px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-black/[0.03] px-6 py-3 rounded-2xl border border-black/[0.05]">
+            <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
               Logout
             </button>
           </div>
         </header>
-        <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-slate-50/20">
+        <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-white">
+          <div className="mesh-gradient opacity-30"></div>
           <LiveVoice onHome={() => setViewState('landing')} />
         </main>
       </div>
@@ -111,12 +110,12 @@ const App: React.FC = () => {
 
   if (user && !hasApiKey) {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion">
-        <div className="glass-premium p-16 rounded-[4.5rem] max-w-xl w-full border-white/90 shadow-2xl">
+      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion bg-white">
+        <div className="glass-premium p-20 rounded-[5rem] max-w-2xl w-full border-white shadow-[0_60px_150px_rgba(0,0,0,0.1)]">
           <Logo size="md" showText={false} />
-          <h2 className="text-3xl font-outfit font-black mb-6 mt-10 uppercase text-slate-900">Uplink Encryption</h2>
-          <p className="text-slate-600 mb-12 text-lg font-medium leading-relaxed">Identity confirmed. To activate neural processing, provide an authorized API Key.</p>
-          <button onClick={handleSelectKey} className="button-billion !py-6 !px-20">Verify Key</button>
+          <h2 className="text-5xl font-outfit font-black mb-8 mt-12 uppercase text-slate-900 tracking-tight">Access Protocol</h2>
+          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Identity authorized. To unlock $500B processing power, please verify your neural access key.</p>
+          <button onClick={handleSelectKey} className="button-billion !py-8 !px-24 text-lg">Verify Neural Key</button>
         </div>
       </div>
     );
