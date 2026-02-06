@@ -28,7 +28,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isOff, setIsOff] = useState(true);
   const [workspaceFull, setWorkspaceFull] = useState(false);
-  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<any>(null);
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string }>({ 
     type: 'markdown', 
@@ -37,7 +36,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     isActive: false 
   });
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
-  const [groundingChunks, setGroundingChunks] = useState<any[]>([]);
 
   const sessionRef = useRef<any>(null);
   const sourcesRef = useRef<Set<any>>(new Set());
@@ -107,20 +105,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
   const startConversation = useCallback(async () => {
     try {
-      // Fix: Cast navigator to any to avoid mediaDevices property lookup errors in certain environments (line 111)
       const nav = (navigator as any);
       const hasMedia = nav.mediaDevices && nav.mediaDevices.getUserMedia;
       const hasAudio = (window as any).AudioContext || (window as any).webkitAudioContext;
       
       if (!hasMedia || !hasAudio) {
-        throw new Error("Your browser does not support high-fidelity neural audio. Please upgrade.");
+        throw new Error("Neural features not supported on this device.");
       }
 
       setIsOff(false);
       setIsConnecting(true);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-      
-      // Fix: Access mediaDevices via cast navigator to resolve TypeScript lookup error (line 122)
       const stream = await nav.mediaDevices.getUserMedia({ audio: true });
       
       const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
@@ -128,7 +123,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       const inputCtx = new AudioContextClass({ sampleRate: 16000 });
       outputAudioContextRef.current = outputCtx;
 
-      // Resume context if suspended (common in old Safari/Chrome mobile)
       if (outputCtx.state === 'suspended') await outputCtx.resume();
       if (inputCtx.state === 'suspended') await inputCtx.resume();
 
@@ -199,7 +193,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             }
           },
           onerror: (e) => { 
-            console.error("Live nexus error:", e);
+            console.error("Live error:", e);
             setError(e); 
             cleanup(); 
           },
@@ -210,28 +204,24 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
           systemInstruction: `You are MINE AI, a neural powerhouse built by Joshua, a 13-year-old Nigerian developer.
           GOAL: Instant responses, high-vibe coding, and professional CBT questions.
-          STYLE: Google AI Studio (Clean, Technical, Efficient).
           - Use 'updateWorkspace' for ANY major output.
-          - Coding must be 'Vibe Coding' - extremely high-end, efficient, and well-commented.
-          - If the user asks for anything complex, show it in the workspace IMMEDIATELY.`
+          - If the user asks for anything complex or sends an image, show analysis in the workspace IMMEDIATELY.`
         }
       });
       sessionRef.current = await sessionPromise;
     } catch (e: any) { 
-      console.error("Initialization failed:", e);
-      setError({ message: e.message || "Nexus initialization failed." }); 
+      setError({ message: e.message || "Initialization failed." }); 
       setIsConnecting(false); 
       setIsOff(true);
     }
   }, [cleanup]);
 
-  // Auto Power On/Off Logic
   useEffect(() => {
     startConversation();
     return () => cleanup();
   }, [startConversation, cleanup]);
 
-  // Handle Copy-Paste
+  // Enhanced Paste Handler: Just like Gemini
   useEffect(() => {
     const handlePaste = (event: any) => {
       const items = event.clipboardData?.items;
@@ -253,42 +243,42 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         }
       }
     };
-    // Fix: Access window via cast to any to resolve addEventListener and removeEventListener lookup errors (lines 254-255)
     const win = (window as any);
     win.addEventListener('paste', handlePaste);
     return () => win.removeEventListener('paste', handlePaste);
   }, []);
 
-  const analyzeImageUrl = async () => {
-    if (!imageUrl) return;
+  // Direct Image Analysis Handler
+  const analyzeVisualFeed = async () => {
+    if (!visualContext) return;
     setIsAnalyzing(true);
     setError(null);
-    setGroundingChunks([]);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview',
-        contents: [{ text: `High-fidelity analysis request. Scan and provide a comprehensive technical report for this image URL: ${imageUrl}. Output in markdown with deep detail.` }],
-        config: {
-          tools: [{ googleSearch: {} }] 
-        }
+        contents: [
+          {
+            role: 'user',
+            parts: [
+              { inlineData: { data: visualContext.data, mimeType: visualContext.mimeType } },
+              { text: "Detailed analysis: Scan this image and provide a technical report. If there is code, extract it. If there are questions, provide answers." }
+            ]
+          }
+        ]
       });
       
-      const report = response.text || "Neural scan complete.";
-      const chunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-      setGroundingChunks(chunks);
-
+      const report = response.text || "Scan complete.";
       setWorkspace({
-        title: 'Network Analysis Report',
+        title: 'Image Analysis Report',
         content: report,
         type: 'markdown',
         isActive: true,
         downloadData: report,
-        downloadFilename: 'url_report.md'
+        downloadFilename: 'analysis.md'
       });
-      setImageUrl('');
     } catch (err: any) {
-      setError({ message: "Network Link Failed: " + err.message });
+      setError({ message: "Image analysis failed: " + err.message });
     } finally {
       setIsAnalyzing(false);
     }
@@ -299,7 +289,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     try {
       const blob = new Blob([workspace.downloadData], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
-      // Fix: Access document via window cast to any to resolve document lookup errors (lines 298, 301, 303)
       const doc = (window as any).document;
       const a = doc.createElement('a');
       a.href = url;
@@ -318,7 +307,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       {error && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[150] bg-red-50 border border-red-200 p-4 rounded-xl text-red-600 text-[10px] font-black uppercase tracking-widest shadow-xl flex items-center gap-3">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" strokeWidth={3}/></svg>
-          <span>{error.message || "System error detected."}</span>
+          <span>{error.message}</span>
           <button onClick={() => setError(null)} className="ml-4 hover:text-red-800">Dismiss</button>
         </div>
       )}
@@ -331,7 +320,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             {isConnecting && (
               <div className="flex flex-col items-center gap-10 animate-billion">
                 <div className="w-20 h-20 border-4 border-slate-100 border-t-accent rounded-full animate-spin"></div>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Connecting...</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Connecting Hub...</h4>
               </div>
             )}
 
@@ -340,41 +329,53 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 <div className={`relative w-48 h-48 md:w-80 md:h-80 rounded-full transition-all duration-300 flex items-center justify-center bg-white border-2 ${isModelThinking ? 'border-accent shadow-[0_0_60px_rgba(112,0,255,0.1)]' : 'border-slate-100'}`}>
                   <div className={`w-16 h-16 md:w-32 md:h-32 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-100'} animate-pulse shadow-xl`}></div>
                   <div className="absolute inset-0 border-t-2 border-slate-100 rounded-full animate-[spin_8s_linear_infinite]"></div>
-                  <div className="absolute -bottom-4 bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm text-[8px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Neural Hub Active</div>
+                  <div className="absolute -bottom-4 bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm text-[8px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Voice Active</div>
                 </div>
 
-                {/* Paste Area / Preview */}
-                <div className="w-full space-y-4">
-                  <div className="relative w-full">
-                    <input 
-                      type="text" 
-                      value={imageUrl} 
-                      onChange={(e: any) => setImageUrl(e.target.value)}
-                      placeholder="PASTE IMAGE URL..." 
-                      className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-[10px] font-black tracking-widest text-slate-600 outline-none focus:ring-2 focus:ring-accent/20 transition-all placeholder:text-slate-300"
-                    />
-                    {imageUrl && (
-                      <button onClick={analyzeImageUrl} disabled={isAnalyzing} className="absolute right-2 top-2 px-6 py-2 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-accent transition-all shadow-lg active:scale-95">
-                        {isAnalyzing ? "..." : "SCAN"}
-                      </button>
-                    )}
+                {/* Upload / Paste Feed */}
+                <div className="w-full space-y-6">
+                  <div className="text-center">
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Paste Image Anywhere or Click Below</p>
                   </div>
                   
-                  <div className="h-32 md:h-40 w-full rounded-2xl overflow-hidden border border-slate-100 bg-slate-50 relative group cursor-pointer transition-all hover:border-accent">
+                  <div onClick={() => (window as any).document.getElementById('file-upload')?.click()} className={`h-40 md:h-56 w-full rounded-3xl overflow-hidden border-2 border-dashed transition-all relative group cursor-pointer ${visualContext ? 'border-accent shadow-lg' : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'}`}>
                     {visualContext ? (
                       <>
                         <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="feed" />
-                        <button onClick={() => setVisualContext(null)} className="absolute top-2 right-2 p-2 bg-white/90 rounded-lg text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-md">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                          <span className="text-white text-[10px] font-black uppercase">Click to Change</span>
+                        </div>
+                        <button onClick={(e) => { e.stopPropagation(); setVisualContext(null); }} className="absolute top-4 right-4 p-2 bg-white rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-xl">
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                         </button>
                       </>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-slate-300">
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                        <span className="text-[8px] font-black uppercase tracking-[0.4em]">Vision Input Ready</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-slate-300">
+                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" strokeWidth={2}/></svg>
+                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Drop / Paste Image</span>
                       </div>
                     )}
+                    <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={(e: any) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (re) => {
+                          const res = re.target?.result;
+                          if (typeof res === 'string') {
+                            const base64Data = res.split(',')[1];
+                            setVisualContext({ id: Date.now().toString(), data: base64Data, mimeType: file.type });
+                          }
+                        };
+                        reader.readAsDataURL(file);
+                      }
+                    }} />
                   </div>
+
+                  {visualContext && (
+                    <button onClick={analyzeVisualFeed} disabled={isAnalyzing} className="w-full py-5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] hover:bg-accent hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4">
+                      {isAnalyzing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <span>Analyze Image</span>}
+                    </button>
+                  )}
                 </div>
               </div>
             )}
@@ -382,7 +383,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           
           {!workspaceFull && (
             <div className="flex flex-col gap-4">
-               <button onClick={cleanup} className="px-8 py-5 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all shadow-lg shadow-red-500/10 active:scale-95">Terminate Link</button>
+               <button onClick={cleanup} className="px-8 py-5 bg-white border border-slate-200 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 hover:border-red-100 transition-all active:scale-95">Stop Session</button>
             </div>
           )}
         </div>
@@ -405,12 +406,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   className={`px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 ${workspaceFull ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={3}/></svg>
-                  <span className="hidden sm:inline">{workspaceFull ? "MINIMIZE" : "FOCUS"}</span>
+                  <span className="hidden sm:inline">{workspaceFull ? "CLOSE FOCUS" : "FOCUS"}</span>
                 </button>
                 {workspace.downloadData && (
                   <button onClick={handleDownload} className="px-3 md:px-6 py-2 md:py-2.5 bg-accent text-white rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center gap-2 active:scale-95">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
-                    <span className="hidden sm:inline">Export</span>
+                    <span className="hidden sm:inline">Download</span>
                   </button>
                 )}
                 {!workspaceFull && (
@@ -435,34 +436,15 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                       <div className="whitespace-pre-wrap text-slate-600 leading-relaxed px-2 md:px-4">{workspace.content}</div>
                     </article>
                   )}
-                  
-                  {groundingChunks.length > 0 && (
-                    <div className="mt-12 md:mt-16 pt-12 md:pt-16 border-t border-slate-100">
-                      <h5 className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-6">Neural Sources</h5>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {groundingChunks.map((chunk, i) => chunk.web && (
-                          <a key={i} href={chunk.web.uri} target="_blank" rel="noopener noreferrer" className="p-4 md:p-6 bg-white border border-slate-100 rounded-2xl hover:border-accent transition-all group flex items-start gap-4 shadow-sm">
-                            <div className="p-3 bg-slate-50 rounded-xl group-hover:bg-accent/5 transition-colors shrink-0">
-                              <svg className="w-5 h-5 text-slate-400 group-hover:text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101" strokeWidth={2}/><path d="M10.172 13.828a4 4 0 005.656 0l4-4a4 4 0 10-5.656-5.656l-1.102 1.101" strokeWidth={2}/></svg>
-                            </div>
-                            <div className="min-w-0">
-                              <div className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-accent mb-1 truncate">Source {i+1}</div>
-                              <div className="text-slate-900 font-bold text-xs md:text-sm truncate">{chunk.web.title}</div>
-                            </div>
-                          </a>
-                        ))}
-                      </div>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
             
             <footer className="px-4 md:px-8 py-4 md:py-5 bg-[#f8f9fa] border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center text-[8px] md:text-[9px] font-black uppercase tracking-widest text-slate-400 gap-4">
                <div className="flex items-center gap-4 md:gap-6">
-                  <span className="truncate">NEXUS ENGINE v2.1 // COMPATIBLE</span>
+                  <span className="truncate">Active Hub</span>
                   <div className="hidden sm:block h-3 w-[1px] bg-slate-200"></div>
-                  <span className="hidden sm:inline">LAGOS HUB ACTIVE</span>
+                  <span className="hidden sm:inline">Lagos Region</span>
                </div>
                <div className="flex items-center gap-3">
                   <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>

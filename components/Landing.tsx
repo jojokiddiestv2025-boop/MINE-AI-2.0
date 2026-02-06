@@ -22,9 +22,9 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           </div>
         </div>
         <div className="flex items-center gap-6">
-          <button onClick={onAuthClick} className="px-8 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all shadow-sm">Portal</button>
+          <button onClick={onAuthClick} className="px-8 py-3 bg-slate-50 border border-slate-200 text-slate-900 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-all shadow-sm">Sign In</button>
           <button onClick={onGetStarted} className="px-10 py-4 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl">
-            {isLoggedIn ? 'Launch Hub' : 'Enter Nexus'}
+            {isLoggedIn ? 'Launch Hub' : 'Open App'}
           </button>
         </div>
       </nav>
@@ -46,7 +46,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           </div>
           <div className="flex flex-col md:flex-row gap-8 pt-12">
             <button onClick={onGetStarted} className="px-16 py-6 bg-slate-900 text-white rounded-full text-xl font-black uppercase tracking-widest hover:bg-accent hover:shadow-2xl transition-all active:scale-95">
-              Initialize Neural Link
+              Get Started
             </button>
           </div>
         </div>
