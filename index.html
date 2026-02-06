@@ -6,33 +6,54 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>MINE AI | Engineered by a 13-Year-Old Nigerian Visionary</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%2300f2ff'/%3E%3Cstop offset='50%25' stop-color='%237000ff'/%3E%3Cstop offset='100%25' stop-color='%23ff00ea'/%3E%3C/linearGradient%3E%3C/defs%3E%3Cpath d='M50 5 L90 25 L90 75 L50 95 L10 75 L10 25 Z' fill='url(%23g)'/%3E%3Cpath d='M50 20 L80 35 L50 50 L20 35 Z' fill='white' opacity='0.9'/%3E%3C/svg%3E">
+  
+  <!-- Import Map Polyfill for older browsers (Safari < 16.4, Chrome < 89) -->
+  <script async src="https://ga.jspm.io/npm:es-module-shims@1.10.1/dist/es-module-shims.js"></script>
+
   <script src="https://cdn.tailwindcss.com/3.4.16"></script>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&family=Outfit:wght@700;800;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
   <style>
     :root { --accent: #7000ff; --cyan: #00f2ff; --pink: #ff00ea; --royal: #4f46e5; }
+    
     body { 
       font-family: 'Inter', sans-serif; 
       background: #ffffff; 
       color: #0f172a;
       scroll-behavior: smooth;
       overflow-x: hidden;
+      /* Improve scrolling performance on old iOS */
+      -webkit-overflow-scrolling: touch;
     }
+
     .font-outfit { font-family: 'Outfit', sans-serif; }
     .font-mono { font-family: 'JetBrains Mono', monospace; }
+
     .glass-premium { 
-      background: rgba(255, 255, 255, 0.7); 
-      backdrop-filter: blur(40px); 
+      background: rgba(255, 255, 255, 0.85); 
+      backdrop-filter: blur(20px); 
+      -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(0, 0, 0, 0.05); 
       box-shadow: 0 40px 100px -20px rgba(112, 0, 255, 0.1);
     }
+
+    /* Support browsers without backdrop-filter */
+    @supports not (backdrop-filter: blur(1px)) {
+      .glass-premium {
+        background: rgba(255, 255, 255, 0.98);
+      }
+    }
+
     .text-prismatic { 
       background: linear-gradient(90deg, #00d2ff, #7000ff, #ff00ea, #ff9d00); 
       -webkit-background-clip: text; 
+      background-clip: text;
       -webkit-text-fill-color: transparent; 
       background-size: 300% auto;
       animation: shine 6s linear infinite;
     }
+    
     @keyframes shine { to { background-position: 300% center; } }
+    
     .button-billion { 
       background: linear-gradient(135deg, #7000ff, #00f2ff); 
       color: white; 
@@ -46,29 +67,17 @@
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(112, 0, 255, 0.25);
     }
-    .button-billion:hover { 
-      transform: translateY(-4px) scale(1.02); 
-      box-shadow: 0 30px 60px rgba(112, 0, 255, 0.4);
-      filter: brightness(1.1);
-    }
-    .button-billion:active { transform: translateY(0) scale(0.98); }
-    @keyframes fade-up { 
-      from { opacity: 0; transform: translateY(30px) scale(0.98); } 
-      to { opacity: 1; transform: translateY(0) scale(1); } 
-    }
-    .animate-billion { animation: fade-up 1s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+    /* Fallback for mesh gradient on low power devices */
     .viewport-ambient { 
       position: fixed; 
       inset: 0; 
       z-index: -1; 
+      background: #f8faff;
       background: radial-gradient(circle at top left, #f8faff, #ffffff),
                   radial-gradient(circle at bottom right, #fff1f2, transparent); 
     }
-    .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(112, 0, 255, 0.1); border-radius: 10px; }
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--accent); }
-    
+
     .mesh-gradient {
       position: absolute;
       width: 100%;
@@ -78,9 +87,28 @@
         radial-gradient(at 100% 0%, rgba(255, 0, 234, 0.1) 0px, transparent 50%),
         radial-gradient(at 100% 100%, rgba(112, 0, 255, 0.1) 0px, transparent 50%),
         radial-gradient(at 0% 100%, rgba(255, 157, 0, 0.1) 0px, transparent 50%);
-      filter: blur(100px);
+      filter: blur(60px); /* Reduced blur for performance */
+      -webkit-filter: blur(60px);
       z-index: -1;
+      opacity: 0.6;
     }
+
+    /* Performance optimization: Disable heavy animations on low-power mode or old browsers if needed */
+    @media (prefers-reduced-motion: reduce) {
+      .animate-billion, .animate-spin, .animate-pulse {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
+
+    @keyframes fade-up { 
+      from { opacity: 0; transform: translateY(20px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    .animate-billion { animation: fade-up 0.8s ease-out forwards; }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(112, 0, 255, 0.1); border-radius: 10px; }
   </style>
   <script type="importmap">
 {
