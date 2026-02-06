@@ -12,16 +12,24 @@ export interface VisualContext {
 }
 
 export interface WorkspaceState {
-  type: 'markdown';
-  content: string; 
-  language: string;
+  type: 'markdown' | 'image' | 'conversion';
+  content?: string; 
+  imageUrl?: string;
+  language?: string;
   title: string;
   isActive: boolean;
+  isProcessing?: boolean;
+  conversionData?: {
+    status: 'idle' | 'processing' | 'completed' | 'error';
+    progress: number;
+    type: 'word_to_pdf' | 'mp4_to_mp3' | 'url_to_mp3';
+    resultUrl?: string;
+    resultName?: string;
+  };
 }
 
 export type UserRole = 'personal';
 
-// Fix: Added missing InstitutionMember interface for school management
 export interface InstitutionMember {
   name: string;
   email: string;
@@ -30,7 +38,6 @@ export interface InstitutionMember {
   dateAdded: string;
 }
 
-// Fix: Added missing SchoolProfile interface for school management
 export interface SchoolProfile {
   id: string;
   name: string;
