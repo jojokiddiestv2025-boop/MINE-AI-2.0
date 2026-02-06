@@ -61,7 +61,6 @@ const App: React.FC = () => {
   const formatEmail = (email: string | null) => {
     if (!email) return 'User';
     const [name] = email.split('@');
-    // Enhanced privacy truncation
     if (name.length > 5) {
       return `${name.substring(0, 3)}...${name.substring(name.length - 2)}`;
     }
@@ -75,7 +74,7 @@ const App: React.FC = () => {
         <div className="mt-16 w-48 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
            <div className="h-full bg-gradient-to-r from-cyan-400 via-accent to-pink-500 animate-[loading_2.5s_infinite]"></div>
         </div>
-        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Synchronizing Global Core...</p>
+        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Loading...</p>
         <style>{`@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
       </div>
     );
@@ -103,7 +102,7 @@ const App: React.FC = () => {
           <div className="ml-auto flex items-center gap-10">
             <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-slate-50 rounded-full border border-slate-100 shadow-sm">
                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-               <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">ID: {formatEmail(user.email)}</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">User: {formatEmail(user.email)}</span>
             </div>
             <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
               Logout
@@ -123,9 +122,9 @@ const App: React.FC = () => {
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion bg-white">
         <div className="glass-premium p-20 rounded-[5rem] max-w-2xl w-full border-white shadow-[0_60px_150px_rgba(0,0,0,0.1)]">
           <Logo size="md" showText={false} />
-          <h2 className="text-5xl font-outfit font-black mb-8 mt-12 uppercase text-slate-900 tracking-tight">Access Protocol</h2>
-          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Identity authorized. To unlock advanced neural processing, please verify your access key.</p>
-          <button onClick={handleSelectKey} className="button-billion !py-8 !px-24 text-lg">Verify Neural Key</button>
+          <h2 className="text-5xl font-outfit font-black mb-8 mt-12 uppercase text-slate-900 tracking-tight">Verification</h2>
+          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Account authorized. To unlock full features, please add your access key.</p>
+          <button onClick={handleSelectKey} className="button-billion !py-8 !px-24 text-lg">Add Access Key</button>
         </div>
       </div>
     );

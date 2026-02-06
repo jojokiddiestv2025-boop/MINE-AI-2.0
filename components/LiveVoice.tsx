@@ -26,7 +26,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isModelThinking, setIsModelThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
-  const [isOff, setIsOff] = useState(true);
+  const [isOff, setIsOff] = useState(true); // Default to off for manual start
   const [workspaceFull, setWorkspaceFull] = useState(false);
   const [error, setError] = useState<any>(null);
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string }>({ 
@@ -105,16 +105,18 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
   const startConversation = useCallback(async () => {
     try {
+      setError(null);
+      setIsConnecting(true);
+      setIsOff(false);
+
       const nav = (navigator as any);
       const hasMedia = nav.mediaDevices && nav.mediaDevices.getUserMedia;
       const hasAudio = (window as any).AudioContext || (window as any).webkitAudioContext;
       
       if (!hasMedia || !hasAudio) {
-        throw new Error("Neural features not supported on this device.");
+        throw new Error("Voice features not supported on this browser.");
       }
 
-      setIsOff(false);
-      setIsConnecting(true);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const stream = await nav.mediaDevices.getUserMedia({ audio: true });
       
@@ -193,7 +195,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             }
           },
           onerror: (e) => { 
-            console.error("Live error:", e);
+            console.error("Link error:", e);
             setError(e); 
             cleanup(); 
           },
@@ -202,10 +204,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         config: { 
           responseModalities: [Modality.AUDIO],
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a neural powerhouse built by Joshua, a 13-year-old Nigerian developer.
-          GOAL: Instant responses, high-vibe coding, and professional CBT questions.
-          - Use 'updateWorkspace' for ANY major output.
-          - If the user asks for anything complex or sends an image, show analysis in the workspace IMMEDIATELY.`
+          systemInstruction: `You are MINE AI, a powerful tool built by Joshua, a 13-year-old Nigerian developer.
+          GOAL: Help with coding, math, and questions instantly.
+          STYLE: Helpful, clear, and direct.
+          - Use 'updateWorkspace' for large results.
+          - Analyze images you see to provide detailed help.`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -217,11 +220,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   }, [cleanup]);
 
   useEffect(() => {
-    startConversation();
+    // We only clean up on unmount. Manual start is handled by button.
     return () => cleanup();
-  }, [startConversation, cleanup]);
+  }, [cleanup]);
 
-  // Enhanced Paste Handler: Just like Gemini
+  // Paste Handler
   useEffect(() => {
     const handlePaste = (event: any) => {
       const items = event.clipboardData?.items;
@@ -248,7 +251,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     return () => win.removeEventListener('paste', handlePaste);
   }, []);
 
-  // Direct Image Analysis Handler
   const analyzeVisualFeed = async () => {
     if (!visualContext) return;
     setIsAnalyzing(true);
@@ -262,20 +264,20 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             role: 'user',
             parts: [
               { inlineData: { data: visualContext.data, mimeType: visualContext.mimeType } },
-              { text: "Detailed analysis: Scan this image and provide a technical report. If there is code, extract it. If there are questions, provide answers." }
+              { text: "Look at this image. Tell me exactly what it is. If it contains code or text, extract it and explain it." }
             ]
           }
         ]
       });
       
-      const report = response.text || "Scan complete.";
+      const report = response.text || "I've scanned the image.";
       setWorkspace({
-        title: 'Image Analysis Report',
+        title: 'Image Results',
         content: report,
         type: 'markdown',
         isActive: true,
         downloadData: report,
-        downloadFilename: 'analysis.md'
+        downloadFilename: 'mine-ai-results.md'
       });
     } catch (err: any) {
       setError({ message: "Image analysis failed: " + err.message });
@@ -314,45 +316,58 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
       <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-700 h-full overflow-hidden ${workspaceFull ? 'lg:gap-0' : ''}`}>
         
-        {/* Left Control Panel */}
+        {/* Left Side: Voice & Image */}
         <div className={`flex flex-col gap-6 w-full transition-all duration-700 ${workspaceFull ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden lg:p-0' : workspace.isActive ? 'lg:w-[400px]' : 'max-w-4xl mx-auto items-center justify-center'}`}>
-          <div className="bg-white rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[400px] md:min-h-[500px] border border-slate-200 shadow-xl w-full">
-            {isConnecting && (
+          <div className="bg-white rounded-3xl p-6 md:p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[400px] md:min-h-[600px] border border-slate-200 shadow-xl w-full">
+            
+            {isConnecting ? (
               <div className="flex flex-col items-center gap-10 animate-billion">
                 <div className="w-20 h-20 border-4 border-slate-100 border-t-accent rounded-full animate-spin"></div>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Connecting Hub...</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Starting...</h4>
               </div>
-            )}
-
-            {!isOff && isConnected && (
+            ) : (
               <div className="flex flex-col items-center justify-center w-full h-full space-y-8 md:space-y-12">
-                <div className={`relative w-48 h-48 md:w-80 md:h-80 rounded-full transition-all duration-300 flex items-center justify-center bg-white border-2 ${isModelThinking ? 'border-accent shadow-[0_0_60px_rgba(112,0,255,0.1)]' : 'border-slate-100'}`}>
-                  <div className={`w-16 h-16 md:w-32 md:h-32 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-100'} animate-pulse shadow-xl`}></div>
-                  <div className="absolute inset-0 border-t-2 border-slate-100 rounded-full animate-[spin_8s_linear_infinite]"></div>
-                  <div className="absolute -bottom-4 bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm text-[8px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">Voice Active</div>
+                {/* Mic Indicator */}
+                <div className={`relative w-48 h-48 md:w-80 md:h-80 rounded-full transition-all duration-500 flex items-center justify-center bg-white border-2 ${isOff ? 'border-slate-100 opacity-60' : isModelThinking ? 'border-accent shadow-[0_0_60px_rgba(112,0,255,0.15)]' : 'border-emerald-200 shadow-[0_0_40px_rgba(16,185,129,0.1)]'}`}>
+                  <div className={`w-16 h-16 md:w-32 md:h-32 rounded-full transition-all duration-500 ${isOff ? 'bg-slate-100' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400'} ${!isOff && 'animate-pulse'} shadow-xl`}></div>
+                  {!isOff && <div className="absolute inset-0 border-t-2 border-emerald-400 rounded-full animate-[spin_8s_linear_infinite]"></div>}
+                  <div className="absolute -bottom-4 bg-white px-6 py-2 rounded-full border border-slate-100 shadow-sm text-[8px] font-black uppercase tracking-widest text-slate-400 whitespace-nowrap">
+                    {isOff ? 'Mic Off' : 'Mic Active'}
+                  </div>
                 </div>
 
-                {/* Upload / Paste Feed */}
-                <div className="w-full space-y-6">
-                  <div className="text-center">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">Paste Image Anywhere or Click Below</p>
-                  </div>
-                  
-                  <div onClick={() => (window as any).document.getElementById('file-upload')?.click()} className={`h-40 md:h-56 w-full rounded-3xl overflow-hidden border-2 border-dashed transition-all relative group cursor-pointer ${visualContext ? 'border-accent shadow-lg' : 'border-slate-200 hover:border-slate-400 hover:bg-slate-50'}`}>
+                {/* Direct Start/Stop Control */}
+                <div className="w-full max-w-xs">
+                  {isOff ? (
+                    <button onClick={startConversation} className="w-full py-5 bg-accent text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" strokeWidth={2}/></svg>
+                      Start Session
+                    </button>
+                  ) : (
+                    <button onClick={cleanup} className="w-full py-5 bg-white border-2 border-slate-100 text-slate-600 rounded-2xl text-[11px] font-black uppercase tracking-[0.3em] hover:bg-red-50 hover:text-red-500 hover:border-red-100 transition-all active:scale-95 flex items-center justify-center gap-4">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeWidth={2}/><path d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z" strokeWidth={2}/></svg>
+                      Stop Session
+                    </button>
+                  )}
+                </div>
+
+                {/* Image Section */}
+                <div className="w-full space-y-4">
+                  <div onClick={() => (window as any).document.getElementById('file-upload')?.click()} className={`h-32 md:h-48 w-full rounded-3xl overflow-hidden border-2 border-dashed transition-all relative group cursor-pointer ${visualContext ? 'border-accent shadow-lg bg-white' : 'border-slate-100 hover:border-slate-300 bg-slate-50/30'}`}>
                     {visualContext ? (
                       <>
                         <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="feed" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                          <span className="text-white text-[10px] font-black uppercase">Click to Change</span>
+                          <span className="text-white text-[10px] font-black uppercase">Change Image</span>
                         </div>
                         <button onClick={(e) => { e.stopPropagation(); setVisualContext(null); }} className="absolute top-4 right-4 p-2 bg-white rounded-xl text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-xl">
                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                         </button>
                       </>
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center gap-4 text-slate-300">
-                        <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" strokeWidth={2}/></svg>
-                        <span className="text-[10px] font-black uppercase tracking-[0.4em]">Drop / Paste Image</span>
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-slate-300">
+                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
+                        <span className="text-[9px] font-black uppercase tracking-[0.3em]">Paste or Upload Image</span>
                       </div>
                     )}
                     <input type="file" id="file-upload" className="hidden" accept="image/*" onChange={(e: any) => {
@@ -372,23 +387,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   </div>
 
                   {visualContext && (
-                    <button onClick={analyzeVisualFeed} disabled={isAnalyzing} className="w-full py-5 bg-slate-900 text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.4em] hover:bg-accent hover:shadow-2xl transition-all active:scale-95 flex items-center justify-center gap-4">
-                      {isAnalyzing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <span>Analyze Image</span>}
+                    <button onClick={analyzeVisualFeed} disabled={isAnalyzing} className="w-full py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.3em] hover:bg-accent transition-all active:scale-95 flex items-center justify-center gap-3">
+                      {isAnalyzing ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div> : <span>Analyze Now</span>}
                     </button>
                   )}
                 </div>
               </div>
             )}
           </div>
-          
-          {!workspaceFull && (
-            <div className="flex flex-col gap-4">
-               <button onClick={cleanup} className="px-8 py-5 bg-white border border-slate-200 text-slate-400 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:text-red-500 hover:border-red-100 transition-all active:scale-95">Stop Session</button>
-            </div>
-          )}
         </div>
 
-        {/* Workspace Focus Area */}
+        {/* Results Workspace */}
         {workspace.isActive && (
           <div className={`flex-1 h-full bg-white rounded-3xl flex flex-col overflow-hidden border border-slate-200 shadow-2xl animate-billion transition-all duration-700 ${workspaceFull ? 'm-0 rounded-none border-none lg:fixed lg:inset-0 lg:z-[100]' : ''}`}>
             <header className="px-4 md:px-8 py-4 md:py-6 border-b border-slate-100 flex flex-wrap justify-between items-center bg-[#fdfdfd] gap-4">
@@ -406,12 +415,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   className={`px-3 md:px-6 py-2 md:py-2.5 rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 active:scale-95 ${workspaceFull ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                 >
                   <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={3}/></svg>
-                  <span className="hidden sm:inline">{workspaceFull ? "CLOSE FOCUS" : "FOCUS"}</span>
+                  <span className="hidden sm:inline">{workspaceFull ? "MINIMIZE" : "FOCUS"}</span>
                 </button>
                 {workspace.downloadData && (
                   <button onClick={handleDownload} className="px-3 md:px-6 py-2 md:py-2.5 bg-accent text-white rounded-xl text-[8px] md:text-[9px] font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center gap-2 active:scale-95">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
-                    <span className="hidden sm:inline">Download</span>
+                    <span className="hidden sm:inline">Save</span>
                   </button>
                 )}
                 {!workspaceFull && (
@@ -439,18 +448,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 </div>
               </div>
             </div>
-            
-            <footer className="px-4 md:px-8 py-4 md:py-5 bg-[#f8f9fa] border-t border-slate-100 flex flex-col sm:flex-row justify-between items-center text-[8px] md:text-[9px] font-black uppercase tracking-widest text-slate-400 gap-4">
-               <div className="flex items-center gap-4 md:gap-6">
-                  <span className="truncate">Active Hub</span>
-                  <div className="hidden sm:block h-3 w-[1px] bg-slate-200"></div>
-                  <span className="hidden sm:inline">Lagos Region</span>
-               </div>
-               <div className="flex items-center gap-3">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
-                  <span>Secure Node</span>
-               </div>
-            </footer>
           </div>
         )}
       </div>
