@@ -5,7 +5,6 @@ import { VisualContext, WorkspaceState } from '../types';
 
 interface LiveVoiceProps { onHome?: () => void; }
 
-// High-speed workspace tool for instant updates (Studio Style)
 const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
@@ -27,6 +26,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [isConnecting, setIsConnecting] = useState(false);
   const [isModelThinking, setIsModelThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isOff, setIsOff] = useState(true);
   const [error, setError] = useState<any>(null);
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string }>({ 
     type: 'markdown', 
@@ -45,6 +45,38 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const visualContextRef = useRef<VisualContext | null>(visualContext);
   useEffect(() => { visualContextRef.current = visualContext; }, [visualContext]);
 
+  // Handle Copy-Paste Image Analysis
+  useEffect(() => {
+    // Fix: Using any for event to resolve 'clipboardData' property lookup error in this environment
+    const handlePaste = (event: any) => {
+      const items = event.clipboardData?.items;
+      if (!items) return;
+      
+      for (let i = 0; i < items.length; i++) {
+        if (items[i].type.indexOf('image') !== -1) {
+          const blob = items[i].getAsFile();
+          if (blob) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const base64Data = (e.target?.result as string).split(',')[1];
+              setVisualContext({ 
+                id: Date.now().toString(), 
+                data: base64Data, 
+                mimeType: blob.type 
+              });
+            };
+            reader.readAsDataURL(blob);
+          }
+        }
+      }
+    };
+
+    // Fix: Casting window to any to resolve 'addEventListener' property lookup error in this environment
+    (window as any).addEventListener('paste', handlePaste);
+    // Fix: Casting window to any to resolve 'removeEventListener' property lookup error in this environment
+    return () => (window as any).removeEventListener('paste', handlePaste);
+  }, []);
+
   const cleanup = useCallback(() => {
     if (visionIntervalRef.current) {
       clearInterval(visionIntervalRef.current);
@@ -59,6 +91,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     setIsConnected(false);
     setIsConnecting(false);
     setIsModelThinking(false);
+    setIsOff(true);
   }, []);
 
   const decode = (base64: string) => {
@@ -147,6 +180,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
   const startConversation = async () => {
     try {
+      setIsOff(false);
       setIsConnecting(true);
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const stream = await (navigator as any).mediaDevices.getUserMedia({ audio: true });
@@ -227,50 +261,50 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     <div className="flex flex-col flex-1 p-4 md:p-8 gap-8 animate-billion overflow-hidden max-w-full mx-auto w-full h-full bg-[#f8f9fa]">
       <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-500 h-full overflow-hidden`}>
         
-        {/* Input/Status Column (Studio Style) */}
+        {/* Input/Status Column */}
         <div className={`flex flex-col gap-6 w-full transition-all duration-500 ${workspace.isActive ? 'lg:w-[400px]' : 'max-w-4xl mx-auto items-center justify-center'}`}>
           <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[500px] border border-slate-200 shadow-xl w-full">
-            {!isConnected && !isConnecting && (
+            {isOff && !isConnecting && (
               <div className="text-center space-y-10 animate-billion">
-                <button onClick={startConversation} className="px-14 py-8 bg-slate-900 text-white rounded-2xl text-xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl active:scale-95">
-                  Start Session
-                </button>
-                <div className="flex flex-col gap-2 items-center text-slate-400">
-                   <p className="text-[10px] font-black uppercase tracking-[0.6em]">Joshua's Neural Engine v2</p>
-                   <div className="flex gap-1">
-                      {[...Array(3)].map((_, i) => <div key={i} className="w-1 h-1 bg-slate-200 rounded-full"></div>)}
-                   </div>
+                <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-dashed border-slate-100 flex items-center justify-center">
+                  <h2 className="text-2xl font-black text-slate-200 uppercase tracking-widest">MINE AI OFF</h2>
                 </div>
+                <button onClick={startConversation} className="px-14 py-8 bg-slate-900 text-white rounded-2xl text-xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl active:scale-95">
+                  Power On
+                </button>
+                <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-300">CTRL+V TO ANALYZE IMAGES</p>
               </div>
             )}
             
             {isConnecting && (
               <div className="flex flex-col items-center gap-10 animate-billion">
                 <div className="w-20 h-20 border-4 border-slate-100 border-t-accent rounded-full animate-spin"></div>
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Warming Up...</h4>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Powering Up...</h4>
               </div>
             )}
 
-            {isConnected && (
+            {!isOff && isConnected && (
               <div className="flex flex-col items-center justify-center w-full h-full space-y-12">
                 <div className={`relative w-64 h-64 md:w-80 md:h-80 rounded-full transition-all duration-300 flex items-center justify-center bg-white border-2 ${isModelThinking ? 'border-accent shadow-[0_0_60px_rgba(112,0,255,0.1)]' : 'border-slate-100'}`}>
                   <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-100'} animate-pulse shadow-xl`}></div>
                   <div className="absolute inset-0 border-t-2 border-slate-100 rounded-full animate-[spin_8s_linear_infinite]"></div>
                 </div>
 
-                {/* Vision Feed */}
                 <div className="w-48 h-48 rounded-3xl overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 group cursor-pointer relative hover:border-accent transition-all">
                   {visualContext ? (
                     <div className="w-full h-full relative">
                       <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="feed" />
-                      <button onClick={() => setVisualContext(null)} className="absolute top-3 right-3 bg-white/90 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white">
+                      <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
+                         <span className="text-[8px] text-white font-black uppercase">Click to Change / Paste Anytime</span>
+                      </div>
+                      <button onClick={() => setVisualContext(null)} className="absolute top-3 right-3 bg-white/90 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white z-10">
                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                       </button>
                     </div>
                   ) : (
                     <button onClick={() => (window as any).document.getElementById('vision-uplink')?.click()} className="w-full h-full flex flex-col items-center justify-center gap-4 text-slate-300 hover:text-accent">
                       <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                      <span className="text-[8px] font-black uppercase tracking-widest">Feed</span>
+                      <span className="text-[8px] font-black uppercase tracking-widest">Feed / Paste Img</span>
                     </button>
                   )}
                   <input type="file" id="vision-uplink" hidden accept="image/*" onChange={handleImageUpload} />
@@ -282,14 +316,14 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           <div className="flex flex-col gap-4">
             {visualContext && (
               <button onClick={analyzeNeuralFeed} disabled={isAnalyzing} className="px-8 py-4 bg-accent text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 flex items-center justify-center gap-3 transition-all">
-                {isAnalyzing ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>Sync Feed</span>}
+                {isAnalyzing ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>Instant Sync</span>}
               </button>
             )}
-            {isConnected && <button onClick={cleanup} className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all">Close Nexus</button>}
+            {!isOff && <button onClick={cleanup} className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all">Terminate Nexus</button>}
           </div>
         </div>
 
-        {/* Workspace Column (Studio-Inspired IDE) */}
+        {/* Workspace Column */}
         {workspace.isActive && (
           <div className="flex-1 h-full bg-white rounded-3xl flex flex-col overflow-hidden border border-slate-200 shadow-2xl animate-billion">
             <header className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-[#fdfdfd]">
@@ -345,7 +379,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                <div>PRODIGY ENGINE // SYNCED</div>
                <div className="flex items-center gap-2">
                   <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                  <span>Operational</span>
+                  <span>Active</span>
                </div>
             </footer>
           </div>

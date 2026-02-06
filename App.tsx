@@ -58,6 +58,12 @@ const App: React.FC = () => {
     }
   };
 
+  const formatEmail = (email: string | null) => {
+    if (!email) return 'User';
+    const [name] = email.split('@');
+    return name.length > 8 ? `${name.substring(0, 8)}...` : name;
+  };
+
   if (isInitializing) {
     return (
       <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion bg-white">
@@ -91,9 +97,9 @@ const App: React.FC = () => {
             </h1>
           </div>
           <div className="ml-auto flex items-center gap-10">
-            <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-emerald-50 rounded-full border border-emerald-100 shadow-sm">
+            <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-slate-50 rounded-full border border-slate-100 shadow-sm">
                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-               <span className="text-[10px] font-black uppercase tracking-widest text-emerald-700">Shield Active</span>
+               <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Secure: {formatEmail(user.email)}</span>
             </div>
             <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
               Logout
