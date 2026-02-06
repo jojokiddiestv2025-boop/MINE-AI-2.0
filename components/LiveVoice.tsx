@@ -27,6 +27,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [isModelThinking, setIsModelThinking] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isOff, setIsOff] = useState(true);
+  const [workspaceFull, setWorkspaceFull] = useState(false);
+  const [imageUrl, setImageUrl] = useState('');
   const [error, setError] = useState<any>(null);
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string }>({ 
     type: 'markdown', 
@@ -37,17 +39,16 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
 
   const sessionRef = useRef<any>(null);
-  const sourcesRef = useRef<Set<any>>(new Set());
+  const sourcesRef = useRef<Set<AudioBufferSourceNode>>(new Set());
   const nextStartTimeRef = useRef(0);
   const visionIntervalRef = useRef<number | null>(null);
-  const outputAudioContextRef = useRef<any | null>(null);
+  const outputAudioContextRef = useRef<AudioContext | null>(null);
   
   const visualContextRef = useRef<VisualContext | null>(visualContext);
   useEffect(() => { visualContextRef.current = visualContext; }, [visualContext]);
 
-  // Handle Copy-Paste Image Analysis
+  // Handle Copy-Paste Image Analysis (Files)
   useEffect(() => {
-    // Fix: Using any for event to resolve 'clipboardData' property lookup error in this environment
     const handlePaste = (event: any) => {
       const items = event.clipboardData?.items;
       if (!items) return;
@@ -71,9 +72,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       }
     };
 
-    // Fix: Casting window to any to resolve 'addEventListener' property lookup error in this environment
     (window as any).addEventListener('paste', handlePaste);
-    // Fix: Casting window to any to resolve 'removeEventListener' property lookup error in this environment
     return () => (window as any).removeEventListener('paste', handlePaste);
   }, []);
 
@@ -92,8 +91,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     setIsConnecting(false);
     setIsModelThinking(false);
     setIsOff(true);
+    setWorkspaceFull(false);
+    nextStartTimeRef.current = 0;
   }, []);
 
+  // Fix: Manual decode implementation as per guidelines
   const decode = (base64: string) => {
     const binaryString = atob(base64);
     const bytes = new Uint8Array(binaryString.length);
@@ -101,7 +103,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     return bytes;
   };
 
-  const decodeAudioData = async (data: Uint8Array, ctx: any, sampleRate: number, numChannels: number): Promise<any> => {
+  // Fix: Manual decodeAudioData implementation for raw PCM as per guidelines
+  const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer> => {
     const dataInt16 = new Int16Array(data.buffer);
     const frameCount = dataInt16.length / numChannels;
     const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
@@ -112,6 +115,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     return buffer;
   };
 
+  // Fix: Manual encode implementation as per guidelines
   const encode = (bytes: Uint8Array) => {
     let binary = '';
     for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
@@ -127,6 +131,37 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         setVisualContext({ id: Date.now().toString(), data: base64Data, mimeType: file.type });
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const analyzeImageUrl = async () => {
+    if (!imageUrl) return;
+    setIsAnalyzing(true);
+    setError(null);
+    try {
+      // Fix: Use process.env.API_KEY directly for initialization
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await ai.models.generateContent({
+        model: 'gemini-3-flash-preview',
+        contents: [{ text: `Please analyze this image from the following URL and provide a full technical report: ${imageUrl}` }],
+        config: {
+          tools: [{ googleSearch: {} }] 
+        }
+      });
+      const report = response.text || "Neural scan complete.";
+      setWorkspace({
+        title: 'Remote URL Analysis',
+        content: report,
+        type: 'markdown',
+        isActive: true,
+        downloadData: report,
+        downloadFilename: 'url_analysis.md'
+      });
+      setImageUrl('');
+    } catch (err: any) {
+      setError({ message: "Network Link Failed: " + err.message });
+    } finally {
+      setIsAnalyzing(false);
     }
   };
 
@@ -148,7 +183,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     setIsAnalyzing(true);
     setError(null);
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fix: Use process.env.API_KEY directly for initialization
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview', 
         contents: [
@@ -182,7 +218,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     try {
       setIsOff(false);
       setIsConnecting(true);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+      // Fix: Use process.env.API_KEY directly for initialization
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const stream = await (navigator as any).mediaDevices.getUserMedia({ audio: true });
       const outputCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
       const inputCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
@@ -201,6 +238,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
               const int16 = new Int16Array(inputData.length);
               for (let i = 0; i < inputData.length; i++) int16[i] = inputData[i] * 32768;
               const pcmBlob = { data: encode(new Uint8Array(int16.buffer)), mimeType: 'audio/pcm;rate=16000' };
+              // Fix: CRITICAL: Solely rely on sessionPromise resolves
               sessionPromise.then((session) => session.sendRealtimeInput({ media: pcmBlob }));
             };
             source.connect(scriptProcessor);
@@ -216,6 +254,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           },
           onmessage: async (m: LiveServerMessage) => {
             if (m.serverContent?.modelTurn) setIsModelThinking(false);
+            
+            // Fix: Implement interruption handling as per guidelines
+            const interrupted = m.serverContent?.interrupted;
+            if (interrupted) {
+              for (const source of sourcesRef.current.values()) {
+                try { source.stop(); } catch(e) {}
+              }
+              sourcesRef.current.clear();
+              nextStartTimeRef.current = 0;
+            }
+
             if (m.toolCall) {
               for (const fc of m.toolCall.functionCalls) {
                 if (fc.name === 'updateWorkspace') {
@@ -227,14 +276,20 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             }
             const base64Audio = m.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio) {
+              // Fix: Ensure smooth audio playback synchronization
               nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
               const audioBuffer = await decodeAudioData(decode(base64Audio), outputCtx, 24000, 1);
-              const node = outputCtx.createBufferSource();
-              node.buffer = audioBuffer;
-              node.connect(outputCtx.destination);
-              node.start(nextStartTimeRef.current);
+              const source = outputCtx.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(outputCtx.destination);
+              
+              source.addEventListener('ended', () => {
+                sourcesRef.current.delete(source);
+              });
+
+              source.start(nextStartTimeRef.current);
               nextStartTimeRef.current += audioBuffer.duration;
-              sourcesRef.current.add(node);
+              sourcesRef.current.add(source);
             }
           },
           onerror: (e) => { setError(e); cleanup(); },
@@ -259,20 +314,37 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
   return (
     <div className="flex flex-col flex-1 p-4 md:p-8 gap-8 animate-billion overflow-hidden max-w-full mx-auto w-full h-full bg-[#f8f9fa]">
-      <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-500 h-full overflow-hidden`}>
+      <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-700 h-full overflow-hidden`}>
         
-        {/* Input/Status Column */}
-        <div className={`flex flex-col gap-6 w-full transition-all duration-500 ${workspace.isActive ? 'lg:w-[400px]' : 'max-w-4xl mx-auto items-center justify-center'}`}>
+        {/* Input/Status Column - Hidden if workspace is "Full" */}
+        <div className={`flex flex-col gap-6 w-full transition-all duration-700 ${workspaceFull ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden lg:p-0' : workspace.isActive ? 'lg:w-[350px]' : 'max-w-4xl mx-auto items-center justify-center'}`}>
           <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[500px] border border-slate-200 shadow-xl w-full">
             {isOff && !isConnecting && (
-              <div className="text-center space-y-10 animate-billion">
-                <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-dashed border-slate-100 flex items-center justify-center">
+              <div className="text-center space-y-10 animate-billion w-full">
+                <div className="relative w-48 h-48 md:w-64 md:h-64 rounded-full border-4 border-dashed border-slate-100 flex items-center justify-center mx-auto">
                   <h2 className="text-2xl font-black text-slate-200 uppercase tracking-widest">MINE AI OFF</h2>
                 </div>
-                <button onClick={startConversation} className="px-14 py-8 bg-slate-900 text-white rounded-2xl text-xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl active:scale-95">
+                <button onClick={startConversation} className="px-14 py-8 bg-slate-900 text-white rounded-2xl text-xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl active:scale-95 w-full">
                   Power On
                 </button>
-                <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-300">CTRL+V TO ANALYZE IMAGES</p>
+                <div className="space-y-4 w-full">
+                   <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-300">Sync Portal Active</p>
+                   <div className="relative w-full">
+                      {/* Fix: Property 'value' does not exist on type 'EventTarget & HTMLInputElement' by casting e.target */}
+                      <input 
+                        type="text" 
+                        value={imageUrl} 
+                        onChange={(e) => setImageUrl((e.target as HTMLInputElement).value)}
+                        placeholder="PASTE IMAGE URL HERE..." 
+                        className="w-full bg-slate-50 border border-slate-100 rounded-2xl px-6 py-4 text-[10px] font-black tracking-widest text-slate-600 outline-none focus:ring-2 focus:ring-accent/20"
+                      />
+                      {imageUrl && (
+                        <button onClick={analyzeImageUrl} disabled={isAnalyzing} className="absolute right-2 top-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-[8px] font-black uppercase tracking-widest hover:bg-accent transition-all">
+                           {isAnalyzing ? "..." : "SCAN"}
+                        </button>
+                      )}
+                   </div>
+                </div>
               </div>
             )}
             
@@ -295,7 +367,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                     <div className="w-full h-full relative">
                       <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="feed" />
                       <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                         <span className="text-[8px] text-white font-black uppercase">Click to Change / Paste Anytime</span>
+                         <span className="text-[8px] text-white font-black uppercase">Paste File Anytime</span>
                       </div>
                       <button onClick={() => setVisualContext(null)} className="absolute top-3 right-3 bg-white/90 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white z-10">
                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
@@ -313,36 +385,45 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             )}
           </div>
           
-          <div className="flex flex-col gap-4">
-            {visualContext && (
-              <button onClick={analyzeNeuralFeed} disabled={isAnalyzing} className="px-8 py-4 bg-accent text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 flex items-center justify-center gap-3 transition-all">
-                {isAnalyzing ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>Instant Sync</span>}
-              </button>
-            )}
-            {!isOff && <button onClick={cleanup} className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all">Terminate Nexus</button>}
-          </div>
+          {!workspaceFull && (
+            <div className="flex flex-col gap-4">
+              {visualContext && (
+                <button onClick={analyzeNeuralFeed} disabled={isAnalyzing} className="px-8 py-4 bg-accent text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 flex items-center justify-center gap-3 transition-all">
+                  {isAnalyzing ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>Instant Sync</span>}
+                </button>
+              )}
+              {!isOff && <button onClick={cleanup} className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all shadow-lg shadow-red-500/10">Terminate Nexus</button>}
+            </div>
+          )}
         </div>
 
-        {/* Workspace Column */}
+        {/* Workspace Column - High Speed Google AI Studio Style */}
         {workspace.isActive && (
-          <div className="flex-1 h-full bg-white rounded-3xl flex flex-col overflow-hidden border border-slate-200 shadow-2xl animate-billion">
+          <div className="flex-1 h-full bg-white rounded-3xl flex flex-col overflow-hidden border border-slate-200 shadow-[0_80px_160px_rgba(0,0,0,0.1)] animate-billion transition-all duration-700">
             <header className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-[#fdfdfd]">
               <div className="flex items-center gap-6">
                 <div className="flex gap-2">
-                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
-                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
-                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                  <div className="w-3 h-3 rounded-full bg-red-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
+                  <div className="w-3 h-3 rounded-full bg-green-400"></div>
                 </div>
                 <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">{workspace.title}</h3>
               </div>
               <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setWorkspaceFull(!workspaceFull)} 
+                  className={`px-5 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${workspaceFull ? 'bg-slate-100 text-slate-600' : 'bg-slate-900 text-white'}`}
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={3}/></svg>
+                  {workspaceFull ? "MINIMIZE" : "FULL WORKSPACE"}
+                </button>
                 {workspace.downloadData && (
                   <button onClick={handleDownload} className="px-5 py-2.5 bg-accent text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center gap-2">
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
                     Export
                   </button>
                 )}
-                <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-2.5 hover:bg-slate-50 text-slate-400 rounded-xl">
+                <button onClick={() => { setWorkspace({ ...workspace, isActive: false }); setWorkspaceFull(false); }} className="p-2.5 hover:bg-slate-50 text-slate-400 rounded-xl transition-all">
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                 </button>
               </div>
@@ -353,21 +434,21 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 <iframe srcDoc={workspace.content} className="absolute inset-0 w-full h-full border-none" sandbox="allow-scripts" title="preview" />
               ) : (
                 <div className="absolute inset-0 overflow-y-auto p-12 custom-scrollbar">
-                  <div className="max-w-5xl mx-auto">
+                  <div className="max-w-6xl mx-auto">
                     {workspace.type === 'code' ? (
-                      <div className="bg-[#1e1e1e] rounded-2xl p-8 shadow-inner overflow-hidden">
-                        <pre className="text-cyan-400 font-mono text-base leading-relaxed overflow-x-auto">
+                      <div className="bg-[#1e1e1e] rounded-2xl p-8 shadow-2xl overflow-hidden border border-slate-800">
+                        <pre className="text-cyan-400 font-mono text-base md:text-lg leading-relaxed overflow-x-auto">
                           <code>{workspace.content}</code>
                         </pre>
                       </div>
                     ) : workspace.type === 'cbt' ? (
                       <div className="space-y-8 pb-10">
-                        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 text-xs font-bold uppercase tracking-widest">Test Logic Ready</div>
-                        <div className="font-sans text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">{workspace.content}</div>
+                        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-3xl text-emerald-800 text-xs font-bold uppercase tracking-widest shadow-sm">NEURAL TEST GENERATED</div>
+                        <div className="font-sans text-slate-700 leading-relaxed text-xl whitespace-pre-wrap px-4">{workspace.content}</div>
                       </div>
                     ) : (
-                      <article className="prose prose-slate prose-lg max-w-none">
-                         <div className="whitespace-pre-wrap text-slate-600 leading-relaxed">{workspace.content}</div>
+                      <article className="prose prose-slate prose-xl max-w-none">
+                         <div className="whitespace-pre-wrap text-slate-600 leading-relaxed px-4">{workspace.content}</div>
                       </article>
                     )}
                   </div>
@@ -375,11 +456,15 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
               )}
             </div>
             
-            <footer className="px-8 py-4 bg-[#f8f9fa] border-t border-slate-100 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400">
-               <div>PRODIGY ENGINE // SYNCED</div>
-               <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
-                  <span>Active</span>
+            <footer className="px-8 py-5 bg-[#f8f9fa] border-t border-slate-100 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400">
+               <div className="flex items-center gap-6">
+                  <span>PRODIGY ENGINE // SYNCED</span>
+                  <div className="h-3 w-[1px] bg-slate-200"></div>
+                  <span>VIBE CODING MODE</span>
+               </div>
+               <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_10px_rgba(52,211,153,0.5)]"></div>
+                  <span>Active Core</span>
                </div>
             </footer>
           </div>
