@@ -1,1 +1,0 @@
-// This file is no longer required and has been removed from the application architecture.

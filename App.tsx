@@ -52,7 +52,8 @@ const App: React.FC = () => {
       const aistudio = (window as any).aistudio;
       if (aistudio && aistudio.openSelectKey) {
         await aistudio.openSelectKey();
-        window.location.reload(); 
+        // Fix: Cast window to any to access location.reload() when Window type is restricted
+        (window as any).location.reload(); 
       }
     } catch (e) {
       console.error("Key selection error:", e);

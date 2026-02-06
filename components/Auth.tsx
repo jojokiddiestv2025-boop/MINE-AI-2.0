@@ -127,13 +127,15 @@ const Auth: React.FC<AuthProps> = ({ onBack, onComplete, errorOverride }) => {
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3">
               <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Email Address</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="identity@nexus.ai" required />
+              {/* Fix: Cast e.target to any to access .value and resolve TypeScript property error */}
+              <input type="email" value={email} onChange={(e) => setEmail((e.target as any).value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="identity@nexus.ai" required />
             </div>
 
             {!isResetPassword && (
               <div className="space-y-3">
                 <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 px-8">Access Key</label>
-                <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="••••••••" required />
+                {/* Fix: Cast e.target to any to access .value and resolve TypeScript property error */}
+                <input type="password" value={password} onChange={(e) => setPassword((e.target as any).value)} className="w-full bg-white/60 border border-black/[0.05] rounded-3xl px-8 py-5 text-slate-900 font-bold text-lg" placeholder="••••••••" required />
               </div>
             )}
             
