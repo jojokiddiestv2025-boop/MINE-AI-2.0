@@ -6,7 +6,7 @@ export interface VisualContext {
 }
 
 export interface WorkspaceState {
-  type: 'markdown' | 'code' | 'preview';
+  type: 'markdown' | 'code' | 'preview' | 'cbt';
   content: string; 
   language?: string;
   title: string;

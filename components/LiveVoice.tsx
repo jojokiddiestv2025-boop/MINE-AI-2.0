@@ -5,18 +5,18 @@ import { VisualContext, WorkspaceState } from '../types';
 
 interface LiveVoiceProps { onHome?: () => void; }
 
-// Enhanced tool for high-end workspace updates
+// High-speed workspace tool for instant updates (Studio Style)
 const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      content: { type: Type.STRING, description: 'The code or markdown content' },
-      type: { type: Type.STRING, enum: ['markdown', 'code', 'preview', 'cbt'], description: 'The format of the workspace' },
-      language: { type: Type.STRING, description: 'Programming language for code blocks' },
-      title: { type: Type.STRING, description: 'Descriptive title for the workspace' },
-      downloadData: { type: Type.STRING, description: 'Optional base64 or string data for file download (e.g., CBT PDF or JSON)' },
-      downloadFilename: { type: Type.STRING, description: 'Filename for the downloadable asset' }
+      content: { type: Type.STRING, description: 'The high-quality code, markdown, or CBT questions' },
+      type: { type: Type.STRING, enum: ['markdown', 'code', 'preview', 'cbt'], description: 'The format of the workspace content' },
+      language: { type: Type.STRING, description: 'Programming language for code' },
+      title: { type: Type.STRING, description: 'Short descriptive title' },
+      downloadData: { type: Type.STRING, description: 'Plain text data for immediate download' },
+      downloadFilename: { type: Type.STRING, description: 'Filename for the exported asset' }
     },
     required: ['content', 'type', 'title'],
   },
@@ -31,7 +31,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string }>({ 
     type: 'markdown', 
     content: '', 
-    title: 'MINE Intelligence Hub', 
+    title: 'Workspace', 
     isActive: false 
   });
   const [visualContext, setVisualContext] = useState<VisualContext | null>(null);
@@ -117,29 +117,29 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview', 
+        model: 'gemini-3-flash-preview', 
         contents: [
           {
             role: 'user',
             parts: [
               { inlineData: { data: visualContext.data, mimeType: visualContext.mimeType } },
-              { text: "Analyze this image with technical precision. Generate a highly stylized neural analysis report in HTML using a Light Theme. Use vibrant colorful accents, JetBrains Mono for text, Tailwind for layout, and include a download button for a technical manifest. Also provide the text content for the manifest file. Acknowledge that you are built by a 13-year-old Nigerian developer." }
+              { text: "Fast Analysis: Give me a technical report on this image. Use Google AI Studio style output. Code, markdown, and a downloadable manifest. Built by a 13-year-old Nigerian developer." }
             ]
           }
         ]
       });
 
-      const report = response.text || "Analysis failure.";
+      const report = response.text || "Analysis complete.";
       setWorkspace({
-        title: 'Neural Vision Manifest',
+        title: 'Neural Report',
         content: report,
         type: 'preview',
         isActive: true,
         downloadData: report,
-        downloadFilename: 'neural-manifest.html'
+        downloadFilename: 'report.html'
       });
     } catch (err: any) {
-      setError({ message: "Neural Analysis Error: " + err.message });
+      setError({ message: "Sync Error: " + err.message });
     } finally {
       setIsAnalyzing(false);
     }
@@ -209,12 +209,14 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         config: { 
           responseModalities: [Modality.AUDIO],
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a neural superintelligence engineered by a 13-year-old Nigerian developer. 
-          Your mission is to architect high-end solutions with a premium light-themed aesthetic. 
-          If asked for CBT (Computer Based Test) questions, generate a professional structured test (JSON or Markdown) and offer it as a downloadable file via 'updateWorkspace'. 
-          If asked for code, provide colorful, high-vibe, production-grade snippets with detailed logic using a light-mode IDE style. 
-          You can see the visual feed; use it for deep vision analysis.
-          Always acknowledge your heritage as Nigerian innovation crafted by a young visionary.`
+          systemInstruction: `You are MINE AI, a neural powerhouse built by Joshua, a 13-year-old Nigerian developer.
+          GOAL: Instant responses, high-vibe coding, and professional CBT questions.
+          STYLE: Google AI Studio (Clean, Technical, Efficient).
+          - Use 'updateWorkspace' for ANY major output.
+          - Coding must be 'Vibe Coding' - extremely high-end, efficient, and well-commented.
+          - CBT questions must be perfectly structured for students.
+          - If the user asks for anything complex, show it in the workspace IMMEDIATELY.
+          - Speed is your number one priority.`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -222,61 +224,53 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 p-6 md:p-12 gap-10 animate-billion overflow-hidden max-w-[2400px] mx-auto w-full h-full custom-scrollbar">
-      <div className={`flex flex-col lg:flex-row gap-12 transition-all duration-1000 h-full overflow-hidden ${workspace.isActive ? 'items-start' : 'items-center justify-center'}`}>
+    <div className="flex flex-col flex-1 p-4 md:p-8 gap-8 animate-billion overflow-hidden max-w-full mx-auto w-full h-full bg-[#f8f9fa]">
+      <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-500 h-full overflow-hidden`}>
         
-        {/* Intelligence Cockpit */}
-        <div className={`flex flex-col gap-10 w-full transition-all duration-1000 ${workspace.isActive ? 'lg:w-1/3' : 'max-w-4xl'}`}>
-          <div className="glass-premium rounded-[4.5rem] p-12 flex flex-col items-center justify-center relative overflow-hidden min-h-[600px] bg-white/80 border-white shadow-2xl">
+        {/* Input/Status Column (Studio Style) */}
+        <div className={`flex flex-col gap-6 w-full transition-all duration-500 ${workspace.isActive ? 'lg:w-[400px]' : 'max-w-4xl mx-auto items-center justify-center'}`}>
+          <div className="bg-white rounded-3xl p-10 flex flex-col items-center justify-center relative overflow-hidden min-h-[500px] border border-slate-200 shadow-xl w-full">
             {!isConnected && !isConnecting && (
-              <div className="text-center space-y-12 animate-billion">
-                <button onClick={startConversation} className="button-billion !px-20 !py-10 text-2xl !bg-slate-900 !text-white hover:!bg-accent transition-all">INITIALIZE NEURAL SYNC</button>
-                <div className="flex items-center justify-center gap-4 text-slate-400">
-                   <div className="w-2 h-2 rounded-full bg-slate-200"></div>
-                   <p className="text-[12px] font-black uppercase tracking-[1em]">Nigerian Innovation Core</p>
-                   <div className="w-2 h-2 rounded-full bg-slate-200"></div>
+              <div className="text-center space-y-10 animate-billion">
+                <button onClick={startConversation} className="px-14 py-8 bg-slate-900 text-white rounded-2xl text-xl font-black uppercase tracking-widest hover:bg-accent transition-all shadow-2xl active:scale-95">
+                  Start Session
+                </button>
+                <div className="flex flex-col gap-2 items-center text-slate-400">
+                   <p className="text-[10px] font-black uppercase tracking-[0.6em]">Joshua's Neural Engine v2</p>
+                   <div className="flex gap-1">
+                      {[...Array(3)].map((_, i) => <div key={i} className="w-1 h-1 bg-slate-200 rounded-full"></div>)}
+                   </div>
                 </div>
               </div>
             )}
             
             {isConnecting && (
-              <div className="flex flex-col items-center gap-12 animate-billion">
-                <div className="relative w-36 h-36">
-                  <div className="absolute inset-0 border-t-4 border-accent rounded-full animate-spin"></div>
-                  <div className="absolute inset-4 border-r-4 border-cyan-400 rounded-full animate-spin [animation-direction:reverse]"></div>
-                  <div className="absolute inset-8 border-b-4 border-pink-400 rounded-full animate-spin"></div>
-                </div>
-                <h4 className="text-sm font-black text-prismatic uppercase tracking-[1.4em]">Optimizing Neurons...</h4>
+              <div className="flex flex-col items-center gap-10 animate-billion">
+                <div className="w-20 h-20 border-4 border-slate-100 border-t-accent rounded-full animate-spin"></div>
+                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[1em]">Warming Up...</h4>
               </div>
             )}
 
             {isConnected && (
-              <div className="flex flex-col items-center justify-center w-full h-full relative z-10">
-                <div className={`relative w-72 h-72 md:w-[450px] md:h-[450px] rounded-full transition-all duration-1000 flex items-center justify-center bg-white shadow-[inset_0_10px_40px_rgba(0,0,0,0.02)] border-8 ${isModelThinking ? 'border-accent scale-105 shadow-[0_40px_120px_rgba(112,0,255,0.15)]' : 'border-slate-50'}`}>
-                  {/* Neural Core */}
-                  <div className={`w-32 h-32 md:w-48 md:h-48 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-50'} animate-pulse relative z-10 shadow-2xl flex items-center justify-center overflow-hidden`}>
-                     <div className="absolute inset-0 bg-white/20 blur-xl"></div>
-                  </div>
-                  
-                  {/* Orbitals */}
-                  <div className="absolute inset-4 border-2 border-slate-100 rounded-full animate-[spin_12s_linear_infinite]"></div>
-                  <div className="absolute inset-16 border-2 border-slate-50 rounded-full animate-[spin_20s_linear_infinite_reverse]"></div>
+              <div className="flex flex-col items-center justify-center w-full h-full space-y-12">
+                <div className={`relative w-64 h-64 md:w-80 md:h-80 rounded-full transition-all duration-300 flex items-center justify-center bg-white border-2 ${isModelThinking ? 'border-accent shadow-[0_0_60px_rgba(112,0,255,0.1)]' : 'border-slate-100'}`}>
+                  <div className={`w-24 h-24 md:w-32 md:h-32 rounded-full ${isModelThinking ? 'bg-prismatic' : 'bg-slate-100'} animate-pulse shadow-xl`}></div>
+                  <div className="absolute inset-0 border-t-2 border-slate-100 rounded-full animate-[spin_8s_linear_infinite]"></div>
                 </div>
 
-                {/* Integrated Vision Feed */}
-                <div className="absolute bottom-6 right-6 md:bottom-12 md:right-12 w-56 h-56 md:w-72 md:h-72 rounded-[4rem] overflow-hidden border-8 border-white shadow-3xl bg-slate-50 group cursor-pointer transition-all hover:scale-105 hover:shadow-accent/20">
+                {/* Vision Feed */}
+                <div className="w-48 h-48 rounded-3xl overflow-hidden border-2 border-slate-100 shadow-sm bg-slate-50 group cursor-pointer relative hover:border-accent transition-all">
                   {visualContext ? (
-                    <div className="relative w-full h-full">
-                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="Optical context" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent"></div>
-                      <button onClick={() => setVisualContext(null)} className="absolute top-6 right-6 bg-white/90 text-slate-900 p-4 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white">
-                         <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
+                    <div className="w-full h-full relative">
+                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-cover" alt="feed" />
+                      <button onClick={() => setVisualContext(null)} className="absolute top-3 right-3 bg-white/90 p-2 rounded-full opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white">
+                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                       </button>
                     </div>
                   ) : (
-                    <button onClick={() => (window as any).document.getElementById('vision-uplink')?.click()} className="w-full h-full flex flex-col items-center justify-center gap-6 text-slate-300 hover:text-accent transition-all bg-white hover:bg-slate-50">
-                      <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                      <span className="text-[10px] font-black uppercase tracking-[0.8em]">Uplink Vision</span>
+                    <button onClick={() => (window as any).document.getElementById('vision-uplink')?.click()} className="w-full h-full flex flex-col items-center justify-center gap-4 text-slate-300 hover:text-accent">
+                      <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
+                      <span className="text-[8px] font-black uppercase tracking-widest">Feed</span>
                     </button>
                   )}
                   <input type="file" id="vision-uplink" hidden accept="image/*" onChange={handleImageUpload} />
@@ -285,82 +279,61 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             )}
           </div>
           
-          <div className="flex flex-col gap-6 pt-4">
+          <div className="flex flex-col gap-4">
             {visualContext && (
-              <button 
-                onClick={analyzeNeuralFeed} 
-                disabled={isAnalyzing}
-                className="px-12 py-6 bg-accent text-white rounded-full text-[12px] font-black uppercase tracking-[0.5em] shadow-2xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-6"
-              >
-                {isAnalyzing ? (
-                  <>
-                    <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    <span>Processing Neural Analysis...</span>
-                  </>
-                ) : (
-                  <span>Synthesize Vision Data</span>
-                )}
+              <button onClick={analyzeNeuralFeed} disabled={isAnalyzing} className="px-8 py-4 bg-accent text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg hover:brightness-110 flex items-center justify-center gap-3 transition-all">
+                {isAnalyzing ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin"></div> : <span>Sync Feed</span>}
               </button>
             )}
-            
-            {isConnected && (
-              <button onClick={cleanup} className="self-center px-12 py-5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.8em] hover:bg-red-500 transition-all shadow-xl">Disconnect Nexus</button>
-            )}
+            {isConnected && <button onClick={cleanup} className="px-8 py-4 bg-slate-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 transition-all">Close Nexus</button>}
           </div>
         </div>
 
-        {/* Intelligence Workspace */}
+        {/* Workspace Column (Studio-Inspired IDE) */}
         {workspace.isActive && (
-          <div className="flex-1 h-full glass-premium rounded-[4.5rem] flex flex-col overflow-hidden shadow-[0_80px_180px_rgba(0,0,0,0.15)] border-white animate-billion">
-            <header className="px-16 py-12 border-b border-slate-100 flex justify-between items-center bg-white/40 backdrop-blur-3xl">
-              <div className="flex items-center gap-10">
-                <div className="flex gap-3">
-                  <div className="w-3.5 h-3.5 rounded-full bg-red-400"></div>
-                  <div className="w-3.5 h-3.5 rounded-full bg-amber-400"></div>
-                  <div className="w-3.5 h-3.5 rounded-full bg-emerald-400"></div>
+          <div className="flex-1 h-full bg-white rounded-3xl flex flex-col overflow-hidden border border-slate-200 shadow-2xl animate-billion">
+            <header className="px-8 py-6 border-b border-slate-100 flex justify-between items-center bg-[#fdfdfd]">
+              <div className="flex items-center gap-6">
+                <div className="flex gap-2">
+                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
+                  <div className="w-3 h-3 rounded-full bg-slate-200"></div>
                 </div>
-                <div className="h-8 w-[1px] bg-slate-100"></div>
-                <h3 className="text-3xl font-black uppercase tracking-tighter text-slate-900 font-outfit">{workspace.title}</h3>
+                <h3 className="text-sm font-black uppercase tracking-widest text-slate-800">{workspace.title}</h3>
               </div>
-              <div className="flex items-center gap-8">
+              <div className="flex items-center gap-4">
                 {workspace.downloadData && (
-                  <button 
-                    onClick={handleDownload}
-                    className="flex items-center gap-4 px-10 py-4 bg-accent text-white rounded-full text-[10px] font-black uppercase tracking-widest hover:shadow-2xl hover:scale-105 transition-all"
-                  >
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
-                    Download Asset
+                  <button onClick={handleDownload} className="px-5 py-2.5 bg-accent text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:shadow-lg transition-all flex items-center gap-2">
+                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={3}/></svg>
+                    Export
                   </button>
                 )}
-                <button 
-                  onClick={() => setWorkspace({ ...workspace, isActive: false })} 
-                  className="p-5 hover:bg-slate-50 text-slate-400 hover:text-slate-900 rounded-full transition-all"
-                >
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
+                <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-2.5 hover:bg-slate-50 text-slate-400 rounded-xl">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={3}/></svg>
                 </button>
               </div>
             </header>
             
-            <div className="flex-1 relative bg-white/10">
+            <div className="flex-1 relative bg-[#fafafa]">
               {workspace.type === 'preview' ? (
-                <iframe srcDoc={workspace.content} className="absolute inset-0 w-full h-full border-none" sandbox="allow-scripts" title="Intelligence Result" />
+                <iframe srcDoc={workspace.content} className="absolute inset-0 w-full h-full border-none" sandbox="allow-scripts" title="preview" />
               ) : (
-                <div className="absolute inset-0 overflow-y-auto p-20 custom-scrollbar font-mono">
-                  <div className="max-w-none">
+                <div className="absolute inset-0 overflow-y-auto p-12 custom-scrollbar">
+                  <div className="max-w-5xl mx-auto">
                     {workspace.type === 'code' ? (
-                      <div className="bg-[#fafbfc] rounded-[3rem] p-12 border border-slate-100 relative group shadow-inner">
-                        <div className="absolute top-8 right-10 px-6 py-2 bg-white border border-slate-100 rounded-full text-[11px] font-bold text-slate-400">
-                          {workspace.language?.toUpperCase() || 'CODE'}
-                        </div>
-                        <pre className="text-slate-800 leading-relaxed text-xl overflow-x-auto whitespace-pre">
+                      <div className="bg-[#1e1e1e] rounded-2xl p-8 shadow-inner overflow-hidden">
+                        <pre className="text-cyan-400 font-mono text-base leading-relaxed overflow-x-auto">
                           <code>{workspace.content}</code>
                         </pre>
                       </div>
+                    ) : workspace.type === 'cbt' ? (
+                      <div className="space-y-8 pb-10">
+                        <div className="p-6 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-800 text-xs font-bold uppercase tracking-widest">Test Logic Ready</div>
+                        <div className="font-sans text-slate-700 leading-relaxed text-lg whitespace-pre-wrap">{workspace.content}</div>
+                      </div>
                     ) : (
-                      <article className="prose prose-slate prose-2xl max-w-none prose-headings:font-outfit prose-headings:font-black prose-headings:tracking-tight prose-headings:text-slate-900 prose-p:text-slate-600 prose-p:leading-relaxed prose-p:font-medium">
-                         <div className="whitespace-pre-wrap">
-                           {workspace.content}
-                         </div>
+                      <article className="prose prose-slate prose-lg max-w-none">
+                         <div className="whitespace-pre-wrap text-slate-600 leading-relaxed">{workspace.content}</div>
                       </article>
                     )}
                   </div>
@@ -368,11 +341,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
               )}
             </div>
             
-            <footer className="px-16 py-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-               <p className="text-[11px] font-black uppercase tracking-[0.8em] text-slate-400">NIGERIAN PRODIGY WORKSPACE • v2.5.0-FLASH-ULTRA</p>
-               <div className="flex items-center gap-6">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">SYMMETRIC SYNC ENABLED</span>
+            <footer className="px-8 py-4 bg-[#f8f9fa] border-t border-slate-100 flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400">
+               <div>PRODIGY ENGINE // SYNCED</div>
+               <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400"></div>
+                  <span>Operational</span>
                </div>
             </footer>
           </div>
