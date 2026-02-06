@@ -17,10 +17,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       <div className="fixed top-0 w-full bg-gradient-to-r from-accent via-cyan-500 to-pink-500 text-white py-3 z-[100] overflow-hidden whitespace-nowrap shadow-xl">
         <div className="inline-block animate-marquee">
           <span className="text-[11px] font-black uppercase tracking-[0.5em]">
-            SYSTEM: UNMATCHED • NEURAL SYNC: ABSOLUTE • 500 BILLION CORE: ACTIVE • FOUNDER JOSHUA: ONLINE • PRIORITY UPLINK: READY
+            SYSTEM: UNMATCHED • DEVELOPED BY A 13-YEAR-OLD NIGERIAN PRODIGY • NEURAL SYNC: ABSOLUTE • NIGERIAN INNOVATION • FOUNDER JOSHUA: ONLINE • PRIORITY UPLINK: READY
           </span>
           <span className="text-[11px] font-black uppercase tracking-[0.5em] ml-[200px]">
-            SYSTEM: UNMATCHED • NEURAL SYNC: ABSOLUTE • 500 BILLION CORE: ACTIVE • FOUNDER JOSHUA: ONLINE • PRIORITY UPLINK: READY
+            SYSTEM: UNMATCHED • DEVELOPED BY A 13-YEAR-OLD NIGERIAN PRODIGY • NEURAL SYNC: ABSOLUTE • NIGERIAN INNOVATION • FOUNDER JOSHUA: ONLINE • PRIORITY UPLINK: READY
           </span>
         </div>
         <style>{`
@@ -40,7 +40,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           <Logo size="sm" showText={false} />
           <div className="flex flex-col">
             <h1 className="text-2xl font-black uppercase tracking-tighter text-slate-900">MINE <span className="text-prismatic">AI</span></h1>
-            <span className="text-[9px] font-black uppercase tracking-[0.6em] text-slate-400">Neural Masterpiece</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.6em] text-slate-400">Nigerian Innovation</span>
           </div>
         </div>
         <div className="flex items-center gap-6">
@@ -61,15 +61,15 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           <Logo size="xl" showText={false} />
           <div className="space-y-6">
              <h2 className="text-7xl md:text-[11rem] font-black font-outfit tracking-[-0.06em] leading-[0.8] text-slate-900">
-               ULTIMATE <br/><span className="text-prismatic">SUPERIORITY.</span>
+               NIGERIAN <br/><span className="text-prismatic">PRODIGY.</span>
              </h2>
              <p className="text-slate-500 text-xl md:text-3xl max-w-3xl mx-auto font-medium leading-relaxed pt-8">
-               A $500 Billion Neural Architecture engineered for the absolute elite. 
-               Experience intelligence without compromise.
+               Intelligence redefined by a 13-year-old Nigerian developer. 
+               Experience a new era of neural engineering from the heart of Lagos.
              </p>
           </div>
           <div className="flex flex-col md:flex-row gap-8 pt-12">
-            <button onClick={onGetStarted} className="button-billion text-xl !px-16 !py-6">Initialize $500B Link</button>
+            <button onClick={onGetStarted} className="button-billion text-xl !px-16 !py-6">Initialize Neural Link</button>
             <button className="px-16 py-6 bg-white border-2 border-slate-100 rounded-full text-[11px] font-black uppercase tracking-widest hover:bg-slate-50 hover:border-slate-200 transition-all shadow-lg">Whitepaper</button>
           </div>
         </div>
@@ -90,7 +90,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
                <div className="absolute bottom-16 left-16">
                   <div className="flex items-center gap-4 mb-4">
                      <div className="h-[2px] w-8 bg-accent"></div>
-                     <span className="text-[12px] font-black uppercase tracking-[0.6em] text-accent">Chief Architect</span>
+                     <span className="text-[12px] font-black uppercase tracking-[0.6em] text-accent">Nigerian Developer</span>
                   </div>
                   <h3 className="text-7xl font-black font-outfit text-slate-900 tracking-tighter">Joshua</h3>
                </div>
@@ -100,21 +100,21 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           <div className="lg:w-1/2 space-y-12">
             <div className="space-y-6">
               <h4 className="text-prismatic text-sm font-black uppercase tracking-[1em]">The Core Philosophy</h4>
-              <h2 className="text-6xl md:text-8xl font-black font-outfit tracking-tight leading-[0.9] text-slate-900">Neural Speed, <br/><span className="opacity-20 italic">Human Soul.</span></h2>
+              <h2 className="text-6xl md:text-8xl font-black font-outfit tracking-tight leading-[0.9] text-slate-900">Neural Speed, <br/><span className="opacity-20 italic">Nigerian Heart.</span></h2>
             </div>
             
             <p className="text-slate-600 text-2xl leading-relaxed font-medium">
-              "We didn't just scale; we reimagined the substrate of thinking. MINE AI is the first superintelligence that truly understands the weight of a decision, designed by humanity for its highest aspirations."
+              "We didn't just scale; we reimagined the substrate of thinking. MINE AI is a testament to the fact that greatness knows no age or boundary. Crafted from the vibrant energy of Nigeria."
             </p>
             
             <div className="grid grid-cols-2 gap-10 pt-8">
               <div className="p-10 glass-premium rounded-[3.5rem] space-y-3">
                 <span className="text-5xl font-black font-outfit text-slate-900">13</span>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Architect Years</p>
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Years of Age</p>
               </div>
               <div className="p-10 glass-premium rounded-[3.5rem] space-y-3 bg-gradient-to-br from-accent/5 to-cyan-400/5">
-                <span className="text-5xl font-black font-outfit text-prismatic">$500B</span>
-                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Core Valuation</p>
+                <span className="text-5xl font-black font-outfit text-prismatic">🇳🇬</span>
+                <p className="text-[11px] font-black uppercase tracking-widest text-slate-400">Nigerian Heritage</p>
               </div>
             </div>
           </div>
@@ -124,7 +124,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       <footer className="w-full bg-slate-50 py-32 px-12 md:px-24 flex flex-col md:flex-row justify-between items-center gap-16 border-t border-slate-100">
         <div className="flex flex-col gap-6 items-center md:items-start text-center md:text-left">
            <Logo size="sm" showText={false} />
-           <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400">MINE NEURAL SYSTEMS GLOBAL • EST 2025</p>
+           <p className="text-[10px] font-black uppercase tracking-[0.6em] text-slate-400">CRAFTED BY JOSHUA IN NIGERIA • EST 2025</p>
         </div>
         <div className="flex gap-16">
            <a href="#" className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-accent transition-colors">Privacy</a>

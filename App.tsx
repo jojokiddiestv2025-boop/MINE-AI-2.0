@@ -114,7 +114,7 @@ const App: React.FC = () => {
         <div className="glass-premium p-20 rounded-[5rem] max-w-2xl w-full border-white shadow-[0_60px_150px_rgba(0,0,0,0.1)]">
           <Logo size="md" showText={false} />
           <h2 className="text-5xl font-outfit font-black mb-8 mt-12 uppercase text-slate-900 tracking-tight">Access Protocol</h2>
-          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Identity authorized. To unlock $500B processing power, please verify your neural access key.</p>
+          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Identity authorized. To unlock advanced neural processing, please verify your access key.</p>
           <button onClick={handleSelectKey} className="button-billion !py-8 !px-24 text-lg">Verify Neural Key</button>
         </div>
       </div>

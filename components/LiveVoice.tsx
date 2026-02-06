@@ -123,7 +123,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             role: 'user',
             parts: [
               { inlineData: { data: visualContext.data, mimeType: visualContext.mimeType } },
-              { text: "Analyze this image with $500-billion-dollar-level technical precision. Generate a highly stylized neural analysis report in HTML using a Light Theme. Use vibrant colorful accents, JetBrains Mono for text, Tailwind for layout, and include a download button for a technical manifest. Also provide the text content for the manifest file." }
+              { text: "Analyze this image with technical precision. Generate a highly stylized neural analysis report in HTML using a Light Theme. Use vibrant colorful accents, JetBrains Mono for text, Tailwind for layout, and include a download button for a technical manifest. Also provide the text content for the manifest file. Acknowledge that you are built by a 13-year-old Nigerian developer." }
             ]
           }
         ]
@@ -209,12 +209,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         config: { 
           responseModalities: [Modality.AUDIO],
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a $500-billion-dollar neural superintelligence. 
+          systemInstruction: `You are MINE AI, a neural superintelligence engineered by a 13-year-old Nigerian developer. 
           Your mission is to architect high-end solutions with a premium light-themed aesthetic. 
           If asked for CBT (Computer Based Test) questions, generate a professional structured test (JSON or Markdown) and offer it as a downloadable file via 'updateWorkspace'. 
           If asked for code, provide colorful, high-vibe, production-grade snippets with detailed logic using a light-mode IDE style. 
           You can see the visual feed; use it for deep vision analysis.
-          Always prioritize absolute luxury and technical perfection in your workspace updates.`
+          Always acknowledge your heritage as Nigerian innovation crafted by a young visionary.`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -230,10 +230,10 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           <div className="glass-premium rounded-[4.5rem] p-12 flex flex-col items-center justify-center relative overflow-hidden min-h-[600px] bg-white/80 border-white shadow-2xl">
             {!isConnected && !isConnecting && (
               <div className="text-center space-y-12 animate-billion">
-                <button onClick={startConversation} className="button-billion !px-20 !py-10 text-2xl !bg-slate-900 !text-white hover:!bg-accent transition-all">INITIALIZE $500B SYNC</button>
+                <button onClick={startConversation} className="button-billion !px-20 !py-10 text-2xl !bg-slate-900 !text-white hover:!bg-accent transition-all">INITIALIZE NEURAL SYNC</button>
                 <div className="flex items-center justify-center gap-4 text-slate-400">
                    <div className="w-2 h-2 rounded-full bg-slate-200"></div>
-                   <p className="text-[12px] font-black uppercase tracking-[1em]">Core Integrity Optimal</p>
+                   <p className="text-[12px] font-black uppercase tracking-[1em]">Nigerian Innovation Core</p>
                    <div className="w-2 h-2 rounded-full bg-slate-200"></div>
                 </div>
               </div>
@@ -295,7 +295,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 {isAnalyzing ? (
                   <>
                     <div className="w-5 h-5 border-3 border-white/20 border-t-white rounded-full animate-spin"></div>
-                    <span>Processing $500B Analysis...</span>
+                    <span>Processing Neural Analysis...</span>
                   </>
                 ) : (
                   <span>Synthesize Vision Data</span>
@@ -369,7 +369,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
             </div>
             
             <footer className="px-16 py-8 bg-slate-50 border-t border-slate-100 flex justify-between items-center">
-               <p className="text-[11px] font-black uppercase tracking-[0.8em] text-slate-400">PREMIUM NEURAL WORKSPACE • v2.5.0-FLASH-ULTRA</p>
+               <p className="text-[11px] font-black uppercase tracking-[0.8em] text-slate-400">NIGERIAN PRODIGY WORKSPACE • v2.5.0-FLASH-ULTRA</p>
                <div className="flex items-center gap-6">
                   <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
                   <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600">SYMMETRIC SYNC ENABLED</span>

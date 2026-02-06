@@ -40,7 +40,7 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
           </h1>
           <div className="flex items-center gap-4 mt-6 justify-center">
             <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-slate-200"></div>
-            <p className="text-[12px] font-black uppercase tracking-[1em] text-slate-400">500 BILLION NEURAL CORE</p>
+            <p className="text-[12px] font-black uppercase tracking-[1em] text-slate-400">BY A 13-YEAR-OLD NIGERIAN DEVELOPER</p>
             <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-slate-200"></div>
           </div>
         </div>
