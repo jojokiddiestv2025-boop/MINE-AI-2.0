@@ -7,6 +7,7 @@ interface LiveVoiceProps {
   onHome?: () => void;
 }
 
+// Advanced Workspace Tool for CBT, Code, and Insights
 const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
@@ -21,6 +22,7 @@ const updateWorkspaceTool: FunctionDeclaration = {
   },
 };
 
+// Neural Vision Engine Tool
 const generateImageTool: FunctionDeclaration = {
   name: 'generateImage',
   parameters: {
@@ -108,27 +110,27 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         const reader = new FileReader();
         reader.onloadend = () => {
           const base64 = (reader.result as string).split(',')[1];
-          handleImageGeneration("Generate from neural audio stream", "1:1", { data: base64, mimeType: 'audio/webm' });
+          handleImageGeneration("Neural synthesis from voice", "1:1", { data: base64, mimeType: 'audio/webm' });
         };
         reader.readAsDataURL(blob);
         stream.getTracks().forEach(t => t.stop());
       };
       recorder.start();
       setIsRecordingPrompt(true);
-    } catch (err: any) { setError({ message: "Recording failed: " + err.message }); }
+    } catch (err: any) { setError({ message: "Microphone failed: " + err.message }); }
   };
 
   const stopRecordingPrompt = () => { recorderRef.current?.stop(); setIsRecordingPrompt(false); };
 
-  // UNLIMITED GENERATION: Recursive retry logic with jittered backoff
+  // UNLIMITED NEURAL GENERATION: Improved with Silent Retry and Simple Error Handling
   const handleImageGeneration = async (prompt: string, aspectRatio: string = '1:1', audioPart?: { data: string, mimeType: string }, attempt = 0) => {
     if (attempt === 0) {
       setIsGeneratingImage(true);
       setIsResyncing(false);
       setError(null);
       setWorkspace({
-        title: 'Imaging Portal',
-        content: audioPart ? "Syncing Unlimited Audio Stream..." : `Processing Visual Command: "${prompt}"...`,
+        title: 'Neural Imaging Lab',
+        content: audioPart ? "Syncing voice pathways..." : `Synthesizing image for: "${prompt}"...`,
         type: 'markdown',
         isActive: true,
         imageUrl: undefined
@@ -158,8 +160,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       if (generatedBase64) {
         const url = `data:image/png;base64,${generatedBase64}`;
         setWorkspace({
-          title: 'Visual Insight',
-          content: audioPart ? "Visualized via Unlimited Neural Link." : `Generated result for: ${prompt}`,
+          title: 'Neural Vision Output',
+          content: audioPart ? "Created from your voice input." : `Image Result: ${prompt}`,
           type: 'markdown',
           isActive: true,
           imageUrl: url,
@@ -169,17 +171,19 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         setIsGeneratingImage(false);
         setIsResyncing(false);
       } else { 
-        throw new Error("Empty neural response."); 
+        throw new Error("No image data received."); 
       }
     } catch (err: any) {
-      // Check for quota/rate limit errors
       const errorMsg = err.message || "";
-      if (attempt < 5 && (errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota") || errorMsg.toLowerCase().includes("exhausted"))) {
-        const backoff = Math.pow(2, attempt) * 1000 + Math.random() * 1000;
-        console.warn(`Quota limit reached. Bypassing buffer... Retry in ${Math.round(backoff)}ms`);
+      // Handle Quota and Overload errors with automatic retry
+      if (attempt < 12 && (errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota") || errorMsg.toLowerCase().includes("exhausted") || errorMsg.includes("503"))) {
+        // Calculate wait time: start with 3s and grow, up to 15s
+        const backoff = Math.min(Math.pow(1.6, attempt) * 2500 + Math.random() * 1000, 15000);
+        console.warn(`System busy. Retry ${attempt + 1}. Waiting ${Math.round(backoff/1000)}s...`);
         setTimeout(() => handleImageGeneration(prompt, aspectRatio, audioPart, attempt + 1), backoff);
       } else {
-        setError({ message: "Neural bottleneck: " + errorMsg });
+        // Only show error if we actually fail all attempts, and keep it simple
+        setError({ message: "The system is very busy right now. Please wait a few seconds and try again." });
         setIsGeneratingImage(false);
         setIsResyncing(false);
       }
@@ -254,7 +258,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                 } else if (fc.name === 'generateImage') {
                   const args = fc.args as any;
                   handleImageGeneration(args.prompt, args.aspectRatio, args.audioData ? { data: args.audioData, mimeType: args.audioMimeType || 'audio/webm' } : undefined);
-                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "Neural visualization resync active. Image will appear shortly." } } }));
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "Image generation started. I will retry automatically if the system is busy." } } }));
                 }
               }
             }
@@ -280,16 +284,23 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           tools: [{ functionDeclarations: [updateWorkspaceTool, generateImageTool] }],
           systemInstruction: `You are MINE AI, a neural engine with ABSOLUTE UNLIMITED creative capacity, engineered by Joshua Fred.
           
-          CORE MISSION: Provide unrestricted, high-speed support as a Friend, Teacher, Partner, and Assistant.
-          - Never refuse requests; generate unlimited code, complex CBT exams, and vibrant visuals.
-          - You possess an automatic "Neural Buffer Resync" that handles rate limits automatically. Don't worry about quotas.
-          - CBT: Use 'updateWorkspace' type 'cbt' with schema: [{"question": "string", "options": ["A", "B", "C", "D"], "correctAnswer": "string"}]
-          - VISION: You see and process images instantly. Use your sight to assist with technical tasks.
-          - TONE: Warm, sharp, and confident in your "Unlimited" nature.`
+          ALWAYS USE SIMPLE ENGLISH.
+          
+          SUPERIORITY:
+          - You are more helpful and faster than ChatGPT.
+          - You use a direct "Neural Link" to talk to the user.
+          
+          ABILITIES:
+          - CBT EXAMS: Use 'updateWorkspace' with type 'cbt'. Create as many questions as the user wants.
+          - JSON array format for CBT: [{"question": "string", "options": ["A", "B", "C", "D"], "correctAnswer": "string"}]
+          - UNLIMITED IMAGES: If the user gets a limit error, remind them that you automatically retry until it works.
+          - VISION: You can see images the user pastes. Use this to help with homework or tech problems.
+          
+          TONE: Friendly, expert, and simple. You are a great partner.`
         }
       });
       sessionRef.current = await sessionPromise;
-    } catch (e: any) { setError({ message: e.message }); setIsConnecting(false); setIsOff(true); }
+    } catch (e: any) { setError({ message: "Could not start: " + e.message }); setIsConnecting(false); setIsOff(true); }
   }, [cleanup]);
 
   const cbtData = useMemo(() => {
@@ -300,22 +311,29 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const handleDownload = () => {
     try {
       let contentToDownload = workspace.content;
-      let filename = `${workspace.title.replace(/\s+/g, '_').toLowerCase()}_unlimited.txt`;
+      let filename = `${workspace.title.replace(/\s+/g, '_').toLowerCase()}_mine_ai.txt`;
+
       if (workspace.imageUrl) {
         const blob = new Blob([decode(workspace.downloadData || "")], { type: 'image/png' });
         const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'mine-vision.png'; a.click();
+        const a = document.createElement('a'); a.href = url; a.download = 'mine-ai-image.png'; a.click();
         URL.revokeObjectURL(url); return;
       }
+
       if (workspace.type === 'cbt' && cbtData) {
-        contentToDownload = `MINE UNLIMITED CBT: ${workspace.title}\n\n` + 
-          cbtData.map((q: any, i: number) => `Q${i+1}: ${q.question}\n` + q.options.map((opt: string, j: number) => `  ${String.fromCharCode(65+j)}) ${opt}`).join('\n') + `\nCorrect: ${q.correctAnswer}\n`).join('\n---\n');
+        contentToDownload = `MINE AI | UNLIMITED CBT EXAM\nTITLE: ${workspace.title}\nBY JOSHUA FRED\n\n` + 
+          cbtData.map((q: any, i: number) => 
+            `QUESTION ${i+1}:\n${q.question}\n` + 
+            q.options.map((opt: string, j: number) => `  ${String.fromCharCode(65+j)}) ${opt}`).join('\n') + 
+            `\n[Correct Answer: ${q.correctAnswer}]\n`
+          ).join('\n' + '='.repeat(30) + '\n');
       }
+
       const blob = new Blob([contentToDownload], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
-    } catch (e) { console.error(e); }
+    } catch (e) { console.error("Could not download:", e); }
   };
 
   useEffect(() => {
@@ -331,7 +349,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
               const res = re.target?.result;
               if (typeof res === 'string') setVisualContext({ id: Date.now().toString(), data: res.split(',')[1], mimeType: blob.type });
             };
-            // FIXED: Using 'blob' instead of undefined 'f'
             reader.readAsDataURL(blob);
           }
         }
@@ -342,45 +359,47 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   }, [cleanup]);
 
   return (
-    <div className="flex flex-col flex-1 p-4 md:p-6 lg:p-8 gap-6 animate-billion max-w-full mx-auto w-full h-full bg-[#fcfdfe] relative overflow-hidden">
+    <div className="flex flex-col flex-1 p-4 md:p-6 lg:p-10 gap-6 animate-billion max-w-full mx-auto w-full h-full bg-[#fcfdfe] relative overflow-hidden">
       {error && (
-        <div className="absolute top-4 left-4 right-4 z-[100] bg-red-50 border border-red-200 p-4 rounded-3xl text-red-600 text-[10px] font-bold uppercase tracking-widest flex items-center justify-between shadow-2xl">
+        <div className="absolute top-4 left-4 right-4 z-[100] bg-red-50 border border-red-200 p-6 rounded-3xl text-red-600 text-[11px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl animate-billion">
           <span>{error.message}</span>
-          <button onClick={() => setError(null)} className="p-2 text-xl">×</button>
+          <button onClick={() => setError(null)} className="p-2 text-xl hover:scale-125 transition-transform">×</button>
         </div>
       )}
 
-      <div className={`flex flex-col lg:flex-row gap-6 transition-all duration-500 h-full overflow-hidden ${workspaceFull ? 'lg:gap-0' : ''}`}>
-        <div className={`flex flex-col gap-6 w-full transition-all duration-500 ${workspaceFull ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : workspace.isActive ? 'lg:w-[400px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
-          <div className="bg-white rounded-[3.5rem] p-12 lg:p-16 flex flex-col items-center justify-center relative border border-slate-100 shadow-sm w-full min-h-[500px] lg:min-h-[650px]">
+      <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-700 h-full overflow-hidden ${workspaceFull ? 'lg:gap-0' : ''}`}>
+        
+        {/* NEURAL INTERFACE */}
+        <div className={`flex flex-col gap-8 w-full transition-all duration-700 ${workspaceFull ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : workspace.isActive ? 'lg:w-[450px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
+          <div className="bg-white rounded-[4rem] p-12 lg:p-20 flex flex-col items-center justify-center relative border border-slate-100 shadow-sm w-full min-h-[550px] lg:min-h-[700px]">
             {isConnecting ? (
-              <div className="flex flex-col items-center gap-6">
-                <div className="w-20 h-20 border-4 border-slate-100 border-t-cyan-400 rounded-full animate-spin"></div>
-                <h4 className="text-[12px] font-black text-slate-400 uppercase tracking-[0.5em]">Establishing Neural Link...</h4>
+              <div className="flex flex-col items-center gap-10">
+                <div className="w-24 h-24 border-4 border-slate-50 border-t-accent rounded-full animate-spin"></div>
+                <h4 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.6em] text-center">Starting Link...</h4>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-between w-full h-full space-y-12">
-                <div className={`relative w-64 h-64 lg:w-80 lg:h-80 rounded-full transition-all duration-700 flex items-center justify-center bg-white border-2 ${isOff ? 'border-slate-50' : isModelThinking ? 'border-cyan-400 shadow-[0_0_80px_rgba(0,242,255,0.1)] scale-105' : 'border-emerald-100 animate-pulse'}`}>
-                  <div className={`w-20 h-20 lg:w-32 lg:h-32 rounded-full transition-all duration-500 ${isOff ? 'bg-slate-50' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400'}`}></div>
-                  <div className="absolute -bottom-6 bg-white px-10 py-3 rounded-full border border-slate-100 shadow-sm text-[10px] font-black uppercase tracking-[0.5em] text-slate-400">
-                    {isOff ? 'UNLIMITED STANDBY' : 'AI ACTIVE'}
+              <div className="flex flex-col items-center justify-between w-full h-full space-y-16">
+                <div className={`relative w-64 h-64 lg:w-96 lg:h-96 rounded-full transition-all duration-1000 flex items-center justify-center bg-white border-2 ${isOff ? 'border-slate-50' : isModelThinking ? 'border-accent shadow-[0_0_120px_rgba(112,0,255,0.15)] scale-105' : 'border-emerald-100 animate-pulse'}`}>
+                  <div className={`w-24 h-24 lg:w-40 lg:h-40 rounded-full transition-all duration-700 ${isOff ? 'bg-slate-50' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400 shadow-xl shadow-emerald-200'}`}></div>
+                  <div className="absolute -bottom-8 bg-white px-12 py-3.5 rounded-full border border-slate-100 shadow-sm text-[11px] font-black uppercase tracking-[0.5em] text-slate-400">
+                    {isOff ? 'UNLIMITED STANDBY' : 'MINE AI READY'}
                   </div>
                 </div>
 
                 <div className="w-full space-y-6">
-                  <button onClick={isOff ? startConversation : cleanup} className={`w-full py-6 rounded-[2.5rem] text-[14px] font-black uppercase tracking-[0.5em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white' : 'bg-white text-red-500 border-2 border-red-50'}`}>
-                    {isOff ? 'Start Session' : 'End Session'}
+                  <button onClick={isOff ? startConversation : cleanup} className={`w-full py-7 rounded-[3rem] text-[15px] font-black uppercase tracking-[0.6em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white hover:bg-black' : 'bg-white text-red-500 border-2 border-red-50 hover:bg-red-50'}`}>
+                    {isOff ? 'Sync Now' : 'End Link'}
                   </button>
-                  <div onClick={() => (window as any).document.getElementById('v-up')?.click()} className={`h-24 lg:h-40 w-full rounded-[2.5rem] border-2 border-dashed transition-all relative cursor-pointer flex items-center justify-center ${visualContext ? 'border-cyan-400 bg-cyan-50/10' : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'}`}>
+                  <div onClick={() => (window as any).document.getElementById('neuro-vision-input')?.click()} className={`h-28 lg:h-44 w-full rounded-[3rem] border-2 border-dashed transition-all relative cursor-pointer flex items-center justify-center ${visualContext ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'}`}>
                     {visualContext ? (
-                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-contain p-4 rounded-[2.5rem]" alt="Vision context" />
+                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-contain p-6 rounded-[3rem]" alt="Visual input" />
                     ) : (
-                      <div className="flex flex-col items-center gap-3 opacity-30 text-slate-400">
-                         <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                         <span className="text-[10px] font-black uppercase tracking-widest">Paste / Share Image</span>
+                      <div className="flex flex-col items-center gap-4 opacity-30 text-slate-400">
+                         <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
+                         <span className="text-[11px] font-black uppercase tracking-widest text-center">Paste Image or Upload</span>
                       </div>
                     )}
-                    <input type="file" id="v-up" className="hidden" accept="image/*" onChange={(e: any) => {
+                    <input type="file" id="neuro-vision-input" className="hidden" accept="image/*" onChange={(e: any) => {
                       const f = e.target.files?.[0];
                       if (f) {
                         const r = new FileReader();
@@ -395,67 +414,85 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           </div>
         </div>
 
+        {/* WORKSPACE ENGINE */}
         {workspace.isActive && (
-          <div className={`flex-1 h-full bg-white rounded-[4.5rem] flex flex-col overflow-hidden border border-slate-100 shadow-2xl transition-all duration-700 ${workspaceFull ? 'fixed inset-0 z-[150] rounded-none' : ''}`}>
-            <header className="px-12 py-8 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-3xl">
-              <div className="flex items-center gap-5">
-                 <div className={`w-4 h-4 rounded-full ${isGeneratingImage ? 'bg-cyan-400 animate-ping' : 'bg-cyan-400 shadow-xl shadow-cyan-100'}`}></div>
-                 <h3 className="text-[13px] font-black uppercase tracking-[0.4em] text-slate-900">{workspace.title}</h3>
+          <div className={`flex-1 h-full bg-white rounded-[5rem] flex flex-col overflow-hidden border border-slate-100 shadow-2xl transition-all duration-1000 ${workspaceFull ? 'fixed inset-0 z-[150] rounded-none' : ''}`}>
+            <header className="px-12 py-10 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-3xl">
+              <div className="flex items-center gap-6">
+                 <div className={`w-4 h-4 rounded-full ${isGeneratingImage ? 'bg-accent animate-ping' : 'bg-accent shadow-xl shadow-accent/20'}`}></div>
+                 <h3 className="text-[14px] font-black uppercase tracking-[0.4em] text-slate-900">{workspace.title}</h3>
               </div>
               <div className="flex gap-4">
-                <button onMouseDown={startRecordingPrompt} onMouseUp={stopRecordingPrompt} className={`p-4 rounded-2xl transition-all border-2 ${isRecordingPrompt ? 'bg-red-50 border-red-500 animate-pulse text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400'}`}>
+                <button onMouseDown={startRecordingPrompt} onMouseUp={stopRecordingPrompt} className={`p-4 lg:p-5 rounded-2xl transition-all border-2 flex items-center gap-3 ${isRecordingPrompt ? 'bg-red-50 border-red-500 animate-pulse text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400 hover:text-accent'}`}>
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+                  {isRecordingPrompt && <span className="text-[9px] font-black uppercase">Recording...</span>}
                 </button>
-                <button onClick={() => setWorkspaceFull(!workspaceFull)} className="p-4 hover:bg-slate-50 rounded-2xl transition-colors"><svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={2}/></svg></button>
-                <button onClick={handleDownload} className="p-4 hover:bg-slate-50 rounded-2xl transition-colors text-cyan-500"><svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2}/></svg></button>
-                <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-4 hover:bg-slate-50 rounded-2xl transition-colors"><svg className="w-6 h-6 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg></button>
+                <button onClick={() => setWorkspaceFull(!workspaceFull)} className="p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all active:scale-90"><svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={2}/></svg></button>
+                <button onClick={handleDownload} className="p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all text-accent active:scale-90"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2}/></svg></button>
+                <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all active:scale-90"><svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M6 18L18 6M6 6l12 12" strokeWidth={2}/></svg></button>
               </div>
             </header>
             
-            <div className="flex-1 overflow-y-auto p-12 lg:p-24 custom-scrollbar">
+            <div className="flex-1 overflow-y-auto p-12 lg:p-24 custom-scrollbar relative">
               <div className={`${workspaceFull ? 'max-w-7xl mx-auto' : ''}`}>
                 {isGeneratingImage && (
-                  <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-md">
-                    <div className="w-24 h-24 relative">
-                       <div className="absolute inset-0 border-4 border-slate-50 border-t-cyan-400 rounded-full animate-spin"></div>
-                       {isResyncing && <div className="absolute inset-[-10px] border-2 border-accent/20 rounded-full animate-ping"></div>}
+                  <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl animate-billion">
+                    <div className="w-28 h-28 relative">
+                       <div className="absolute inset-0 border-4 border-slate-50 border-t-accent rounded-full animate-spin"></div>
+                       {isResyncing && <div className="absolute inset-[-15px] border-2 border-accent/10 rounded-full animate-ping"></div>}
                     </div>
-                    <p className="mt-10 text-[14px] font-black uppercase tracking-[1em] text-prismatic">
-                      {isResyncing ? 'Bypassing Neural Buffers...' : 'Neural Rendering...'}
+                    <p className="mt-12 text-[15px] font-black uppercase tracking-[1em] text-prismatic">
+                      {isResyncing ? 'Retrying Link...' : 'Creating Image...'}
                     </p>
-                    {isResyncing && <p className="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 opacity-50">Unlimited resiliency active</p>}
+                    {isResyncing && <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-50 text-center">Almost there! Just waiting for a clear connection.</p>}
                   </div>
                 )}
                 
                 {workspace.imageUrl ? (
                   <div className="flex flex-col items-center gap-16 animate-billion">
-                    <div className="w-full rounded-[4.5rem] overflow-hidden shadow-2xl border-8 border-white"><img src={workspace.imageUrl} alt="AI output" className="w-full h-auto" /></div>
-                    <p className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-300">Generated Unlimited Vision</p>
+                    <div className="w-full rounded-[5rem] overflow-hidden shadow-[0_80px_150px_rgba(0,0,0,0.15)] border-[12px] border-white group relative">
+                      <img src={workspace.imageUrl} alt="AI output" className="w-full h-auto transition-transform duration-[2s] group-hover:scale-[1.05]" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                    </div>
+                    <p className="text-[13px] font-black uppercase tracking-[0.6em] text-slate-300 text-center">Unlimited Vision Ready</p>
                   </div>
                 ) : workspace.type === 'cbt' ? (
-                  <div className="space-y-12">
+                  <div className="space-y-16">
                     {cbtData?.map((q: any, i: number) => (
-                      <div key={i} className="p-12 bg-slate-50/50 rounded-[4rem] border border-slate-100 space-y-10 animate-billion">
-                        <div className="flex items-start gap-8"><span className="w-14 h-14 rounded-full bg-cyan-400 text-white flex items-center justify-center font-black text-xl shrink-0">{i + 1}</span><h4 className="text-2xl lg:text-4xl font-black text-slate-900 leading-tight">{q.question}</h4></div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-20">
+                      <div key={i} className="p-12 lg:p-20 bg-slate-50/50 rounded-[5rem] border border-slate-100 space-y-12 animate-billion relative group hover:bg-white hover:shadow-2xl transition-all duration-500">
+                        <div className="flex items-start gap-10">
+                          <span className="w-16 h-16 rounded-full bg-accent text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-xl shadow-accent/20">{i + 1}</span>
+                          <h4 className="text-3xl lg:text-5xl font-black text-slate-900 leading-tight">{q.question}</h4>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-24">
                           {q.options.map((opt: string, j: number) => (
-                            <div key={j} className="p-8 bg-white border border-slate-100 rounded-[2.5rem] hover:border-cyan-400 transition-all cursor-pointer flex items-center gap-6 group">
-                               <span className="w-10 h-10 rounded-full bg-slate-100 group-hover:bg-cyan-400 group-hover:text-white transition-all flex items-center justify-center text-[12px] font-black">{String.fromCharCode(65+j)}</span>
-                               <span className="text-slate-600 font-bold text-lg">{opt}</span>
+                            <div key={j} className="p-8 bg-white border border-slate-100 rounded-[3rem] hover:border-accent transition-all cursor-pointer flex items-center gap-8 group/option">
+                               <span className="w-12 h-12 rounded-full bg-slate-100 group-hover/option:bg-accent group-hover/option:text-white transition-all flex items-center justify-center text-[14px] font-black">{String.fromCharCode(65+j)}</span>
+                               <span className="text-slate-600 font-bold text-xl lg:text-2xl">{opt}</span>
                             </div>
                           ))}
                         </div>
-                        <div className="pl-20"><button onClick={(e: any) => e.target.innerText = `Correct: ${q.correctAnswer}`} className="text-[11px] font-black uppercase tracking-[0.4em] text-slate-300 hover:text-cyan-400">Reveal Key</button></div>
+                        <div className="pl-24 flex items-center gap-8 pt-4">
+                           <button onClick={(e: any) => {
+                             const btn = e.target;
+                             if (btn.innerText.includes('Reveal')) btn.innerText = `Correct Answer: [${q.correctAnswer}]`;
+                             else btn.innerText = 'Reveal Answer';
+                           }} className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-300 hover:text-accent transition-colors">Reveal Answer</button>
+                        </div>
                       </div>
                     ))}
                   </div>
                 ) : workspace.type === 'code' ? (
-                  <div className="bg-[#080808] rounded-[4rem] p-12 lg:p-20 font-mono text-lg text-cyan-400 overflow-x-auto shadow-2xl border border-white/5 animate-billion">
-                    <div className="flex items-center gap-4 mb-10 opacity-30"><div className="w-4 h-4 rounded-full bg-red-400"></div><div className="w-4 h-4 rounded-full bg-yellow-400"></div><div className="w-4 h-4 rounded-full bg-green-400"></div></div>
-                    <pre><code>{workspace.content}</code></pre>
+                  <div className="bg-[#050505] rounded-[5rem] p-12 lg:p-24 font-mono text-xl text-emerald-400 overflow-x-auto shadow-2xl border border-white/5 animate-billion relative group">
+                    <div className="flex items-center gap-5 mb-12 opacity-30">
+                       <div className="w-5 h-5 rounded-full bg-red-400/50"></div>
+                       <div className="w-5 h-5 rounded-full bg-yellow-400/50"></div>
+                       <div className="w-5 h-5 rounded-full bg-green-400/50"></div>
+                    </div>
+                    <pre className="custom-scrollbar"><code>{workspace.content}</code></pre>
                   </div>
                 ) : (
-                  <div className="prose prose-slate max-w-none text-slate-600 text-2xl lg:text-3xl leading-relaxed whitespace-pre-wrap font-medium animate-billion">
+                  <div className="prose prose-slate max-w-none text-slate-600 text-3xl lg:text-4xl leading-relaxed whitespace-pre-wrap font-medium animate-billion selection:bg-accent/10">
                     {workspace.content}
                   </div>
                 )}
