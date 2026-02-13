@@ -15,14 +15,18 @@ const App: React.FC = () => {
   const [isInitializing, setIsInitializing] = useState(true);
   const [viewState, setViewState] = useState<AppView>('landing');
   const [assignedRole, setAssignedRole] = useState<UserRole | null>(null);
+  const [hasProKey, setHasProKey] = useState(false);
 
-  const hasApiKey = !!process.env.API_KEY && process.env.API_KEY.length > 5;
-
-  const handleStartPersonal = () => {
-    setViewState('auth_personal');
+  const checkKey = async () => {
+    const aistudio = (window as any).aistudio;
+    if (aistudio && aistudio.hasSelectedApiKey) {
+      const selected = await aistudio.hasSelectedApiKey();
+      setHasProKey(selected);
+    }
   };
 
   useEffect(() => {
+    checkKey();
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
@@ -51,20 +55,12 @@ const App: React.FC = () => {
       const aistudio = (window as any).aistudio;
       if (aistudio && aistudio.openSelectKey) {
         await aistudio.openSelectKey();
-        (window as any).location.reload(); 
+        setHasProKey(true); // Assume success as per guidelines
+        setTimeout(() => (window as any).location.reload(), 500);
       }
     } catch (e) {
       console.error("Key selection error:", e);
     }
-  };
-
-  const formatEmail = (email: string | null) => {
-    if (!email) return 'User';
-    const [name] = email.split('@');
-    if (name.length > 5) {
-      return `${name.substring(0, 3)}...${name.substring(name.length - 2)}`;
-    }
-    return name;
   };
 
   if (isInitializing) {
@@ -74,7 +70,7 @@ const App: React.FC = () => {
         <div className="mt-16 w-48 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
            <div className="h-full bg-gradient-to-r from-cyan-400 via-accent to-pink-500 animate-[loading_2.5s_infinite]"></div>
         </div>
-        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Loading...</p>
+        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Loading Intelligence...</p>
         <style>{`@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
       </div>
     );
@@ -82,55 +78,37 @@ const App: React.FC = () => {
 
   if (!user) {
     if (viewState === 'auth_personal') return <Auth onBack={() => setViewState('landing')} onComplete={() => setViewState('app_active')} />;
-    return <Landing 
-      onGetStarted={handleStartPersonal} 
-      onAuthClick={handleStartPersonal} 
-      isLoggedIn={false} 
-    />;
+    return <Landing onGetStarted={() => setViewState('auth_personal')} onAuthClick={() => setViewState('auth_personal')} isLoggedIn={false} />;
   }
 
-  if (user && hasApiKey) {
-    return (
-      <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden bg-[#ffffff]">
-        <header className="sticky top-0 h-auto flex items-center px-8 md:px-20 lg:px-32 bg-white/70 backdrop-blur-3xl border-b border-slate-100 z-50 shrink-0 py-8">
-          <div className="flex items-center space-x-8 cursor-pointer group" onClick={() => setViewState('landing')}>
-            <Logo size="sm" showText={false} />
-            <h1 className="text-3xl md:text-5xl font-outfit font-black tracking-[-0.08em] uppercase text-slate-900">
-              MINE <span className="text-prismatic">AI</span>
-            </h1>
-          </div>
-          <div className="ml-auto flex items-center gap-10">
-            <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-slate-50 rounded-full border border-slate-100 shadow-sm">
-               <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></div>
-               <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">User: {formatEmail(user.email)}</span>
-            </div>
-            <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
-              Logout
-            </button>
-          </div>
-        </header>
-        <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-white">
-          <div className="mesh-gradient opacity-30"></div>
-          <LiveVoice onHome={() => setViewState('landing')} />
-        </main>
-      </div>
-    );
-  }
-
-  if (user && !hasApiKey) {
-    return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 text-center animate-billion bg-white">
-        <div className="glass-premium p-20 rounded-[5rem] max-w-2xl w-full border-white shadow-[0_60px_150px_rgba(0,0,0,0.1)]">
-          <Logo size="md" showText={false} />
-          <h2 className="text-5xl font-outfit font-black mb-8 mt-12 uppercase text-slate-900 tracking-tight">Verification</h2>
-          <p className="text-slate-500 mb-16 text-2xl font-medium leading-relaxed">Account authorized. To unlock full features, please add your access key.</p>
-          <button onClick={handleSelectKey} className="button-billion !py-8 !px-24 text-lg">Add Access Key</button>
+  // Allow app access, but image features might prompt for key in LiveVoice if they fail
+  return (
+    <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden bg-[#ffffff]">
+      <header className="sticky top-0 h-auto flex items-center px-8 md:px-20 lg:px-32 bg-white/70 backdrop-blur-3xl border-b border-slate-100 z-50 shrink-0 py-8">
+        <div className="flex items-center space-x-8 cursor-pointer group" onClick={() => setViewState('landing')}>
+          <Logo size="sm" showText={false} />
+          <h1 className="text-3xl md:text-5xl font-outfit font-black tracking-[-0.08em] uppercase text-slate-900">
+            MINE <span className="text-prismatic">AI</span>
+          </h1>
         </div>
-      </div>
-    );
-  }
-
-  return null;
+        <div className="ml-auto flex items-center gap-6 md:gap-10">
+          <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-slate-50 rounded-full border border-slate-100 shadow-sm">
+             <div className={`w-2.5 h-2.5 rounded-full ${hasProKey ? 'bg-accent' : 'bg-emerald-500'} animate-pulse`}></div>
+             <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">
+               {hasProKey ? 'Pro Access' : 'Standard'}
+             </span>
+          </div>
+          <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-6 md:px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
+            Logout
+          </button>
+        </div>
+      </header>
+      <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-white">
+        <div className="mesh-gradient opacity-30"></div>
+        <LiveVoice onHome={() => setViewState('landing')} onUpgradeKey={handleSelectKey} hasProKey={hasProKey} />
+      </main>
+    </div>
+  );
 };
 
 export default App;
