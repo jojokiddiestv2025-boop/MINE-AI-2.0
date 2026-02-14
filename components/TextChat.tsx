@@ -8,7 +8,7 @@ interface Message {
   content: string;
   images?: string[]; 
   timestamp: number;
-  engine?: 'MINE Primary' | 'MINE Secondary';
+  engine?: 'MINE Primary (Puter)' | 'MINE Secondary (Gemini)';
 }
 
 declare const puter: any;
@@ -18,7 +18,7 @@ const TextChat: React.FC = () => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: "Hello! I am MINE AI, a GPT-5 class intelligence. I'm optimized for high-speed vision and complex reasoning. You can upload multiple images, paste from your clipboard, or ask me anything. How can I help you today?",
+      content: "Hello! I am MINE AI, a GPT-5 class intelligence powered by Puter's Developer Cloud. I'm optimized for unlimited speed and advanced vision. You can upload multiple images, paste directly from your clipboard, or ask me anything complex. How can I help you today?",
       timestamp: Date.now(),
     }
   ]);
@@ -95,12 +95,13 @@ const TextChat: React.FC = () => {
     setIsTyping(true);
 
     try {
-      // ENGINE 1: Puter.js Developer Feature (Primary)
+      // ENGINE 1: Puter.js (Primary - Developer Features)
       try {
+        // Using the latest GPT-4o model available through Puter Cloud
         const response = await puter.ai.chat(
-          currentInput || "Analyze the provided image(s) in detail.",
+          currentInput || "Examine these images in depth and provide a technical summary.",
           userImagesBlobs,
-          { model: 'gpt-4o' } // High-performance dev model
+          { model: 'gpt-4o' }
         );
 
         const assistantMessage: Message = {
@@ -108,17 +109,17 @@ const TextChat: React.FC = () => {
           role: 'assistant',
           content: response.toString(),
           timestamp: Date.now(),
-          engine: 'MINE Primary'
+          engine: 'MINE Primary (Puter)'
         };
         setMessages(prev => [...prev, assistantMessage]);
         setActiveEngine('Primary');
       } catch (puterError: any) {
         // ENGINE 2: Gemini Fallback (Secondary)
-        console.warn("Primary engine limit or error, switching to Secondary...", puterError);
+        console.warn("Primary engine limit or error, switching to MINE Secondary...", puterError);
         setActiveEngine('Secondary');
         
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
-        const parts: any[] = [{ text: currentInput || "Analyze the attached content." }];
+        const parts: any[] = [{ text: currentInput || "Analyze the provided visual and textual content." }];
         
         if (userImagesUrls.length > 0) {
           for (const imgUrl of userImagesUrls) {
@@ -138,9 +139,9 @@ const TextChat: React.FC = () => {
         const assistantMessage: Message = {
           id: (Date.now() + 2).toString(),
           role: 'assistant',
-          content: response.text || "I apologize, the neural link is busy. Please try again.",
+          content: response.text || "Both systems are currently at capacity. Please refresh or wait a moment.",
           timestamp: Date.now(),
-          engine: 'MINE Secondary'
+          engine: 'MINE Secondary (Gemini)'
         };
         setMessages(prev => [...prev, assistantMessage]);
       }
@@ -148,7 +149,7 @@ const TextChat: React.FC = () => {
       setMessages(prev => [...prev, {
         id: 'critical-error',
         role: 'assistant',
-        content: "Critical link failure. Re-establishing connection...",
+        content: "I'm having trouble connecting to my neural cores. Please check your internet or try again.",
         timestamp: Date.now(),
       }]);
     } finally {
@@ -158,109 +159,107 @@ const TextChat: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto bg-white overflow-hidden animate-billion">
-      {/* Dynamic Engine Status Bar */}
-      <div className="px-10 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
+      {/* Engine Control Center */}
+      <div className="px-8 py-5 bg-slate-50/50 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
-          <div className={`w-3 h-3 rounded-full ${activeEngine === 'Primary' ? 'bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-amber-500 animate-pulse shadow-[0_0_10px_rgba(245,158,11,0.5)]'}`}></div>
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">
-            {activeEngine === 'Primary' ? 'MINE Primary Engine' : 'MINE Secondary Engine (Fallback)'}
+          <div className={`w-3 h-3 rounded-full ${activeEngine === 'Primary' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]' : 'bg-amber-500 animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.4)]'}`}></div>
+          <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">
+            {activeEngine === 'Primary' ? 'Primary Neural Core' : 'Secondary Neural Core (Active)'}
           </span>
         </div>
-        <div className="flex items-center gap-4">
-           <span className="text-[9px] font-black uppercase tracking-widest text-slate-300">VISION v4.0</span>
+        <div className="flex items-center gap-6">
+           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-300">V5.1 PLATINUM</span>
            <div className="h-4 w-[1px] bg-slate-200"></div>
-           <span className="text-[9px] font-black uppercase tracking-widest text-accent">GPT-5 CLASS</span>
+           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-accent">DEV ACCESS</span>
         </div>
       </div>
 
-      {/* Message Feed */}
+      {/* Neural Stream (Messages) */}
       <div 
         ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-16 space-y-12 custom-scrollbar"
+        className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-16 space-y-12 custom-scrollbar bg-white"
       >
         {messages.map((msg) => (
           <div 
             key={msg.id} 
             className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-billion`}
           >
-            <div className={`group relative max-w-[90%] md:max-w-[80%] rounded-[3rem] p-8 md:p-12 ${
+            <div className={`relative max-w-[90%] md:max-w-[85%] rounded-[3.5rem] p-8 md:p-12 ${
               msg.role === 'user' 
-                ? 'bg-slate-900 text-white shadow-2xl' 
-                : 'bg-white text-slate-800 border border-slate-100 shadow-sm'
+                ? 'bg-slate-900 text-white shadow-[0_30px_60px_-15px_rgba(15,23,42,0.3)]' 
+                : 'bg-white text-slate-800 border border-slate-100 shadow-[0_20px_40px_-10px_rgba(0,0,0,0.03)]'
             }`}>
               {msg.images && msg.images.length > 0 && (
-                <div className="flex flex-wrap gap-6 mb-10">
+                <div className="flex flex-wrap gap-5 mb-10">
                   {msg.images.map((img, idx) => (
-                    <div key={idx} className="relative group/img overflow-hidden rounded-[2rem] shadow-xl border-4 border-white transition-all hover:scale-105">
+                    <div key={idx} className="relative group/img overflow-hidden rounded-[2rem] shadow-xl border-4 border-white transition-all hover:scale-105 active:scale-95 cursor-zoom-in">
                       <img 
                         src={img} 
-                        alt="Context" 
-                        className="w-40 h-40 md:w-64 md:h-64 object-cover" 
+                        alt="Visual context" 
+                        className="w-44 h-44 md:w-72 md:h-72 object-cover" 
                       />
                     </div>
                   ))}
                 </div>
               )}
-              <div className="text-xl md:text-2xl leading-relaxed whitespace-pre-wrap font-medium selection:bg-accent/20">
+              <div className="text-xl md:text-2xl leading-relaxed whitespace-pre-wrap font-medium selection:bg-accent/10">
                 {msg.content}
               </div>
             </div>
-            <div className="flex items-center gap-4 mt-5 px-8">
-               <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-slate-400' : 'text-accent'}`}>
-                {msg.role === 'assistant' ? 'MINE AI' : 'YOU'}
+            <div className="flex items-center gap-5 mt-6 px-10">
+               <span className={`text-[10px] font-black uppercase tracking-[0.5em] ${msg.role === 'user' ? 'text-slate-400' : 'text-accent'}`}>
+                {msg.role === 'assistant' ? 'MINE AI' : 'IDENTITY'}
               </span>
               {msg.engine && (
-                <span className="text-[9px] font-black uppercase px-3 py-1 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
+                <span className="text-[9px] font-black uppercase px-4 py-1.5 rounded-full bg-slate-50 text-slate-400 border border-slate-100">
                   {msg.engine}
                 </span>
               )}
-              <span className="text-[9px] font-medium text-slate-200 uppercase tracking-widest">
-                {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-              </span>
             </div>
           </div>
         ))}
         {isTyping && (
           <div className="flex flex-col items-start animate-pulse">
-            <div className="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-12 flex items-center gap-4">
-              <div className="w-3 h-3 bg-accent rounded-full animate-bounce"></div>
-              <div className="w-3 h-3 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
-              <div className="w-3 h-3 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
+            <div className="bg-slate-50 border border-slate-100 rounded-[3rem] p-12 flex items-center gap-5">
+              <div className="w-3.5 h-3.5 bg-accent rounded-full animate-bounce"></div>
+              <div className="w-3.5 h-3.5 bg-accent rounded-full animate-bounce [animation-delay:0.2s]"></div>
+              <div className="w-3.5 h-3.5 bg-accent rounded-full animate-bounce [animation-delay:0.4s]"></div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Image Previewer (Severally Added) */}
+      {/* Multi-Image Queue */}
       {pendingImages.length > 0 && (
-        <div className="px-12 py-8 flex gap-6 overflow-x-auto bg-slate-50/80 border-t border-slate-100 backdrop-blur-md">
+        <div className="px-12 py-8 flex gap-6 overflow-x-auto bg-slate-50/70 border-t border-slate-100 backdrop-blur-3xl animate-billion">
           {pendingImages.map((img, idx) => (
             <div key={idx} className="relative group shrink-0">
-              <img src={img.url} className="w-28 h-28 object-cover rounded-[2.5rem] shadow-lg border-4 border-white group-hover:scale-105 transition-transform" alt="Pending" />
+              <img src={img.url} className="w-32 h-32 object-cover rounded-[3rem] shadow-2xl border-4 border-white group-hover:scale-105 transition-all" alt="Pending" />
               <button 
                 onClick={() => removePendingImage(idx)}
-                className="absolute -top-3 -right-3 bg-red-500 text-white rounded-full w-9 h-9 flex items-center justify-center text-xl shadow-2xl hover:bg-red-600 transition-all active:scale-90"
+                className="absolute -top-4 -right-4 bg-red-500 text-white rounded-full w-10 h-10 flex items-center justify-center text-2xl shadow-2xl hover:bg-red-600 transition-all active:scale-90"
               >
                 ×
               </button>
             </div>
           ))}
-          <div className="flex flex-col justify-center px-4 opacity-40">
-             <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400">Context Queued</span>
+          <div className="flex flex-col justify-center px-6 border-l border-slate-200">
+             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400">Context Queued</span>
+             <span className="text-[8px] font-black uppercase tracking-widest text-slate-300 mt-2">{pendingImages.length} Ready</span>
           </div>
         </div>
       )}
 
-      {/* Input Console */}
+      {/* Neural Interface (Input) */}
       <div className="p-8 md:p-12 lg:p-16 bg-white border-t border-slate-50">
-        <div className="relative glass-premium rounded-[4rem] border border-slate-200 shadow-[0_50px_100px_rgba(0,0,0,0.06)] overflow-hidden p-3 transition-all focus-within:ring-[15px] focus-within:ring-accent/5 focus-within:border-accent/20">
+        <div className="relative glass-premium rounded-[4.5rem] border border-slate-200 shadow-[0_40px_80px_rgba(0,0,0,0.05)] overflow-hidden p-4 transition-all focus-within:ring-[20px] focus-within:ring-accent/5 focus-within:border-accent/20">
           <div className="flex items-end">
             <button 
               onClick={() => fileInputRef.current?.click()}
-              className="p-6 md:p-8 text-slate-400 hover:text-accent transition-all active:scale-90 group"
-              title="Add Image"
+              className="p-6 md:p-9 text-slate-400 hover:text-accent transition-all active:scale-90 group relative"
+              title="Upload Severally"
             >
-              <svg className="w-12 h-12 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-14 h-14 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2.5}/>
               </svg>
             </button>
@@ -282,31 +281,31 @@ const TextChat: React.FC = () => {
                 }
               }}
               onPaste={handlePaste}
-              placeholder="Message MINE AI (paste images here...)"
-              className="flex-1 bg-transparent border-none outline-none py-8 px-6 text-2xl font-medium text-slate-800 placeholder:text-slate-200 resize-none max-h-72 custom-scrollbar"
+              placeholder="Message MINE AI (paste or drop images)..."
+              className="flex-1 bg-transparent border-none outline-none py-10 px-6 text-2xl font-medium text-slate-800 placeholder:text-slate-200 resize-none max-h-80 custom-scrollbar"
               rows={1}
             />
             <button 
               onClick={sendMessage}
               disabled={isTyping || (!input.trim() && pendingImages.length === 0)}
-              className={`p-6 md:p-8 rounded-full transition-all m-2 ${
+              className={`p-7 md:p-10 rounded-full transition-all m-2 ${
                 (input.trim() || pendingImages.length > 0) && !isTyping 
                   ? 'bg-slate-900 text-white shadow-2xl scale-100 hover:bg-black active:scale-95' 
                   : 'bg-slate-50 text-slate-200 scale-95 opacity-50 cursor-not-allowed'
               }`}
             >
-              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-14 h-14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M5 12h14M12 5l7 7-7 7" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
         </div>
-        <div className="mt-10 flex justify-center items-center gap-8">
-           <div className="h-[1px] w-16 bg-slate-100"></div>
-           <p className="text-[10px] font-black uppercase tracking-[0.8em] text-slate-200 text-center">
-            Secured Developer Neural Link
+        <div className="mt-12 flex justify-center items-center gap-10">
+           <div className="h-[1px] w-20 bg-slate-100"></div>
+           <p className="text-[10px] font-black uppercase tracking-[1em] text-slate-200 text-center">
+            Puter Dev Architecture
           </p>
-           <div className="h-[1px] w-16 bg-slate-100"></div>
+           <div className="h-[1px] w-20 bg-slate-100"></div>
         </div>
       </div>
     </div>
