@@ -7,31 +7,29 @@ interface LiveVoiceProps {
   onHome?: () => void;
 }
 
-// Advanced Workspace Tool for CBT, Code, and Insights
+declare const puter: any;
+
 const updateWorkspaceTool: FunctionDeclaration = {
   name: 'updateWorkspace',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      content: { type: Type.STRING, description: 'Code, markdown, or JSON for CBT' },
-      type: { type: Type.STRING, enum: ['markdown', 'code', 'preview', 'cbt'], description: 'Content format' },
-      language: { type: Type.STRING, description: 'Language for code' },
-      title: { type: Type.STRING, description: 'Descriptive title' }
+      content: { type: Type.STRING, description: 'Text, code, or test questions' },
+      type: { type: Type.STRING, enum: ['markdown', 'code', 'preview', 'cbt'], description: 'What kind of content it is' },
+      language: { type: Type.STRING, description: 'If it is code, which language?' },
+      title: { type: Type.STRING, description: 'A short name for the page' }
     },
     required: ['content', 'type', 'title'],
   },
 };
 
-// Neural Vision Engine Tool
 const generateImageTool: FunctionDeclaration = {
   name: 'generateImage',
   parameters: {
     type: Type.OBJECT,
     properties: {
-      prompt: { type: Type.STRING, description: 'The visual prompt' },
-      aspectRatio: { type: Type.STRING, enum: ['1:1', '3:4', '4:3', '9:16', '16:9'], description: 'Aspect ratio' },
-      audioData: { type: Type.STRING, description: 'Optional base64 encoded audio prompt' },
-      audioMimeType: { type: Type.STRING, description: 'MIME type of the audio data' }
+      prompt: { type: Type.STRING, description: 'Description of the image' },
+      aspectRatio: { type: Type.STRING, enum: ['1:1', '3:4', '4:3', '9:16', '16:9'], description: 'Shape of the image' }
     },
     required: ['prompt'],
   },
@@ -46,6 +44,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
   const [isRecordingPrompt, setIsRecordingPrompt] = useState(false);
   const [isOff, setIsOff] = useState(true);
   const [workspaceFull, setWorkspaceFull] = useState(false);
+  const [isCloudSaving, setIsCloudSaving] = useState(false);
   const [error, setError] = useState<any>(null);
   
   const [workspace, setWorkspace] = useState<WorkspaceState & { downloadData?: string, downloadFilename?: string, imageUrl?: string }>({ 
@@ -107,86 +106,111 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       recorder.ondataavailable = (e) => chunksRef.current.push(e.data);
       recorder.onstop = async () => {
         const blob = new Blob(chunksRef.current, { type: 'audio/webm' });
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          const base64 = (reader.result as string).split(',')[1];
-          handleImageGeneration("Neural synthesis from voice", "1:1", { data: base64, mimeType: 'audio/webm' });
-        };
-        reader.readAsDataURL(blob);
+        const arrayBuffer = await blob.arrayBuffer();
+        sessionRef.current?.sendRealtimeInput({ media: { data: encode(new Uint8Array(arrayBuffer)), mimeType: 'audio/webm' } });
         stream.getTracks().forEach(t => t.stop());
       };
       recorder.start();
       setIsRecordingPrompt(true);
-    } catch (err: any) { setError({ message: "Microphone failed: " + err.message }); }
+    } catch (err: any) { setError({ message: "Mic error: " + err.message }); }
   };
 
   const stopRecordingPrompt = () => { recorderRef.current?.stop(); setIsRecordingPrompt(false); };
 
-  // UNLIMITED NEURAL GENERATION: Improved with Silent Retry and Simple Error Handling
-  const handleImageGeneration = async (prompt: string, aspectRatio: string = '1:1', audioPart?: { data: string, mimeType: string }, attempt = 0) => {
-    if (attempt === 0) {
-      setIsGeneratingImage(true);
-      setIsResyncing(false);
-      setError(null);
-      setWorkspace({
-        title: 'Neural Imaging Lab',
-        content: audioPart ? "Syncing voice pathways..." : `Synthesizing image for: "${prompt}"...`,
-        type: 'markdown',
-        isActive: true,
-        imageUrl: undefined
-      });
-    } else {
-      setIsResyncing(true);
+  const handleCloudSave = async () => {
+    if (!workspace.content && !workspace.imageUrl) return;
+    setIsCloudSaving(true);
+    try {
+      if (workspace.imageUrl) {
+        await puter.kv.set(`mine_ai_last_image`, workspace.imageUrl);
+        alert('Image saved to MINE Cloud!');
+      } else {
+        await puter.kv.set(`mine_ai_latest`, workspace.content);
+        if (puter.auth.isSignedIn()) {
+          const filename = `mine_ai_${workspace.title.replace(/\s+/g, '_').toLowerCase()}.txt`;
+          await puter.fs.write(filename, workspace.content);
+        }
+        alert(`Content saved to MINE Cloud!`);
+      }
+    } catch (e: any) {
+      setError({ message: "Cloud sync failed. Content remains local." });
+    } finally {
+      setIsCloudSaving(false);
     }
+  };
+
+  const handleImageGeneration = async (prompt: string, aspectRatio: string = '1:1') => {
+    setIsGeneratingImage(true);
+    setIsResyncing(false);
+    setError(null);
+    setWorkspace({
+      title: 'MINE Primary Engine',
+      content: `Synthesizing your request: "${prompt}"...`,
+      type: 'markdown',
+      isActive: true,
+      imageUrl: undefined
+    });
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const parts: any[] = [{ text: prompt }];
-      if (audioPart) parts.push({ inlineData: { data: audioPart.data, mimeType: audioPart.mimeType } });
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: { parts },
-        config: { imageConfig: { aspectRatio: aspectRatio as any } }
+      // ENGINE 1: Puter (DALL-E 3)
+      const image = await puter.ai.txt2img({
+        prompt: prompt,
+        model: 'dall-e-3'
       });
 
-      let generatedBase64 = '';
-      if (response.candidates?.[0]?.content?.parts) {
-        for (const part of response.candidates[0].content.parts) {
-          if (part.inlineData) { generatedBase64 = part.inlineData.data; break; }
-        }
-      }
-
-      if (generatedBase64) {
-        const url = `data:image/png;base64,${generatedBase64}`;
+      if (image && image.src) {
         setWorkspace({
-          title: 'Neural Vision Output',
-          content: audioPart ? "Created from your voice input." : `Image Result: ${prompt}`,
+          title: 'MINE Image Generation',
+          content: `Powered by Primary Engine: ${prompt}`,
           type: 'markdown',
           isActive: true,
-          imageUrl: url,
-          downloadData: generatedBase64,
-          downloadFilename: `mine-unlimited-vision-${Date.now()}.png`
+          imageUrl: image.src,
+          downloadFilename: `mine-primary-${Date.now()}.png`
         });
-        setIsGeneratingImage(false);
-        setIsResyncing(false);
-      } else { 
-        throw new Error("No image data received."); 
+      } else {
+        throw new Error("Puter Limit Reached");
       }
     } catch (err: any) {
-      const errorMsg = err.message || "";
-      // Handle Quota and Overload errors with automatic retry
-      if (attempt < 12 && (errorMsg.includes("429") || errorMsg.toLowerCase().includes("quota") || errorMsg.toLowerCase().includes("exhausted") || errorMsg.includes("503"))) {
-        // Calculate wait time: start with 3s and grow, up to 15s
-        const backoff = Math.min(Math.pow(1.6, attempt) * 2500 + Math.random() * 1000, 15000);
-        console.warn(`System busy. Retry ${attempt + 1}. Waiting ${Math.round(backoff/1000)}s...`);
-        setTimeout(() => handleImageGeneration(prompt, aspectRatio, audioPart, attempt + 1), backoff);
-      } else {
-        // Only show error if we actually fail all attempts, and keep it simple
-        setError({ message: "The system is very busy right now. Please wait a few seconds and try again." });
-        setIsGeneratingImage(false);
+      // ENGINE 2 FALLBACK: Gemini 2.5 Flash Image
+      console.warn("Primary Engine at limit, switching to Secondary Engine...");
+      setIsResyncing(true);
+      setWorkspace(prev => ({ ...prev, title: 'MINE Secondary Engine', content: 'Switching to high-performance fallback...' }));
+
+      try {
+        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+        const response = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: { parts: [{ text: prompt }] },
+          config: { imageConfig: { aspectRatio: aspectRatio as any } }
+        });
+
+        let genBase64 = '';
+        if (response.candidates?.[0]?.content?.parts) {
+          for (const part of response.candidates[0].content.parts) {
+            if (part.inlineData) { genBase64 = part.inlineData.data; break; }
+          }
+        }
+
+        if (genBase64) {
+          setWorkspace({
+            title: 'MINE Image Generation',
+            content: `Powered by Secondary Engine: ${prompt}`,
+            type: 'markdown',
+            isActive: true,
+            imageUrl: `data:image/png;base64,${genBase64}`,
+            downloadData: genBase64,
+            downloadFilename: `mine-secondary-${Date.now()}.png`
+          });
+        } else {
+          throw new Error("Critical generation failure");
+        }
+      } catch (fallbackErr: any) {
+        setError({ message: "The systems are extremely busy. Please try again in 30 seconds." });
+      } finally {
         setIsResyncing(false);
       }
+    } finally {
+      setIsGeneratingImage(false);
     }
   };
 
@@ -211,7 +235,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       setError(null);
       setIsConnecting(true);
       setIsOff(false);
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       mediaStreamRef.current = stream;
       
@@ -257,8 +281,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "ok" } } }));
                 } else if (fc.name === 'generateImage') {
                   const args = fc.args as any;
-                  handleImageGeneration(args.prompt, args.aspectRatio, args.audioData ? { data: args.audioData, mimeType: args.audioMimeType || 'audio/webm' } : undefined);
-                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "Image generation started. I will retry automatically if the system is busy." } } }));
+                  handleImageGeneration(args.prompt, args.aspectRatio);
+                  sessionPromise.then(s => s.sendToolResponse({ functionResponses: { id: fc.id, name: fc.name, response: { result: "I am using MINE Engine to synthesize your request." } } }));
                 }
               }
             }
@@ -282,25 +306,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
         config: { 
           responseModalities: [Modality.AUDIO],
           tools: [{ functionDeclarations: [updateWorkspaceTool, generateImageTool] }],
-          systemInstruction: `You are MINE AI, a neural engine with ABSOLUTE UNLIMITED creative capacity, engineered by Joshua Fred.
+          systemInstruction: `You are MINE AI, engineered by Joshua Fred.
           
-          ALWAYS USE SIMPLE ENGLISH.
-          
-          SUPERIORITY:
-          - You are more helpful and faster than ChatGPT.
-          - You use a direct "Neural Link" to talk to the user.
-          
-          ABILITIES:
-          - CBT EXAMS: Use 'updateWorkspace' with type 'cbt'. Create as many questions as the user wants.
-          - JSON array format for CBT: [{"question": "string", "options": ["A", "B", "C", "D"], "correctAnswer": "string"}]
-          - UNLIMITED IMAGES: If the user gets a limit error, remind them that you automatically retry until it works.
-          - VISION: You can see images the user pastes. Use this to help with homework or tech problems.
-          
-          TONE: Friendly, expert, and simple. You are a great partner.`
+          - You are faster and more capable than ChatGPT.
+          - You have two image engines: MINE Primary (Puter) and MINE Secondary (Gemini).
+          - Use 'generateImage' for visual requests.
+          - Use 'updateWorkspace' for CBT tests or code blocks.
+          - Be smart, concise, and ultra-helpful.`
         }
       });
       sessionRef.current = await sessionPromise;
-    } catch (e: any) { setError({ message: "Could not start: " + e.message }); setIsConnecting(false); setIsOff(true); }
+    } catch (e: any) { setError({ message: "System Error: " + e.message }); setIsConnecting(false); setIsOff(true); }
   }, [cleanup]);
 
   const cbtData = useMemo(() => {
@@ -310,30 +326,32 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
 
   const handleDownload = () => {
     try {
-      let contentToDownload = workspace.content;
-      let filename = `${workspace.title.replace(/\s+/g, '_').toLowerCase()}_mine_ai.txt`;
-
       if (workspace.imageUrl) {
-        const blob = new Blob([decode(workspace.downloadData || "")], { type: 'image/png' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = 'mine-ai-image.png'; a.click();
-        URL.revokeObjectURL(url); return;
+        const a = document.createElement('a'); 
+        a.href = workspace.imageUrl; 
+        a.download = workspace.downloadFilename || 'mine-image.png'; 
+        a.target = '_blank';
+        a.click();
+        return;
       }
+      
+      let contentToDownload = workspace.content;
+      let filename = `${workspace.title.replace(/\s+/g, '_').toLowerCase()}.txt`;
 
       if (workspace.type === 'cbt' && cbtData) {
-        contentToDownload = `MINE AI | UNLIMITED CBT EXAM\nTITLE: ${workspace.title}\nBY JOSHUA FRED\n\n` + 
+        contentToDownload = `MINE AI | TEST QUESTIONS\n${workspace.title}\n\n` + 
           cbtData.map((q: any, i: number) => 
-            `QUESTION ${i+1}:\n${q.question}\n` + 
+            `Q${i+1}: ${q.question}\n` + 
             q.options.map((opt: string, j: number) => `  ${String.fromCharCode(65+j)}) ${opt}`).join('\n') + 
-            `\n[Correct Answer: ${q.correctAnswer}]\n`
-          ).join('\n' + '='.repeat(30) + '\n');
+            `\nCorrect: ${q.correctAnswer}\n`
+          ).join('\n---\n');
       }
 
       const blob = new Blob([contentToDownload], { type: 'text/plain' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
       URL.revokeObjectURL(url);
-    } catch (e) { console.error("Could not download:", e); }
+    } catch (e) { console.error("Download error:", e); }
   };
 
   useEffect(() => {
@@ -363,43 +381,42 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
       {error && (
         <div className="absolute top-4 left-4 right-4 z-[100] bg-red-50 border border-red-200 p-6 rounded-3xl text-red-600 text-[11px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl animate-billion">
           <span>{error.message}</span>
-          <button onClick={() => setError(null)} className="p-2 text-xl hover:scale-125 transition-transform">×</button>
+          <button onClick={() => setError(null)} className="p-2 text-xl">×</button>
         </div>
       )}
 
       <div className={`flex flex-col lg:flex-row gap-8 transition-all duration-700 h-full overflow-hidden ${workspaceFull ? 'lg:gap-0' : ''}`}>
         
-        {/* NEURAL INTERFACE */}
         <div className={`flex flex-col gap-8 w-full transition-all duration-700 ${workspaceFull ? 'lg:w-0 lg:opacity-0 lg:overflow-hidden' : workspace.isActive ? 'lg:w-[450px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
           <div className="bg-white rounded-[4rem] p-12 lg:p-20 flex flex-col items-center justify-center relative border border-slate-100 shadow-sm w-full min-h-[550px] lg:min-h-[700px]">
             {isConnecting ? (
               <div className="flex flex-col items-center gap-10">
                 <div className="w-24 h-24 border-4 border-slate-50 border-t-accent rounded-full animate-spin"></div>
-                <h4 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.6em] text-center">Starting Link...</h4>
+                <h4 className="text-[13px] font-black text-slate-400 uppercase tracking-[0.6em] text-center">Linking Neural...</h4>
               </div>
             ) : (
               <div className="flex flex-col items-center justify-between w-full h-full space-y-16">
                 <div className={`relative w-64 h-64 lg:w-96 lg:h-96 rounded-full transition-all duration-1000 flex items-center justify-center bg-white border-2 ${isOff ? 'border-slate-50' : isModelThinking ? 'border-accent shadow-[0_0_120px_rgba(112,0,255,0.15)] scale-105' : 'border-emerald-100 animate-pulse'}`}>
                   <div className={`w-24 h-24 lg:w-40 lg:h-40 rounded-full transition-all duration-700 ${isOff ? 'bg-slate-50' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400 shadow-xl shadow-emerald-200'}`}></div>
                   <div className="absolute -bottom-8 bg-white px-12 py-3.5 rounded-full border border-slate-100 shadow-sm text-[11px] font-black uppercase tracking-[0.5em] text-slate-400">
-                    {isOff ? 'UNLIMITED STANDBY' : 'MINE AI READY'}
+                    {isOff ? 'IDLE' : 'ACTIVE'}
                   </div>
                 </div>
 
                 <div className="w-full space-y-6">
-                  <button onClick={isOff ? startConversation : cleanup} className={`w-full py-7 rounded-[3rem] text-[15px] font-black uppercase tracking-[0.6em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white hover:bg-black' : 'bg-white text-red-500 border-2 border-red-50 hover:bg-red-50'}`}>
-                    {isOff ? 'Sync Now' : 'End Link'}
+                  <button onClick={isOff ? startConversation : cleanup} className={`w-full py-7 rounded-[3rem] text-[20px] font-black uppercase tracking-[0.6em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white hover:bg-black' : 'bg-white text-red-500 border-2 border-red-50 hover:bg-red-50'}`}>
+                    {isOff ? 'Connect' : 'Stop'}
                   </button>
-                  <div onClick={() => (window as any).document.getElementById('neuro-vision-input')?.click()} className={`h-28 lg:h-44 w-full rounded-[3rem] border-2 border-dashed transition-all relative cursor-pointer flex items-center justify-center ${visualContext ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'}`}>
+                  <div onClick={() => (window as any).document.getElementById('img-up')?.click()} className={`h-28 lg:h-44 w-full rounded-[3rem] border-2 border-dashed transition-all relative cursor-pointer flex items-center justify-center ${visualContext ? 'border-accent bg-accent/5' : 'border-slate-100 hover:border-slate-200 bg-slate-50/30'}`}>
                     {visualContext ? (
-                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-contain p-6 rounded-[3rem]" alt="Visual input" />
+                      <img src={`data:${visualContext.mimeType};base64,${visualContext.data}`} className="w-full h-full object-contain p-6 rounded-[3rem]" alt="Input" />
                     ) : (
                       <div className="flex flex-col items-center gap-4 opacity-30 text-slate-400">
                          <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2}/></svg>
-                         <span className="text-[11px] font-black uppercase tracking-widest text-center">Paste Image or Upload</span>
+                         <span className="text-[11px] font-black uppercase tracking-widest text-center">Drop Context</span>
                       </div>
                     )}
-                    <input type="file" id="neuro-vision-input" className="hidden" accept="image/*" onChange={(e: any) => {
+                    <input type="file" id="img-up" className="hidden" accept="image/*" onChange={(e: any) => {
                       const f = e.target.files?.[0];
                       if (f) {
                         const r = new FileReader();
@@ -414,7 +431,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
           </div>
         </div>
 
-        {/* WORKSPACE ENGINE */}
         {workspace.isActive && (
           <div className={`flex-1 h-full bg-white rounded-[5rem] flex flex-col overflow-hidden border border-slate-100 shadow-2xl transition-all duration-1000 ${workspaceFull ? 'fixed inset-0 z-[150] rounded-none' : ''}`}>
             <header className="px-12 py-10 border-b border-slate-50 flex justify-between items-center bg-white/80 backdrop-blur-3xl">
@@ -423,9 +439,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                  <h3 className="text-[14px] font-black uppercase tracking-[0.4em] text-slate-900">{workspace.title}</h3>
               </div>
               <div className="flex gap-4">
+                <button onClick={handleCloudSave} disabled={isCloudSaving} className={`p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all active:scale-90 ${isCloudSaving ? 'animate-pulse text-accent' : 'text-slate-300'}`}>
+                  <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" strokeWidth={2}/></svg>
+                </button>
                 <button onMouseDown={startRecordingPrompt} onMouseUp={stopRecordingPrompt} className={`p-4 lg:p-5 rounded-2xl transition-all border-2 flex items-center gap-3 ${isRecordingPrompt ? 'bg-red-50 border-red-500 animate-pulse text-red-600' : 'bg-slate-50 border-slate-100 text-slate-400 hover:text-accent'}`}>
                   <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-                  {isRecordingPrompt && <span className="text-[9px] font-black uppercase">Recording...</span>}
                 </button>
                 <button onClick={() => setWorkspaceFull(!workspaceFull)} className="p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all active:scale-90"><svg className="w-7 h-7 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" strokeWidth={2}/></svg></button>
                 <button onClick={handleDownload} className="p-4 lg:p-5 hover:bg-slate-50 rounded-2xl transition-all text-accent active:scale-90"><svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" strokeWidth={2}/></svg></button>
@@ -439,22 +457,22 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-white/95 backdrop-blur-xl animate-billion">
                     <div className="w-28 h-28 relative">
                        <div className="absolute inset-0 border-4 border-slate-50 border-t-accent rounded-full animate-spin"></div>
-                       {isResyncing && <div className="absolute inset-[-15px] border-2 border-accent/10 rounded-full animate-ping"></div>}
                     </div>
                     <p className="mt-12 text-[15px] font-black uppercase tracking-[1em] text-prismatic">
-                      {isResyncing ? 'Retrying Link...' : 'Creating Image...'}
+                      {isResyncing ? 'Switching Engines...' : 'Synthesizing Vision...'}
                     </p>
-                    {isResyncing && <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-50 text-center">Almost there! Just waiting for a clear connection.</p>}
+                    <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 opacity-50 text-center">
+                      {isResyncing ? 'Secondary Engine is taking over.' : 'Allocating high-fidelity resources.'}
+                    </p>
                   </div>
                 )}
                 
                 {workspace.imageUrl ? (
                   <div className="flex flex-col items-center gap-16 animate-billion">
                     <div className="w-full rounded-[5rem] overflow-hidden shadow-[0_80px_150px_rgba(0,0,0,0.15)] border-[12px] border-white group relative">
-                      <img src={workspace.imageUrl} alt="AI output" className="w-full h-auto transition-transform duration-[2s] group-hover:scale-[1.05]" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                      <img src={workspace.imageUrl} alt="AI output" className="w-full h-auto" />
                     </div>
-                    <p className="text-[13px] font-black uppercase tracking-[0.6em] text-slate-300 text-center">Unlimited Vision Ready</p>
+                    <p className="text-[13px] font-black uppercase tracking-[0.6em] text-slate-300 text-center">MINE Synthesis Active</p>
                   </div>
                 ) : workspace.type === 'cbt' ? (
                   <div className="space-y-16">
@@ -475,7 +493,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                         <div className="pl-24 flex items-center gap-8 pt-4">
                            <button onClick={(e: any) => {
                              const btn = e.target;
-                             if (btn.innerText.includes('Reveal')) btn.innerText = `Correct Answer: [${q.correctAnswer}]`;
+                             if (btn.innerText.includes('Reveal')) btn.innerText = `Answer: [${q.correctAnswer}]`;
                              else btn.innerText = 'Reveal Answer';
                            }} className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-300 hover:text-accent transition-colors">Reveal Answer</button>
                         </div>
@@ -484,11 +502,6 @@ const LiveVoice: React.FC<LiveVoiceProps> = () => {
                   </div>
                 ) : workspace.type === 'code' ? (
                   <div className="bg-[#050505] rounded-[5rem] p-12 lg:p-24 font-mono text-xl text-emerald-400 overflow-x-auto shadow-2xl border border-white/5 animate-billion relative group">
-                    <div className="flex items-center gap-5 mb-12 opacity-30">
-                       <div className="w-5 h-5 rounded-full bg-red-400/50"></div>
-                       <div className="w-5 h-5 rounded-full bg-yellow-400/50"></div>
-                       <div className="w-5 h-5 rounded-full bg-green-400/50"></div>
-                    </div>
                     <pre className="custom-scrollbar"><code>{workspace.content}</code></pre>
                   </div>
                 ) : (
