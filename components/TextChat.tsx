@@ -22,7 +22,7 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
     {
       id: 'welcome',
       role: 'assistant',
-      content: `Welcome, ${userName}! I am MINE AI, a high-fidelity intelligence system built for unlimited reasoning. I am currently operating on my Primary Neural Core (Puter). Should I encounter any capacity limits, I will automatically shift my neural weights to my Secondary Core (Gemini) to ensure you have an uninterrupted experience. How can I assist you today?`,
+      content: `Welcome, ${userName}! I am MINE AI, a high-fidelity intelligence system built for unlimited reasoning. I am currently operating on my Primary Neural Core (Puter GPT-4o). Should I encounter any capacity limits, I will automatically shift my neural weights to my Secondary Core (Gemini) to ensure you have an uninterrupted experience. How can I assist you today?`,
       timestamp: Date.now(),
       engine: 'MINE-1 (Puter)'
     }
@@ -36,12 +36,11 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Update initial message if userName changes (e.g., late auth sync)
   useEffect(() => {
     if (messages.length === 1 && messages[0].id === 'welcome') {
        setMessages([{
          ...messages[0],
-         content: `Welcome, ${userName}! I am MINE AI, a high-fidelity intelligence system built for unlimited reasoning. I am currently operating on my Primary Neural Core (Puter). Should I encounter any capacity limits, I will automatically shift my neural weights to my Secondary Core (Gemini) to ensure you have an uninterrupted experience. How can I assist you today?`
+         content: `Welcome, ${userName}! I am MINE AI, a high-fidelity intelligence system built for unlimited reasoning. I am currently operating on my Primary Neural Core (Puter GPT-4o). Should I encounter any capacity limits, I will automatically shift my neural weights to my Secondary Core (Gemini) to ensure you have an uninterrupted experience. How can I assist you today?`
        }]);
     }
   }, [userName]);
@@ -154,7 +153,7 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
         setMessages(prev => [...prev, {
           id: (Date.now() + 2).toString(),
           role: 'assistant',
-          content: response.text || "Handover failed. Both cores are currently recalibrating. Please retry.",
+          content: response.text || "Handover failed. Both cores are currently recalibrating.",
           timestamp: Date.now(),
           engine: 'MINE-2 (Gemini)'
         }]);
@@ -175,7 +174,6 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
 
   return (
     <div className="flex flex-col h-full w-full max-w-5xl mx-auto bg-white overflow-hidden animate-billion">
-      {/* Dynamic Engine Control Panel */}
       <div className="px-10 py-5 bg-slate-50 border-b border-slate-100 flex items-center justify-between shrink-0">
         <div className="flex items-center gap-4">
           <div className={`w-3 h-3 rounded-full ${activeEngine === 'Primary' ? 'bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.3)]' : 'bg-amber-500 animate-pulse shadow-[0_0_15px_rgba(245,158,11,0.3)]'}`}></div>
@@ -190,16 +188,9 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
         </div>
       </div>
 
-      {/* Main Feed */}
-      <div 
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-16 space-y-16 custom-scrollbar bg-white"
-      >
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-16 space-y-16 custom-scrollbar bg-white">
         {messages.map((msg) => (
-          <div 
-            key={msg.id} 
-            className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-billion`}
-          >
+          <div key={msg.id} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} animate-billion`}>
             <div className={`relative max-w-[90%] md:max-w-[85%] rounded-[4rem] p-10 md:p-14 ${
               msg.role === 'user' 
                 ? 'bg-slate-900 text-white shadow-[0_40px_80px_-20px_rgba(15,23,42,0.3)]' 
@@ -241,7 +232,6 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
         )}
       </div>
 
-      {/* Context Queue (Pasting/Uploading severally) */}
       {pendingImages.length > 0 && (
         <div className="px-12 py-10 flex gap-8 overflow-x-auto bg-slate-50/80 border-t border-slate-100 backdrop-blur-3xl animate-billion">
           {pendingImages.map((img, idx) => (
@@ -252,20 +242,14 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
           ))}
           <div className="flex flex-col justify-center px-10 border-l border-slate-200">
              <span className="text-[11px] font-black uppercase tracking-[0.5em] text-slate-400">Context Queued</span>
-             <span className="text-[9px] font-black uppercase tracking-widest text-slate-300 mt-2">{pendingImages.length} Visual Layers</span>
           </div>
         </div>
       )}
 
-      {/* Input Module */}
       <div className="p-10 md:p-14 lg:p-20 bg-white border-t border-slate-50">
         <div className="relative glass-premium rounded-[5rem] border border-slate-200 shadow-[0_60px_100px_rgba(0,0,0,0.06)] overflow-hidden p-5 transition-all focus-within:ring-[25px] focus-within:ring-accent/5 focus-within:border-accent/20">
           <div className="flex items-end">
-            <button 
-              onClick={() => fileInputRef.current?.click()}
-              className="p-8 md:p-10 text-slate-400 hover:text-accent transition-all active:scale-90 group relative"
-              title="Add Layers"
-            >
+            <button onClick={() => fileInputRef.current?.click()} className="p-8 md:p-10 text-slate-400 hover:text-accent transition-all active:scale-90 group relative">
               <svg className="w-16 h-16 transition-transform group-hover:rotate-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" strokeWidth={2.5}/>
               </svg>
@@ -274,38 +258,20 @@ const TextChat: React.FC<TextChatProps> = ({ userName = 'User' }) => {
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  sendMessage();
-                }
-              }}
+              onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
               onPaste={handlePaste}
               placeholder="Message MINE AI (paste or drop layers)..."
               className="flex-1 bg-transparent border-none outline-none py-12 px-8 text-3xl font-medium text-slate-800 placeholder:text-slate-200 resize-none max-h-96 custom-scrollbar"
               rows={1}
             />
-            <button 
-              onClick={sendMessage}
-              disabled={isTyping || (!input.trim() && pendingImages.length === 0)}
-              className={`p-10 md:p-12 rounded-full transition-all m-2 ${
-                (input.trim() || pendingImages.length > 0) && !isTyping 
-                  ? 'bg-slate-900 text-white shadow-2xl scale-100 hover:bg-black active:scale-95' 
-                  : 'bg-slate-50 text-slate-200 scale-95 opacity-50 cursor-not-allowed'
-              }`}
-            >
+            <button onClick={sendMessage} disabled={isTyping || (!input.trim() && pendingImages.length === 0)} className={`p-10 md:p-12 rounded-full transition-all m-2 ${
+                (input.trim() || pendingImages.length > 0) && !isTyping ? 'bg-slate-900 text-white shadow-2xl' : 'bg-slate-50 text-slate-200 opacity-50'
+              }`}>
               <svg className="w-16 h-16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path d="M5 12h14M12 5l7 7-7 7" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
-        </div>
-        <div className="mt-14 flex justify-center items-center gap-12">
-           <div className="h-[1px] w-24 bg-slate-100"></div>
-           <p className="text-[11px] font-black uppercase tracking-[1.2em] text-slate-200 text-center">
-            Puter Dev Architecture
-          </p>
-           <div className="h-[1px] w-24 bg-slate-100"></div>
         </div>
       </div>
     </div>
