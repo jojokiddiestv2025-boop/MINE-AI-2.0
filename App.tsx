@@ -61,6 +61,8 @@ const App: React.FC = () => {
     return <Landing onGetStarted={() => setViewState('auth_personal')} onAuthClick={() => setViewState('auth_personal')} isLoggedIn={false} />;
   }
 
+  const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
+
   return (
     <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden bg-[#ffffff]">
       <header className="sticky top-0 h-auto flex items-center px-8 md:px-20 lg:px-32 bg-white/70 backdrop-blur-3xl border-b border-slate-100 z-50 shrink-0 py-8">
@@ -119,9 +121,9 @@ const App: React.FC = () => {
       <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-white">
         <div className="mesh-gradient opacity-30"></div>
         {activeFeature === 'voice' ? (
-          <LiveVoice onHome={() => setViewState('landing')} />
+          <LiveVoice onHome={() => setViewState('landing')} userName={userName} />
         ) : (
-          <TextChat />
+          <TextChat userName={userName} />
         )}
       </main>
     </div>
