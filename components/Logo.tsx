@@ -38,10 +38,13 @@ const Logo: React.FC<LogoProps> = ({ size = 'md', className = '', showText = tru
               style={{ fontSize: size === 'xl' ? '8.5rem' : '4.5rem', lineHeight: '0.9' }}>
             MINE <span className="text-slate-900">AI</span>
           </h1>
-          <div className="flex items-center gap-4 mt-6 justify-center">
-            <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-slate-200"></div>
-            <p className="text-[12px] font-black uppercase tracking-[1em] text-slate-400">BY A 13-YEAR-OLD NIGERIAN DEVELOPER</p>
-            <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-slate-200"></div>
+          <div className="flex flex-col items-center gap-4 mt-6 justify-center">
+            <div className="flex items-center gap-4">
+              <div className="h-[2px] w-12 bg-gradient-to-r from-transparent to-slate-200"></div>
+              <p className="text-[12px] font-black uppercase tracking-[1em] text-slate-400">JOSHUA FRED</p>
+              <div className="h-[2px] w-12 bg-gradient-to-l from-transparent to-slate-200"></div>
+            </div>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-slate-300">ENGINEERED BY A 13-YEAR-OLD NIGERIAN DEVELOPER</p>
           </div>
         </div>
       )}

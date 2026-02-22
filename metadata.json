@@ -1,6 +1,6 @@
 {
   "name": "MINE AI",
-  "description": "Multimodal voice assistant with integrated code workspace and vision support.",
+  "description": "Multimodal voice assistant with integrated visual synthesis and vision support.",
   "requestFramePermissions": [
     "microphone",
     "camera",

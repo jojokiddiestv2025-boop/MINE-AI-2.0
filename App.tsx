@@ -1,130 +1,96 @@
 
 import React, { useState, useEffect } from 'react';
-import { onAuthStateChanged, type User } from "firebase/auth";
-import { auth } from './firebase';
-import LiveVoice from './components/LiveVoice';
-import TextChat from './components/TextChat';
-import Auth from './components/Auth';
 import Landing from './components/Landing';
-import Logo from './components/Logo';
-import { UserRole } from './types';
+import Auth from './components/Auth';
+import LiveVoice from './components/LiveVoice';
+import Imagine from './components/Imagine';
+import { auth } from './firebase';
+import { onAuthStateChanged, signOut, User } from 'firebase/auth';
+import { Sparkles, Mic, LogOut, Home } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 
-type AppView = 'landing' | 'auth_personal' | 'app_active';
-type AppFeature = 'voice' | 'chat';
-
+/**
+ * App Component: The main orchestrator of the Mine AI platform.
+ * Handles authentication state and view navigation.
+ */
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
-  const [viewState, setViewState] = useState<AppView>('landing');
-  const [activeFeature, setActiveFeature] = useState<AppFeature>('chat');
-  const [assignedRole, setAssignedRole] = useState<UserRole | null>(null);
+  const [view, setView] = useState<'landing' | 'auth' | 'voice' | 'imagine'>('landing');
 
+  // Sync authentication state with Firebase
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-      if (currentUser) {
-        localStorage.setItem(`mine_role_${currentUser.uid}`, 'personal');
-        setAssignedRole('personal');
-        setViewState('app_active');
-      } else {
-        setAssignedRole(null);
-        if (viewState === 'app_active') setViewState('landing');
-      }
-      setIsInitializing(false);
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
     });
     return () => unsubscribe();
-  }, [viewState]);
+  }, []);
 
-  const handleLogout = () => {
-    auth.signOut();
-    Object.keys(localStorage).forEach(key => {
-      if (key.startsWith('mine_role_')) localStorage.removeItem(key);
-    });
-    setViewState('landing');
+  const handleSignOut = async () => {
+    await signOut(auth);
+    setView('landing');
   };
 
-  if (isInitializing) {
+  // View Routing Logic
+  if (view === 'landing') {
     return (
-      <div className="min-h-screen w-full flex flex-col items-center justify-center p-6 animate-billion bg-white">
-        <Logo size="sm" showText={false} />
-        <div className="mt-16 w-48 h-2 bg-slate-100 rounded-full overflow-hidden shadow-inner">
-           <div className="h-full bg-gradient-to-r from-cyan-400 via-accent to-pink-500 animate-[loading_2.5s_infinite]"></div>
-        </div>
-        <p className="mt-8 text-[11px] font-black uppercase tracking-[1em] text-slate-400">Syncing Unlimited Core...</p>
-        <style>{`@keyframes loading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }`}</style>
-      </div>
+      <Landing 
+        onGetStarted={() => setView(user ? 'imagine' : 'auth')} 
+        onAuthClick={() => setView(user ? 'imagine' : 'auth')}
+        isLoggedIn={!!user}
+      />
     );
   }
 
-  if (!user) {
-    if (viewState === 'auth_personal') return <Auth onBack={() => setViewState('landing')} onComplete={() => setViewState('app_active')} />;
-    return <Landing onGetStarted={() => setViewState('auth_personal')} onAuthClick={() => setViewState('auth_personal')} isLoggedIn={false} />;
+  if (view === 'auth') {
+    return (
+      <Auth 
+        onBack={() => setView('landing')} 
+        onComplete={() => setView('imagine')} 
+      />
+    );
   }
 
-  const userName = user?.displayName || user?.email?.split('@')[0] || 'User';
-
   return (
-    <div className="flex flex-col min-h-screen w-full font-inter overflow-x-hidden bg-[#ffffff]">
-      <header className="sticky top-0 h-auto flex items-center px-8 md:px-20 lg:px-32 bg-white/70 backdrop-blur-3xl border-b border-slate-100 z-50 shrink-0 py-8">
-        <div className="flex items-center space-x-8 cursor-pointer group" onClick={() => setViewState('landing')}>
-          <Logo size="sm" showText={false} />
-          <h1 className="text-3xl md:text-5xl font-outfit font-black tracking-[-0.08em] uppercase text-slate-900">
-            MINE <span className="text-prismatic">AI</span>
-          </h1>
-        </div>
+    <div className="flex h-screen bg-slate-50 overflow-hidden">
+      {/* Mini Sidebar Navigation */}
+      <aside className="w-24 bg-white border-r border-slate-100 flex flex-col items-center py-12 gap-10 shrink-0">
+        <button 
+          onClick={() => setView('landing')} 
+          className="w-14 h-14 rounded-3xl bg-slate-900 flex items-center justify-center text-white shadow-2xl hover:scale-110 transition-transform"
+        >
+           <Home size={24} strokeWidth={2.5} />
+        </button>
         
-        {/* Feature Toggles */}
-        <div className="hidden lg:flex items-center ml-16 bg-slate-100/50 p-1.5 rounded-full border border-slate-100">
-          <button 
-            onClick={() => setActiveFeature('chat')}
-            className={`px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeFeature === 'chat' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            Chatbot
-          </button>
-          <button 
-            onClick={() => setActiveFeature('voice')}
-            className={`px-8 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${activeFeature === 'voice' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-          >
-            Live Voice
-          </button>
-        </div>
+        <nav className="flex-1 flex flex-col gap-10">
+          {[
+            { id: 'imagine', icon: <Sparkles size={24} strokeWidth={2.5} />, label: 'Imagine' },
+            { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} />, label: 'Voice' }
+          ].map(item => (
+            <button 
+              key={item.id}
+              onClick={() => setView(item.id as any)}
+              className={`w-14 h-14 rounded-[1.5rem] flex items-center justify-center font-black transition-all relative group ${view === item.id ? 'bg-accent text-white shadow-xl shadow-accent/40' : 'text-slate-300 hover:bg-slate-50'}`}
+            >
+              {item.icon}
+              <span className="absolute left-full ml-4 px-4 py-2 bg-slate-900 text-white text-[9px] font-black uppercase tracking-widest rounded-lg opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-[100]">
+                {item.label}
+              </span>
+            </button>
+          ))}
+        </nav>
 
-        <div className="ml-auto flex items-center gap-6 md:gap-10">
-          <div className="hidden md:flex items-center gap-4 px-8 py-3 bg-slate-50 rounded-full border border-slate-100">
-             <div className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse"></div>
-             <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">UNLIMITED ENGINE</span>
-          </div>
-          <button onClick={handleLogout} className="text-[11px] uppercase font-black tracking-[0.4em] text-slate-400 hover:text-slate-900 transition-all bg-slate-50 px-6 md:px-10 py-4 rounded-[2rem] border border-slate-100 hover:shadow-lg">
-            Logout
-          </button>
-        </div>
-      </header>
+        <button 
+          onClick={handleSignOut} 
+          className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 transition-all"
+        >
+          <LogOut size={24} strokeWidth={2.5} />
+        </button>
+      </aside>
 
-      {/* Mobile Toggle */}
-      <div className="lg:hidden flex justify-center py-4 bg-white border-b border-slate-50">
-        <div className="flex bg-slate-100/50 p-1 rounded-full border border-slate-100">
-          <button 
-            onClick={() => setActiveFeature('chat')}
-            className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeFeature === 'chat' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-          >
-            Chat
-          </button>
-          <button 
-            onClick={() => setActiveFeature('voice')}
-            className={`px-6 py-2 rounded-full text-[9px] font-black uppercase tracking-widest transition-all ${activeFeature === 'voice' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400'}`}
-          >
-            Voice
-          </button>
-        </div>
-      </div>
-
-      <main className="flex-1 w-full relative flex flex-col overflow-hidden bg-white">
-        <div className="mesh-gradient opacity-30"></div>
-        {activeFeature === 'voice' ? (
-          <LiveVoice onHome={() => setViewState('landing')} userName={userName} />
-        ) : (
-          <TextChat userName={userName} />
-        )}
+      {/* Primary Workspace Area */}
+      <main className="flex-1 h-full overflow-hidden bg-white">
+        {view === 'imagine' && <Imagine />}
+        {view === 'voice' && <LiveVoice userName={user?.displayName || 'Core'} />}
       </main>
     </div>
   );
