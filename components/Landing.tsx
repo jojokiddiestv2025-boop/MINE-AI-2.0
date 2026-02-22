@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Logo from './Logo';
-import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Music } from 'lucide-react';
+import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Mic } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface LandingProps {
@@ -108,7 +108,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
             <p className="text-slate-400 max-w-3xl mx-auto text-lg font-medium">Integrated with MINE Neural Clusters for rapid visual synthesis and deep reasoning.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
             {[
               { title: 'Mine AI', desc: 'Unlimited visual synthesis for rapid high-fidelity image generation and prototyping.', icon: <Sparkles className="text-accent" size={32} /> },
               { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400" size={32} /> }

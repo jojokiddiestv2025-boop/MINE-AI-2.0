@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { GoogleGenAI } from "@google/genai";
 import { Sparkles, Download, Zap, AlertCircle, Image as ImageIcon, Send, UploadCloud, X } from 'lucide-react';
@@ -81,7 +80,7 @@ const Imagine: React.FC = () => {
       <header className="px-12 py-10 border-b border-slate-50 flex justify-between items-center shrink-0">
         <div className="flex flex-col">
           <h2 className="text-[14px] font-black uppercase tracking-[0.5em] text-slate-900">Visual Synthesis</h2>
-          <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Mine AI Core V3.1 • Nano Banana</span>
+          <span className="text-[9px] font-bold text-slate-300 uppercase tracking-widest">Mine AI Core V3.1 • Nano Banana (Flash)</span>
         </div>
         <div className="flex items-center gap-4">
           <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-accent animate-pulse' : 'bg-emerald-500'}`}></div>

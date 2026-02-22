@@ -4,6 +4,7 @@ import Landing from './components/Landing';
 import Auth from './components/Auth';
 import LiveVoice from './components/LiveVoice';
 import Imagine from './components/Imagine';
+
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
 import { Sparkles, Mic, LogOut, Home } from 'lucide-react';

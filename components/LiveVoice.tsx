@@ -39,10 +39,22 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   });
 
   const sessionRef = useRef<any>(null);
-  const sourcesRef = useRef<Set<any>>(new Set());
-  const nextStartTimeRef = useRef(0);
-  const outputAudioContextRef = useRef<AudioContext | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
+
+  const outputAudioContextRef = useRef<AudioContext | null>(null);
+  const audioQueueRef = useRef<AudioBuffer[]>([]);
+  const isPlayingRef = useRef(false);
+
+  const warmUpAudioContext = (ctx: AudioContext) => {
+    if (ctx.state === 'suspended') {
+      ctx.resume();
+    }
+    const buffer = ctx.createBuffer(1, 1, 24000);
+    const source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    source.start(0);
+  };
 
   const encode = (bytes: Uint8Array) => {
     let binary = '';
@@ -76,13 +88,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   const cleanup = useCallback(() => {
     if (sessionRef.current) { try { sessionRef.current.close(); } catch(e) {} sessionRef.current = null; }
     if (mediaStreamRef.current) mediaStreamRef.current.getTracks().forEach(track => track.stop());
-    sourcesRef.current.forEach(s => { try { s.stop(); } catch(e) {} });
-    sourcesRef.current.clear();
+
     setIsConnected(false);
     setIsConnecting(false);
     setIsModelThinking(false);
     setIsOff(true);
-    nextStartTimeRef.current = 0;
     if (outputAudioContextRef.current && outputAudioContextRef.current.state !== 'closed') {
       outputAudioContextRef.current.close().catch(() => {});
     }
@@ -102,6 +112,25 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       const outputCtx = new AudioContextClass({ sampleRate: 24000 });
       const inputCtx = new AudioContextClass({ sampleRate: 16000 });
       outputAudioContextRef.current = outputCtx;
+      warmUpAudioContext(outputCtx);
+
+      const playFromQueue = () => {
+        if (isPlayingRef.current || audioQueueRef.current.length === 0) {
+          return;
+        }
+
+        isPlayingRef.current = true;
+
+        const buffer = audioQueueRef.current.shift()!;
+        const source = outputCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(outputCtx.destination);
+        source.onended = () => {
+          isPlayingRef.current = false;
+          playFromQueue();
+        };
+        source.start();
+      };
 
       const sessionPromise = ai.live.connect({
         model: 'gemini-2.5-flash-native-audio-preview-12-2025',
@@ -127,9 +156,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
           onmessage: async (m: LiveServerMessage) => {
             if (m.serverContent?.modelTurn) setIsModelThinking(false);
             if (m.serverContent?.interrupted) {
-              for (const s of sourcesRef.current) { try { s.stop(); } catch(e) {} }
-              sourcesRef.current.clear();
-              nextStartTimeRef.current = 0;
+              audioQueueRef.current = [];
             }
             if (m.toolCall?.functionCalls) {
               for (const fc of m.toolCall.functionCalls) {
@@ -149,17 +176,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
             }
             const base64Audio = m.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
             if (base64Audio) {
-              nextStartTimeRef.current = Math.max(nextStartTimeRef.current, outputCtx.currentTime);
               const audioBuffer = await decodeAudioData(decode(base64Audio), outputCtx, 24000, 1);
-              if (!audioBuffer) return;
-              const source = outputCtx.createBufferSource();
-              source.buffer = audioBuffer;
-              source.connect(outputCtx.destination);
-              source.onended = () => sourcesRef.current.delete(source);
-              // Fix: Track exact end time of previous chunk for gapless playback
-              source.start(nextStartTimeRef.current);
-              nextStartTimeRef.current += audioBuffer.duration;
-              sourcesRef.current.add(source);
+              if (audioBuffer) {
+                audioQueueRef.current.push(audioBuffer);
+                playFromQueue();
+              }
             }
           },
           onerror: (e) => { setError(e); cleanup(); },
