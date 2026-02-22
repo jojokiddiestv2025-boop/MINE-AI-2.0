@@ -4,6 +4,7 @@ import { Sparkles, Download, Zap, AlertCircle, Image as ImageIcon, Send, UploadC
 import { motion, AnimatePresence } from 'motion/react';
 
 const Imagine: React.FC = () => {
+
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [resultImage, setResultImage] = useState<string | null>(null);
@@ -11,6 +12,8 @@ const Imagine: React.FC = () => {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageType, setUploadedImageType] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -89,6 +92,7 @@ const Imagine: React.FC = () => {
       </header>
 
       <div className="flex-1 overflow-y-auto p-12 custom-scrollbar flex flex-col items-center">
+
         <div className="w-full max-w-4xl space-y-12">
           {/* Main Visual Display */}
           <div className="relative aspect-square w-full bg-slate-50 rounded-[4rem] border border-slate-100 overflow-hidden shadow-2xl flex items-center justify-center group transition-all duration-700">
