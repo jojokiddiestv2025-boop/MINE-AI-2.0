@@ -12,7 +12,7 @@ async function startServer() {
 
   // Freepik Proxy Route
   app.post("/api/generate-image", async (req, res) => {
-    const { prompt } = req.body;
+    const { prompt, image } = req.body;
     const apiKey = process.env.FREEPIK_API_KEY;
 
     if (!apiKey) {
@@ -20,20 +20,30 @@ async function startServer() {
     }
 
     try {
-      const response = await fetch("https://api.freepik.com/v1/ai/text-to-image", {
+      const isImageToImage = !!image;
+      const endpoint = isImageToImage 
+        ? "https://api.freepik.com/v1/ai/image-to-image" 
+        : "https://api.freepik.com/v1/ai/text-to-image";
+
+      const body: any = {
+        prompt,
+        num_images: 1,
+        image: isImageToImage ? { base64: image.split(',')[1] } : { size: "square_1_1" }
+      };
+
+      // For image-to-image, we often need a strength parameter (0.1 to 1.0)
+      if (isImageToImage) {
+        body.strength = 0.6; // Balanced between prompt and original image
+      }
+
+      const response = await fetch(endpoint, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           "x-freepik-api-key": apiKey,
           "Accept": "application/json"
         },
-        body: JSON.stringify({
-          prompt,
-          num_images: 1,
-          image: {
-            size: "square_1_1"
-          }
-        })
+        body: JSON.stringify(body)
       });
 
       const contentType = response.headers.get("content-type");

@@ -40,7 +40,10 @@ const Imagine: React.FC = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ 
+          prompt,
+          image: uploadedImage 
+        }),
       });
 
       const contentType = response.headers.get("content-type");
