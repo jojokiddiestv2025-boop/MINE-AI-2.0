@@ -32,7 +32,7 @@ async function startServer() {
       // If an image is provided, Freepik might expect it in the text-to-image endpoint 
       // or a specific image-to-image one. Let's try text-to-image first as it's most common.
       if (isImageToImage) {
-        body.strength = 0.6; 
+        body.strength = 0.4; 
       }
 
       console.log(`Calling Freepik Endpoint: ${endpoint} (Image-to-Image: ${isImageToImage})`);

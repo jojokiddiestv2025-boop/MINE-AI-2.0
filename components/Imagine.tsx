@@ -11,6 +11,7 @@ const Imagine: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [uploadedImageType, setUploadedImageType] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
 
@@ -33,16 +34,50 @@ const Imagine: React.FC = () => {
     setIsGenerating(true);
     setError(null);
     setResultImage(null);
+    setStatus("Initializing...");
 
     try {
+      let finalPrompt = prompt;
+
+      // 1. If an image is uploaded, use Gemini to describe it first (Neural Whisk)
+      if (uploadedImage) {
+        setStatus("Analyzing Neural Patterns...");
+        const geminiKey = process.env.GEMINI_API_KEY;
+        if (geminiKey) {
+          try {
+            const ai = new GoogleGenAI({ apiKey: geminiKey });
+            const analysisResponse = await ai.models.generateContent({
+              model: 'gemini-2.5-flash-image',
+              contents: [{
+                role: 'user',
+                parts: [
+                  { inlineData: { data: uploadedImage.split(',')[1], mimeType: uploadedImageType || 'image/png' } },
+                  { text: "Describe the visual features, patterns, colors, and style of this item in detail so it can be recreated on a character. Focus on the clothing/object itself." }
+                ]
+              }]
+            });
+            
+            const description = analysisResponse.text;
+            if (description) {
+              finalPrompt = `Generate an image of: ${prompt}. The subject should be wearing/incorporating the following item: ${description}. Ensure the style and patterns of the item are preserved exactly.`;
+              console.log("Neural Whisk Prompt:", finalPrompt);
+            }
+          } catch (geminiErr) {
+            console.warn("Gemini Analysis failed, falling back to direct prompt:", geminiErr);
+          }
+        }
+      }
+
+      // 2. Send the enhanced prompt to Freepik
+      setStatus("Synthesizing Visuals...");
       const response = await fetch("/api/generate-image", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ 
-          prompt,
-          image: uploadedImage 
+          prompt: finalPrompt,
+          image: uploadedImage // Still send the image for img2img blending if the API supports it
         }),
       });
 
@@ -77,6 +112,7 @@ const Imagine: React.FC = () => {
       }
     } finally {
       setIsGenerating(false);
+      setStatus(null);
     }
   };
 
@@ -99,7 +135,7 @@ const Imagine: React.FC = () => {
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-accent animate-pulse' : 'bg-emerald-500'}`}></div>
-          <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{isGenerating ? 'Synthesizing...' : 'Ready'}</span>
+          <span className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest">{status || (isGenerating ? 'Synthesizing...' : 'Ready')}</span>
         </div>
       </header>
 
@@ -123,8 +159,10 @@ const Imagine: React.FC = () => {
               </>
             ) : (
               <div className="flex flex-col items-center gap-4 md:gap-6 opacity-20 group-hover:opacity-30 transition-opacity">
-                <ImageIcon strokeWidth={1.5} className="text-slate-300 w-[64px] h-[64px] md:w-[96px] md:h-[96px]" />
-                <span className="text-lg md:text-xl font-black uppercase tracking-[0.5em]">Awaiting Instruction</span>
+                <ImageIcon strokeWidth={1.5} className={`text-slate-300 w-[64px] h-[64px] md:w-[96px] md:h-[96px] ${isGenerating ? 'animate-pulse' : ''}`} />
+                <span className="text-lg md:text-xl font-black uppercase tracking-[0.5em] text-center px-4">
+                  {status || "Awaiting Instruction"}
+                </span>
               </div>
             )}
 
