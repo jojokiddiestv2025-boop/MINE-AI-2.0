@@ -35,7 +35,12 @@ const Imagine: React.FC = () => {
     setResultImage(null);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey) {
+        throw new Error("GEMINI_API_KEY is not configured. Please set it in your environment variables.");
+      }
+
+      const ai = new GoogleGenAI({ apiKey });
       
       const parts: any[] = [{ text: prompt }];
 
@@ -62,7 +67,11 @@ const Imagine: React.FC = () => {
       }
     } catch (err: any) {
       console.error(err);
-      setError(err.message || "Synthesis failed. Neural link unstable.");
+      if (err.message?.includes('429') || err.message?.includes('quota')) {
+        setError("Quota exceeded. The free tier has limited requests. Please wait a moment and try again.");
+      } else {
+        setError(err.message || "Synthesis failed. Neural link unstable.");
+      }
     } finally {
       setIsGenerating(false);
     }
