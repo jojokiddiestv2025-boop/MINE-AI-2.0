@@ -43,6 +43,12 @@ const Imagine: React.FC = () => {
         body: JSON.stringify({ prompt }),
       });
 
+      const contentType = response.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text();
+        throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}...`);
+      }
+
       const data = await response.json();
 
       if (!response.ok) {

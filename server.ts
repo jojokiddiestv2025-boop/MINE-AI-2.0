@@ -36,14 +36,21 @@ async function startServer() {
         })
       });
 
-      const data = await response.json();
+      const contentType = response.headers.get("content-type");
+      let data;
+      if (contentType && contentType.includes("application/json")) {
+        data = await response.json();
+      } else {
+        const text = await response.text();
+        console.error("Freepik Non-JSON Response:", text);
+        return res.status(response.status).json({ error: `Freepik API returned non-JSON response (Status ${response.status}).`, details: text.substring(0, 200) });
+      }
 
       if (!response.ok) {
         console.error("Freepik API Error:", data);
         return res.status(response.status).json(data);
       }
 
-      // Freepik returns data: [{ url: "..." }] or [{ base64: "..." }]
       res.json(data);
     } catch (error: any) {
       console.error("Proxy Error:", error);
