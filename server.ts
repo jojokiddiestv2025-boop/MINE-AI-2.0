@@ -21,9 +21,7 @@ async function startServer() {
 
     try {
       const isImageToImage = !!image;
-      const endpoint = isImageToImage 
-        ? "https://api.freepik.com/v1/ai/image-to-image" 
-        : "https://api.freepik.com/v1/ai/text-to-image";
+      const endpoint = "https://api.freepik.com/v1/ai/text-to-image";
 
       const body: any = {
         prompt,
@@ -31,11 +29,13 @@ async function startServer() {
         image: isImageToImage ? { base64: image.split(',')[1] } : { size: "square_1_1" }
       };
 
-      // For image-to-image, we often need a strength parameter (0.1 to 1.0)
+      // If an image is provided, Freepik might expect it in the text-to-image endpoint 
+      // or a specific image-to-image one. Let's try text-to-image first as it's most common.
       if (isImageToImage) {
-        body.strength = 0.6; // Balanced between prompt and original image
+        body.strength = 0.6; 
       }
 
+      console.log(`Calling Freepik Endpoint: ${endpoint} (Image-to-Image: ${isImageToImage})`);
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
