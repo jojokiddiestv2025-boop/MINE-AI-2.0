@@ -199,31 +199,31 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   }, [cleanup, userName]);
 
   return (
-    <div className="flex flex-col flex-1 p-6 md:p-12 gap-10 animate-billion w-full h-full bg-[#fcfdfe] relative overflow-hidden">
+    <div className="flex flex-col flex-1 p-4 md:p-12 gap-6 md:gap-10 animate-billion w-full h-full bg-[#fcfdfe] relative overflow-hidden">
       {error && (
-        <div className="absolute top-10 left-10 right-10 z-[200] bg-red-50/90 backdrop-blur-3xl border border-red-200 p-8 rounded-[3rem] text-red-600 text-[12px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl">
+        <div className="absolute top-4 md:top-10 left-4 md:left-10 right-4 md:right-10 z-[200] bg-red-50/90 backdrop-blur-3xl border border-red-200 p-4 md:p-8 rounded-[1.5rem] md:rounded-[3rem] text-red-600 text-[10px] md:text-[12px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl">
           <span>{error.message}</span>
-          <button onClick={() => setError(null)} className="p-4">×</button>
+          <button onClick={() => setError(null)} className="p-2 md:p-4">×</button>
         </div>
       )}
 
-      <div className="flex flex-col lg:flex-row gap-12 h-full overflow-hidden">
-        <div className={`flex flex-col gap-10 w-full transition-all duration-700 ${workspace.isActive ? 'lg:w-[500px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
-          <div className="bg-white rounded-[5rem] p-16 flex flex-col items-center justify-center relative border border-slate-100 shadow-[0_60px_120px_rgba(0,0,0,0.04)] w-full min-h-[500px] overflow-hidden">
-            <div className="absolute top-10 left-10 flex items-center gap-4">
-              <div className={`w-3 h-3 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : isOff ? 'bg-slate-200' : 'bg-emerald-500 animate-pulse'}`}></div>
-              <span className="text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">MINE AI VOICE CORE V3.1</span>
+      <div className="flex flex-col lg:flex-row gap-6 md:gap-12 h-full overflow-hidden">
+        <div className={`flex flex-col gap-6 md:gap-10 w-full transition-all duration-700 ${workspace.isActive ? 'lg:w-[500px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
+          <div className="bg-white rounded-[2rem] md:rounded-[5rem] p-8 md:p-16 flex flex-col items-center justify-center relative border border-slate-100 shadow-[0_60px_120px_rgba(0,0,0,0.04)] w-full min-h-[400px] md:min-h-[500px] overflow-hidden">
+            <div className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2 md:gap-4">
+              <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : isOff ? 'bg-slate-200' : 'bg-emerald-500 animate-pulse'}`}></div>
+              <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">MINE AI VOICE CORE V3.1</span>
             </div>
 
-            <div className="flex flex-col items-center justify-between w-full h-full space-y-20 relative z-10 pt-16">
-              <div className={`relative w-64 h-64 lg:w-96 lg:h-96 rounded-full transition-all duration-1000 flex items-center justify-center bg-white border-4 ${isOff ? 'border-slate-50' : isModelThinking ? 'border-accent shadow-[0_0_150px_rgba(112,0,255,0.15)] scale-105' : 'border-emerald-100'}`}>
-                <div className={`w-32 h-32 lg:w-48 lg:h-48 rounded-full transition-all duration-1000 ${isOff ? 'bg-slate-100' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400 shadow-3xl shadow-emerald-200'}`}></div>
+            <div className="flex flex-col items-center justify-between w-full h-full space-y-12 md:space-y-20 relative z-10 pt-12 md:pt-16">
+              <div className={`relative w-48 h-48 md:w-64 md:h-64 lg:w-96 lg:h-96 rounded-full transition-all duration-1000 flex items-center justify-center bg-white border-4 ${isOff ? 'border-slate-50' : isModelThinking ? 'border-accent shadow-[0_0_150px_rgba(112,0,255,0.15)] scale-105' : 'border-emerald-100'}`}>
+                <div className={`w-24 h-24 md:w-32 md:h-32 lg:w-48 lg:h-48 rounded-full transition-all duration-1000 ${isOff ? 'bg-slate-100' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400 shadow-3xl shadow-emerald-200'}`}></div>
               </div>
               <button 
                 onClick={isOff ? startConversation : cleanup} 
-                className={`w-full py-10 rounded-[3rem] text-[20px] font-black uppercase tracking-[0.6em] transition-all active:scale-95 flex items-center justify-center gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white hover:bg-accent' : 'bg-white text-red-500 border border-red-100'}`}
+                className={`w-full py-6 md:py-10 rounded-[1.5rem] md:rounded-[3rem] text-[16px] md:text-[20px] font-black uppercase tracking-[0.4em] md:tracking-[0.6em] transition-all active:scale-95 flex items-center justify-center gap-2 md:gap-4 shadow-2xl ${isOff ? 'bg-slate-900 text-white hover:bg-accent' : 'bg-white text-red-500 border border-red-100'}`}
               >
-                {isOff ? <Radio size={24} /> : <MicOff size={24} />}
+                {isOff ? <Radio className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" /> : <MicOff className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />}
                 {isOff ? 'CONNECT' : 'DISCONNECT'}
               </button>
             </div>
@@ -231,15 +231,15 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
         </div>
 
         {workspace.isActive && (
-          <div className="flex-1 h-full bg-white rounded-[5rem] flex flex-col overflow-hidden border border-slate-100 shadow-[0_100px_200px_rgba(0,0,0,0.06)] animate-billion">
-            <header className="px-12 py-10 border-b border-slate-50 flex justify-between items-center shrink-0">
-               <h3 className="text-[14px] font-black uppercase tracking-[0.5em] text-slate-900">{workspace.title}</h3>
-               <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-4 hover:bg-slate-50 rounded-full transition-all">
-                  <X size={24} strokeWidth={3} className="text-slate-300" />
+          <div className="flex-1 h-full bg-white rounded-[2rem] md:rounded-[5rem] flex flex-col overflow-hidden border border-slate-100 shadow-[0_100px_200px_rgba(0,0,0,0.06)] animate-billion">
+            <header className="px-6 md:px-12 py-6 md:py-10 border-b border-slate-50 flex justify-between items-center shrink-0">
+               <h3 className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.5em] text-slate-900">{workspace.title}</h3>
+               <button onClick={() => setWorkspace({ ...workspace, isActive: false })} className="p-2 md:p-4 hover:bg-slate-50 rounded-full transition-all">
+                  <X strokeWidth={3} className="text-slate-300 w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
                </button>
             </header>
-            <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-white">
-               <div className="prose prose-slate max-w-none text-slate-700 text-2xl leading-relaxed whitespace-pre-wrap font-medium">
+            <div className="flex-1 overflow-y-auto p-6 md:p-12 custom-scrollbar bg-white">
+               <div className="prose prose-slate max-w-none text-slate-700 text-lg md:text-2xl leading-relaxed whitespace-pre-wrap font-medium">
                   {workspace.content}
                </div>
             </div>

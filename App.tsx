@@ -52,9 +52,9 @@ const App: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50 overflow-hidden">
-      {/* Mini Sidebar Navigation */}
-      <aside className="w-24 bg-white border-r border-slate-100 flex flex-col items-center py-12 gap-10 shrink-0">
+    <div className="flex flex-col md:flex-row h-screen bg-slate-50 overflow-hidden">
+      {/* Desktop Sidebar Navigation */}
+      <aside className="hidden md:flex w-24 bg-white border-r border-slate-100 flex-col items-center py-12 gap-10 shrink-0">
         <button 
           onClick={() => setView('landing')} 
           className="w-14 h-14 rounded-3xl bg-slate-900 flex items-center justify-center text-white shadow-2xl hover:scale-110 transition-transform"
@@ -88,8 +88,36 @@ const App: React.FC = () => {
         </button>
       </aside>
 
+      {/* Mobile Bottom Navigation */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 flex items-center justify-around py-4 px-6 z-[200] shadow-[0_-10px_40px_rgba(0,0,0,0.05)]">
+        <button 
+          onClick={() => setView('landing')} 
+          className="p-4 rounded-2xl transition-all text-slate-300"
+        >
+          <Home size={24} strokeWidth={2.5} />
+        </button>
+        {[
+          { id: 'imagine', icon: <Sparkles size={24} strokeWidth={2.5} /> },
+          { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} /> }
+        ].map(item => (
+          <button 
+            key={item.id}
+            onClick={() => setView(item.id as any)}
+            className={`p-4 rounded-2xl transition-all ${view === item.id ? 'text-accent scale-110' : 'text-slate-300'}`}
+          >
+            {item.icon}
+          </button>
+        ))}
+        <button 
+          onClick={handleSignOut} 
+          className="p-4 rounded-2xl text-slate-300 hover:text-red-500 transition-all"
+        >
+          <LogOut size={24} strokeWidth={2.5} />
+        </button>
+      </nav>
+
       {/* Primary Workspace Area */}
-      <main className="flex-1 h-full overflow-hidden bg-white">
+      <main className="flex-1 h-full overflow-hidden bg-white pb-20 md:pb-0">
         {view === 'imagine' && <Imagine />}
         {view === 'voice' && <LiveVoice userName={user?.displayName || 'Core'} />}
       </main>
