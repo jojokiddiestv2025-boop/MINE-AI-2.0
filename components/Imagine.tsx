@@ -35,33 +35,25 @@ const Imagine: React.FC = () => {
     setResultImage(null);
 
     try {
-      const apiKey = process.env.GEMINI_API_KEY;
-      if (!apiKey) {
-        throw new Error("GEMINI_API_KEY is not configured. Please set it in your environment variables.");
-      }
-
-      const ai = new GoogleGenAI({ apiKey });
-      
-      const parts: any[] = [{ text: prompt }];
-
-      if (uploadedImage && uploadedImageType) {
-        parts.unshift({
-          inlineData: {
-            data: uploadedImage.split(',')[1], // Base64 data
-            mimeType: uploadedImageType
-          }
-        });
-      }
-
-      const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash-image',
-        contents: [{ role: 'user', parts }]
+      const response = await fetch("/api/generate-image", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ prompt }),
       });
 
-      const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-      if (part?.inlineData) {
-        const imageUrl = `data:${part.inlineData.mimeType};base64,${part.inlineData.data}`;
-        setResultImage(imageUrl);
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || data.message || "Synthesis failed.");
+      }
+
+      // Freepik response structure: { data: [{ url: "..." }] }
+      const imageUrl = data.data?.[0]?.url || data.data?.[0]?.base64;
+      
+      if (imageUrl) {
+        setResultImage(imageUrl.startsWith('http') ? imageUrl : `data:image/png;base64,${imageUrl}`);
       } else {
         setError("Neural core returned no visual data. Refine your prompt.");
       }
@@ -70,9 +62,7 @@ const Imagine: React.FC = () => {
       const errorMessage = err.message || String(err);
       
       if (errorMessage.includes('429') || errorMessage.toLowerCase().includes('quota') || errorMessage.toLowerCase().includes('limit')) {
-        setError("Neural link saturated (Quota/Rate Limit). The free tier has strict limits. If you haven't used it, the global limit might be reached. Try again in a few minutes.");
-      } else if (errorMessage.includes('safety')) {
-        setError("Neural safety protocols triggered. The prompt or generated content was flagged as sensitive.");
+        setError("Neural link saturated (Freepik Limit). Please check your Freepik dashboard or try again later.");
       } else {
         setError(`Synthesis failed: ${errorMessage}`);
       }
@@ -96,7 +86,7 @@ const Imagine: React.FC = () => {
       <header className="px-6 md:px-12 py-6 md:py-10 border-b border-slate-50 flex justify-between items-center shrink-0">
         <div className="flex flex-col">
           <h2 className="text-[12px] md:text-[14px] font-black uppercase tracking-[0.5em] text-slate-900">Visual Synthesis</h2>
-          <span className="text-[8px] md:text-[9px] font-bold text-slate-300 uppercase tracking-widest">Mine AI Core V3.1 • Nano Banana (Flash)</span>
+          <span className="text-[8px] md:text-[9px] font-bold text-slate-300 uppercase tracking-widest">Mine AI Core V3.1 • Freepik AI</span>
         </div>
         <div className="flex items-center gap-2 md:gap-4">
           <div className={`w-2 h-2 rounded-full ${isGenerating ? 'bg-accent animate-pulse' : 'bg-emerald-500'}`}></div>
