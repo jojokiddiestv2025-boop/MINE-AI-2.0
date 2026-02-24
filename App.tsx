@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import Landing from './components/Landing';
 import Auth from './components/Auth';
 import LiveVoice from './components/LiveVoice';
-import Imagine from './components/Imagine';
 
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
@@ -16,7 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
  */
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'landing' | 'auth' | 'voice' | 'imagine'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'voice'>('landing');
 
   // Sync authentication state with Firebase
   useEffect(() => {
@@ -35,8 +34,8 @@ const App: React.FC = () => {
   if (view === 'landing') {
     return (
       <Landing 
-        onGetStarted={() => setView(user ? 'imagine' : 'auth')} 
-        onAuthClick={() => setView(user ? 'imagine' : 'auth')}
+        onGetStarted={() => setView(user ? 'voice' : 'auth')} 
+        onAuthClick={() => setView(user ? 'voice' : 'auth')}
         isLoggedIn={!!user}
       />
     );
@@ -46,15 +45,15 @@ const App: React.FC = () => {
     return (
       <Auth 
         onBack={() => setView('landing')} 
-        onComplete={() => setView('imagine')} 
+        onComplete={() => setView('voice')} 
       />
     );
   }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-slate-50 overflow-hidden">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
       {/* Desktop Sidebar Navigation */}
-      <aside className="hidden md:flex w-24 bg-white border-r border-slate-100 flex-col items-center py-12 gap-10 shrink-0">
+      <aside className="hidden md:flex w-24 bg-white border-r border-slate-100 flex-col items-center py-12 gap-10 shrink-0 sticky top-0 h-screen">
         <button 
           onClick={() => setView('landing')} 
           className="w-14 h-14 rounded-3xl bg-slate-900 flex items-center justify-center text-white shadow-2xl hover:scale-110 transition-transform"
@@ -64,7 +63,6 @@ const App: React.FC = () => {
         
         <nav className="flex-1 flex flex-col gap-10">
           {[
-            { id: 'imagine', icon: <Sparkles size={24} strokeWidth={2.5} />, label: 'Imagine' },
             { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} />, label: 'Voice' }
           ].map(item => (
             <button 
@@ -97,7 +95,6 @@ const App: React.FC = () => {
           <Home size={24} strokeWidth={2.5} />
         </button>
         {[
-          { id: 'imagine', icon: <Sparkles size={24} strokeWidth={2.5} /> },
           { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} /> }
         ].map(item => (
           <button 
@@ -117,8 +114,7 @@ const App: React.FC = () => {
       </nav>
 
       {/* Primary Workspace Area */}
-      <main className="flex-1 h-full overflow-hidden bg-white pb-20 md:pb-0">
-        {view === 'imagine' && <Imagine />}
+      <main className="flex-1 bg-white pb-20 md:pb-0">
         {view === 'voice' && <LiveVoice userName={user?.displayName || 'Core'} />}
       </main>
     </div>

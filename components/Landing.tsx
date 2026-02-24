@@ -41,17 +41,17 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           
           <div className="space-y-6 md:space-y-8">
              <h2 className="text-4xl md:text-6xl lg:text-[10rem] font-black font-outfit tracking-tight leading-[0.9] md:leading-[0.85] text-slate-900 uppercase">
-               NEURAL <br/><span className="text-prismatic">IMAGINE.</span>
+               NEURAL <br/><span className="text-prismatic">VOICE.</span>
              </h2>
              <p className="text-slate-400 text-base md:text-lg lg:text-2xl max-w-2xl mx-auto font-medium leading-relaxed pt-2 md:pt-4">
-               Engineering high-fidelity visual synthesis and sovereign multimodal reasoning using Mine AI Core.
+               Engineering high-fidelity sovereign multimodal reasoning and real-time voice intelligence using Mine AI Core.
              </p>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 md:gap-8 w-full max-w-2xl pt-6 md:pt-10">
             <button onClick={onGetStarted} className="flex-1 button-billion !py-6 md:!py-8 text-lg md:text-xl shadow-2xl flex items-center justify-center gap-3 md:gap-4">
-              <Sparkles className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
-              Launch Imagine
+              <Mic className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
+              Launch Voice
             </button>
             <button className="flex-1 py-6 md:py-8 px-8 md:px-12 rounded-[1.2rem] md:rounded-[1.5rem] bg-slate-50 text-slate-400 text-xs md:text-sm font-black uppercase tracking-[0.4em] border border-slate-100 hover:bg-slate-100 transition-all flex items-center justify-center gap-3 md:gap-4">
               <Globe className="w-[18px] h-[18px] md:w-[20px] md:h-[20px]" />
@@ -83,7 +83,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
               <h2 className="text-4xl md:text-5xl lg:text-8xl font-black font-outfit text-slate-900 uppercase leading-[0.9]">Joshua <br/><span className="text-prismatic">Fred.</span></h2>
             </div>
             <p className="text-slate-500 text-lg md:text-xl lg:text-2xl font-medium leading-relaxed italic border-l-4 border-accent pl-6 md:pl-10 py-2">
-              "MINE AI represents the pinnacle of autonomous creativity. We've bridged the gap between raw multimodal processing and high-fidelity visual production."
+              "MINE AI represents the pinnacle of autonomous intelligence. We've bridged the gap between raw multimodal processing and high-fidelity real-time interaction."
             </p>
             <div className="flex flex-col gap-6">
               <div className="flex items-center gap-4 md:gap-6">
@@ -110,7 +110,7 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {[
-              { title: 'Mine AI', desc: 'Unlimited visual synthesis for rapid high-fidelity image generation and prototyping.', icon: <Sparkles className="text-accent w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
+              { title: 'Neural Voice', desc: 'Unlimited real-time voice intelligence for rapid high-fidelity interaction and sovereign reasoning.', icon: <Mic className="text-accent w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
               { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> }
             ].map((tech, i) => (
               <div key={i} className="p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] bg-slate-50 border border-slate-100 text-left space-y-4 md:space-y-6 hover:shadow-2xl transition-all hover:-translate-y-2 group">
