@@ -16,6 +16,7 @@ async function startServer() {
     const apiKey = process.env.FREEPIK_API_KEY;
 
     if (!apiKey) {
+      console.error("Missing FREEPIK_API_KEY");
       return res.status(500).json({ error: "FREEPIK_API_KEY not configured on server." });
     }
 
@@ -29,13 +30,12 @@ async function startServer() {
         image: isImageToImage ? { base64: image.split(',')[1] } : { size: "square_1_1" }
       };
 
-      // If an image is provided, Freepik might expect it in the text-to-image endpoint 
-      // or a specific image-to-image one. Let's try text-to-image first as it's most common.
       if (isImageToImage) {
-        body.strength = 0.4; 
+        body.strength = 0.3; 
       }
 
-      console.log(`Calling Freepik Endpoint: ${endpoint} (Image-to-Image: ${isImageToImage})`);
+      console.log(`Calling Freepik: ${endpoint} (img2img: ${isImageToImage})`);
+      
       const response = await fetch(endpoint, {
         method: "POST",
         headers: {
@@ -48,12 +48,16 @@ async function startServer() {
 
       const contentType = response.headers.get("content-type");
       let data;
+      
       if (contentType && contentType.includes("application/json")) {
         data = await response.json();
       } else {
         const text = await response.text();
         console.error("Freepik Non-JSON Response:", text);
-        return res.status(response.status).json({ error: `Freepik API returned non-JSON response (Status ${response.status}).`, details: text.substring(0, 200) });
+        return res.status(response.status).json({ 
+          error: `Freepik API returned non-JSON response (Status ${response.status}).`, 
+          details: text.substring(0, 200) 
+        });
       }
 
       if (!response.ok) {
@@ -66,6 +70,11 @@ async function startServer() {
       console.error("Proxy Error:", error);
       res.status(500).json({ error: error.message });
     }
+  });
+
+  // API 404 Handler - Prevent falling through to HTML index
+  app.use("/api/*", (req, res) => {
+    res.status(404).json({ error: `API route not found: ${req.originalUrl}` });
   });
 
   // Vite middleware for development

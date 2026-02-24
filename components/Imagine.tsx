@@ -52,15 +52,22 @@ const Imagine: React.FC = () => {
                 role: 'user',
                 parts: [
                   { inlineData: { data: uploadedImage.split(',')[1], mimeType: uploadedImageType || 'image/png' } },
-                  { text: "Describe the visual features, patterns, colors, and style of this item in detail so it can be recreated on a character. Focus on the clothing/object itself." }
+                  { text: `You are a Prompt Architect. Analyze this uploaded image. 
+                  Then, create a highly detailed prompt for an AI image generator to merge this item with the user's request: "${prompt}".
+                  
+                  Instructions:
+                  1. Describe the item's exact patterns, colors, fabric texture, and unique details.
+                  2. Instruct the AI to place this EXACT item onto the subject of the user's request.
+                  3. Ensure the final prompt describes a cohesive scene where the subject is naturally wearing/using the item.
+                  4. Output ONLY the final enhanced prompt text.` }
                 ]
               }]
             });
             
             const description = analysisResponse.text;
             if (description) {
-              finalPrompt = `Generate an image of: ${prompt}. The subject should be wearing/incorporating the following item: ${description}. Ensure the style and patterns of the item are preserved exactly.`;
-              console.log("Neural Whisk Prompt:", finalPrompt);
+              finalPrompt = description;
+              console.log("Neural Whisk Architected Prompt:", finalPrompt);
             }
           } catch (geminiErr) {
             console.warn("Gemini Analysis failed, falling back to direct prompt:", geminiErr);
