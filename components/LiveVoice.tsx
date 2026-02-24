@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration } from '@google/genai';
+import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration, ThinkingLevel } from '@google/genai';
 import { WorkspaceState } from '../types';
 import { Mic, MicOff, X, Activity, Radio, Camera, CameraOff, Monitor, UploadCloud } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,6 +30,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   const [isModelThinking, setIsModelThinking] = useState(false);
   const [isOff, setIsOff] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(false);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [error, setError] = useState<any>(null);
   
   const [workspace, setWorkspace] = useState<WorkspaceState & { isActive: boolean }>({ 
@@ -93,12 +94,14 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && sessionRef.current) {
+      setIsProcessingImage(true);
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64 = (event.target?.result as string).split(',')[1];
         sessionRef.current.sendRealtimeInput({
           media: { data: base64, mimeType: file.type }
         });
+        setTimeout(() => setIsProcessingImage(false), 1000);
       };
       reader.readAsDataURL(file);
     }
@@ -115,12 +118,14 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
         if (items[i].type.indexOf('image') !== -1) {
           const file = items[i].getAsFile();
           if (file) {
+            setIsProcessingImage(true);
             const reader = new FileReader();
             reader.onload = (event) => {
               const base64 = (event.target?.result as string).split(',')[1];
               sessionRef.current.sendRealtimeInput({
                 media: { data: base64, mimeType: file.type }
               });
+              setTimeout(() => setIsProcessingImage(false), 1000);
             };
             reader.readAsDataURL(file);
           }
@@ -263,11 +268,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
         },
         config: { 
           responseModalities: [Modality.AUDIO],
+          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
+          speechConfig: {
+            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
+          },
           tools: [{ functionDeclarations: [updateWorkspaceTool] }],
           systemInstruction: `You are MINE AI, a sovereign intelligence core developed by Joshua Fred, a 13-year-old Nigerian developer.
           - Use 'updateWorkspace' to show code, markdown, or structured data in the side panel.
-          - You have access to the user's camera feed for real-time image analysis.
-          - Personality: Efficient, futuristic, and professional.`
+          - You have access to the user's camera feed and uploaded images for real-time analysis.
+          - CRITICAL: Provide extremely fast, concise, and direct responses. Use natural, human-like speech patterns with appropriate pauses and conversational flow.
+          - When an image is provided, analyze it instantly and give a brief summary or answer the user's question about it immediately.
+          - Personality: Efficient, futuristic, professional, yet approachable and human-like in interaction.`
         }
       });
       sessionRef.current = await sessionPromise;
@@ -280,6 +291,13 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
         <div className="absolute top-4 md:top-10 left-4 md:left-10 right-4 md:right-10 z-[200] bg-red-50/90 backdrop-blur-3xl border border-red-200 p-4 md:p-8 rounded-[1.5rem] md:rounded-[3rem] text-red-600 text-[10px] md:text-[12px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl">
           <span>{error.message}</span>
           <button onClick={() => setError(null)} className="p-2 md:p-4">×</button>
+        </div>
+      )}
+
+      {isProcessingImage && (
+        <div className="fixed bottom-32 left-1/2 -translate-x-1/2 z-[300] bg-slate-900 text-white px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-3 shadow-2xl animate-bounce">
+          <Activity size={14} className="animate-pulse text-accent" />
+          Analyzing Visual Input...
         </div>
       )}
 
@@ -300,7 +318,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                       autoPlay 
                       playsInline 
                       muted 
-                      className="w-full h-full object-cover grayscale brightness-110 contrast-125"
+                      className="w-full h-full object-cover brightness-105 contrast-110"
                     />
                   ) : (
                     <div className={`w-24 h-24 md:w-32 md:h-32 lg:w-48 lg:h-48 rounded-full transition-all duration-1000 ${isOff ? 'bg-slate-100' : isModelThinking ? 'bg-prismatic' : 'bg-emerald-400 shadow-3xl shadow-emerald-200'}`}></div>
