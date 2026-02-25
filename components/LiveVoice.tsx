@@ -4,6 +4,7 @@ import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration, Th
 import { WorkspaceState } from '../types';
 import { Mic, MicOff, X, Activity, Radio, Camera, CameraOff, Monitor, UploadCloud } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import { auth } from '../firebase';
 
 interface LiveVoiceProps { 
   onHome?: () => void;

@@ -3,12 +3,10 @@ import React, { useState, useEffect } from 'react';
 import Landing from './components/Landing';
 import Auth from './components/Auth';
 import LiveVoice from './components/LiveVoice';
-import Healing from './components/Healing';
-import HealingLanding from './components/HealingLanding';
 
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { Sparkles, Mic, LogOut, Home, Heart } from 'lucide-react';
+import { Sparkles, Mic, LogOut, Home } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 /**
@@ -17,8 +15,7 @@ import { motion, AnimatePresence } from 'motion/react';
  */
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'landing' | 'auth' | 'voice' | 'healing' | 'healing-landing'>('landing');
-  const [redirectAfterAuth, setRedirectAfterAuth] = useState<'voice' | 'healing' | null>(null);
+  const [view, setView] = useState<'landing' | 'auth' | 'voice'>('landing');
 
   // Sync authentication state with Firebase
   useEffect(() => {
@@ -39,61 +36,22 @@ const App: React.FC = () => {
       <Landing 
         onGetStarted={() => {
           if (user) setView('voice');
-          else {
-            setRedirectAfterAuth('voice');
-            setView('auth');
-          }
+          else setView('auth');
         }} 
         onAuthClick={() => {
           if (user) setView('voice');
-          else {
-            setRedirectAfterAuth('voice');
-            setView('auth');
-          }
-        }}
-        onHealingClick={() => setView('healing-landing')}
-        isLoggedIn={!!user}
-      />
-    );
-  }
-
-  if (view === 'healing-landing') {
-    return (
-      <HealingLanding 
-        onBack={() => setView('landing')}
-        onEnter={() => {
-          if (user) setView('healing');
-          else {
-            setRedirectAfterAuth('healing');
-            setView('auth');
-          }
+          else setView('auth');
         }}
         isLoggedIn={!!user}
       />
     );
-  }
-
-  if (view === 'healing') {
-    if (!user) {
-      setView('healing-landing');
-      return null;
-    }
-    return <Healing onBack={() => setView('landing')} />;
   }
 
   if (view === 'auth') {
     return (
       <Auth 
         onBack={() => setView('landing')} 
-        theme={redirectAfterAuth === 'healing' ? 'healing' : 'default'}
-        onComplete={() => {
-          if (redirectAfterAuth) {
-            setView(redirectAfterAuth);
-            setRedirectAfterAuth(null);
-          } else {
-            setView('voice');
-          }
-        }} 
+        onComplete={() => setView('voice')} 
       />
     );
   }
@@ -111,8 +69,7 @@ const App: React.FC = () => {
         
         <nav className="flex-1 flex flex-col gap-10">
           {[
-            { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} />, label: 'Voice' },
-            { id: 'healing', icon: <Heart size={24} strokeWidth={2.5} />, label: 'Healing' }
+            { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} />, label: 'Voice' }
           ].map(item => (
             <button 
               key={item.id}
@@ -144,8 +101,7 @@ const App: React.FC = () => {
           <Home size={24} strokeWidth={2.5} />
         </button>
         {[
-          { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} /> },
-          { id: 'healing', icon: <Heart size={24} strokeWidth={2.5} /> }
+          { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} /> }
         ].map(item => (
           <button 
             key={item.id}

@@ -7,11 +7,10 @@ import { motion } from 'motion/react';
 interface LandingProps {
   onGetStarted: () => void;
   onAuthClick: () => void;
-  onHealingClick: () => void;
   isLoggedIn: boolean;
 }
 
-const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onHealingClick, isLoggedIn }) => {
+const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn }) => {
   return (
     <div className="min-h-screen w-full flex flex-col items-center bg-white overflow-y-auto custom-scrollbar selection:bg-accent selection:text-white">
       {/* Navigation */}
@@ -53,10 +52,6 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, onHealingC
             <button onClick={onGetStarted} className="flex-1 button-billion !py-6 md:!py-8 text-lg md:text-xl shadow-2xl flex items-center justify-center gap-3 md:gap-4">
               <Mic className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
               Launch Voice
-            </button>
-            <button onClick={onHealingClick} className="flex-1 py-6 md:py-8 px-8 md:px-12 rounded-[1.2rem] md:rounded-[1.5rem] bg-[#0a0502] text-[#ff4e00] text-xs md:text-sm font-black uppercase tracking-[0.4em] border border-[#ff4e00]/20 hover:bg-[#ff4e00]/5 transition-all flex items-center justify-center gap-3 md:gap-4 shadow-xl shadow-[#ff4e00]/10">
-              <Heart className="w-[18px] h-[18px] md:w-[20px] md:h-[20px]" />
-              Healing with MMA
             </button>
           </div>
         </div>
