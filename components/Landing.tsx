@@ -96,6 +96,45 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
         </div>
       </section>
 
+      {/* Co-Founder Section */}
+      <section className="w-full py-24 md:py-40 px-6 md:px-8 relative bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 md:gap-24 items-center">
+          <div className="space-y-8 md:space-y-12 animate-billion order-2 lg:order-1">
+            <div className="space-y-4">
+              <span className="text-[10px] md:text-[12px] font-black uppercase tracking-[0.8em] text-accent">The Counsellor</span>
+              <h2 className="text-4xl md:text-5xl lg:text-8xl font-black font-outfit text-slate-900 uppercase leading-[0.9]">Chidimma <br/><span className="text-prismatic">Okoye.</span></h2>
+            </div>
+            <p className="text-slate-500 text-lg md:text-xl lg:text-2xl font-medium leading-relaxed italic border-l-4 border-accent pl-6 md:pl-10 py-2">
+              "True intelligence requires emotional resonance. We are building systems that not only think but understand the human condition."
+            </p>
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4 md:gap-6">
+                 <div className="w-10 h-10 md:w-12 md:h-12 bg-slate-50 rounded-xl md:rounded-2xl flex items-center justify-center shadow-lg">
+                    <div className="w-3 h-3 md:w-4 md:h-4 bg-accent rounded-full animate-pulse"></div>
+                 </div>
+                 <div>
+                    <h4 className="font-black uppercase text-slate-900 text-xs md:text-sm tracking-widest">Co-Founder & Counsellor</h4>
+                    <p className="text-slate-400 text-[8px] md:text-xs font-bold uppercase tracking-widest">Architect of Empathetic Systems</p>
+                 </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="relative animate-billion order-1 lg:order-2">
+            <div className="rounded-[2rem] md:rounded-[5rem] overflow-hidden shadow-2xl border-[8px] md:border-[12px] border-slate-50 relative z-10 bg-white">
+              <img 
+                src="https://lh3.googleusercontent.com/d/1tL3zK5VRoKpcUgZuEWa8CGCB1XcL9rYO" 
+                alt="Chidimma Okoye" 
+                className="w-full h-auto block hover:scale-[1.02] transition-all duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-accent/10 to-transparent pointer-events-none"></div>
+            </div>
+            <div className="absolute -top-12 -right-12 w-64 h-64 bg-pink-400/20 rounded-full blur-[80px]"></div>
+            <div className="absolute -bottom-12 -left-12 w-64 h-64 bg-accent/20 rounded-full blur-[80px]"></div>
+          </div>
+        </div>
+      </section>
+
       {/* Tech Stack Section */}
       <section className="w-full py-24 md:py-40 px-6 md:px-8 bg-white">
         <div className="max-w-7xl mx-auto text-center space-y-16 md:space-y-32">
