@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Logo from './Logo';
-import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Mic, Heart } from 'lucide-react';
+import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Mic, Heart, BookOpen } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface LandingProps {
@@ -36,22 +36,38 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
       {/* Hero Section */}
       <section className="min-h-screen flex flex-col items-center justify-center pt-24 md:pt-32 pb-12 md:pb-20 relative w-full px-6 overflow-hidden">
         <div className="mesh-gradient opacity-30"></div>
+        
+        {/* Flash Attractive Text for Mine AI 2.0 */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.5 }}
+          className="mb-8 relative z-10"
+        >
+          <div className="px-6 py-2 rounded-full bg-accent/10 border border-accent/20 backdrop-blur-xl flex items-center gap-3 animate-pulse shadow-xl shadow-accent/10">
+            <Sparkles className="w-4 h-4 text-accent" />
+            <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-accent">
+              Try Mine AI 2.0: Faster, Smarter & Fun Counselling
+            </span>
+          </div>
+        </motion.div>
+
         <div className="max-w-6xl w-full flex flex-col items-center space-y-12 md:space-y-16 animate-billion text-center">
           <Logo size="lg" className="scale-75 md:scale-100" />
           
           <div className="space-y-6 md:space-y-8">
              <h2 className="text-4xl md:text-6xl lg:text-[10rem] font-black font-outfit tracking-tight leading-[0.9] md:leading-[0.85] text-slate-900 uppercase">
-               NEURAL <br/><span className="text-prismatic">VOICE.</span>
+               NEURAL <br/><span className="text-prismatic">VOICE 2.0.</span>
              </h2>
              <p className="text-slate-400 text-base md:text-lg lg:text-2xl max-w-2xl mx-auto font-medium leading-relaxed pt-2 md:pt-4">
-               Engineering high-fidelity sovereign multimodal reasoning and real-time voice intelligence using Mine AI Core.
+               Engineering high-fidelity sovereign multimodal reasoning and real-time voice intelligence. Experience the new Mine AI 2.0 core.
              </p>
           </div>
 
           <div className="flex flex-col md:flex-row gap-4 md:gap-8 w-full max-w-2xl pt-6 md:pt-10">
             <button onClick={onGetStarted} className="flex-1 button-billion !py-6 md:!py-8 text-lg md:text-xl shadow-2xl flex items-center justify-center gap-3 md:gap-4">
               <Mic className="w-[20px] h-[20px] md:w-[24px] md:h-[24px]" />
-              Launch Voice
+              Launch Voice 2.0
             </button>
           </div>
         </div>
@@ -146,9 +162,10 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {[
               { title: 'Neural Voice', desc: 'Unlimited real-time voice intelligence for rapid high-fidelity interaction and sovereign reasoning.', icon: <Mic className="text-accent w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
-              { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> }
+              { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
+              { title: 'Storybook AI', desc: 'Immersive Gemini-style story generation with AI-painted scenes and whimsical narratives.', icon: <BookOpen className="text-indigo-500 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> }
             ].map((tech, i) => (
-              <div key={i} className="p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] bg-slate-50 border border-slate-100 text-left space-y-4 md:space-y-6 hover:shadow-2xl transition-all hover:-translate-y-2 group">
+              <div key={i} className={`p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] bg-slate-50 border border-slate-100 text-left space-y-4 md:space-y-6 hover:shadow-2xl transition-all hover:-translate-y-2 group ${i === 2 ? 'md:col-span-2' : ''}`}>
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   {tech.icon}
                 </div>

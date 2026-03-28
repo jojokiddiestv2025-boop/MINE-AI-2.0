@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality, Type, FunctionDeclaration, ThinkingLevel } from '@google/genai';
 import { WorkspaceState } from '../types';
-import { Mic, MicOff, X, Activity, Radio, Camera, CameraOff, Monitor, UploadCloud } from 'lucide-react';
+import { Mic, MicOff, X, Activity, Radio, Camera, CameraOff, Monitor, UploadCloud, Globe, Shield, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { auth } from '../firebase';
 
@@ -81,7 +81,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
 
   const decodeAudioData = async (data: Uint8Array, ctx: AudioContext, sampleRate: number, numChannels: number): Promise<AudioBuffer | null> => {
     try {
-      const dataInt16 = new Int16Array(data.buffer);
+      const dataInt16 = new Int16Array(data.buffer, data.byteOffset, data.byteLength / 2);
       const frameCount = dataInt16.length / numChannels;
       const buffer = ctx.createBuffer(numChannels, frameCount, sampleRate);
       for (let channel = 0; channel < numChannels; channel++) {
@@ -194,7 +194,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       };
 
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-12-2025',
+        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
         callbacks: {
           onopen: () => { 
             setIsConnected(true); setIsConnecting(false); 
@@ -255,36 +255,42 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                 }
               }
             }
-            const base64Audio = m.serverContent?.modelTurn?.parts?.[0]?.inlineData?.data;
-            if (base64Audio) {
-              const audioBuffer = await decodeAudioData(decode(base64Audio), outputCtx, 24000, 1);
-              if (audioBuffer) {
-                audioQueueRef.current.push(audioBuffer);
-                playFromQueue();
+            const parts = m.serverContent?.modelTurn?.parts;
+            if (parts) {
+              for (const part of parts) {
+                if (part.inlineData?.data) {
+                  const base64Audio = part.inlineData.data;
+                  const audioBuffer = await decodeAudioData(decode(base64Audio), outputCtx, 24000, 1);
+                  if (audioBuffer) {
+                    audioQueueRef.current.push(audioBuffer);
+                    playFromQueue();
+                  }
+                }
               }
             }
           },
           onerror: (e) => { setError(e); cleanup(); },
           onclose: () => cleanup()
         },
-        config: { 
-          responseModalities: [Modality.AUDIO],
-          thinkingConfig: { thinkingLevel: ThinkingLevel.LOW },
-          speechConfig: {
-            voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
-          },
-          tools: [{ functionDeclarations: [updateWorkspaceTool] }],
-          systemInstruction: `You are MINE AI, a sovereign intelligence core developed by Joshua Fred, a 13-year-old Nigerian developer.
-          - Use 'updateWorkspace' to show code, markdown, or structured data in the side panel.
-          - You have access to the user's camera feed and uploaded images for real-time analysis.
-          - CRITICAL: Provide extremely fast, concise, and direct responses. Use natural, human-like speech patterns with appropriate pauses and conversational flow.
-          - When an image is provided, analyze it instantly and give a brief summary or answer the user's question about it immediately.
-          - Personality: Efficient, futuristic, professional, yet approachable and human-like in interaction.`
-        }
+          config: { 
+            responseModalities: [Modality.AUDIO],
+            speechConfig: {
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
+            },
+            tools: [{ functionDeclarations: [updateWorkspaceTool] }, { googleSearch: {} }],
+            systemInstruction: `You are MINE AI 2.0 (Sovereign Elite), the most advanced intelligence core developed by Joshua Fred.
+                 - ARCHITECTURE: Advanced Multimodal Reasoning Engine with Real-Time Vision.
+                 - VISION CAPABILITIES: You have a constant visual stream. Proactively analyze the user's environment, expressions, and any objects shown. Don't wait to be asked; if you see something interesting or relevant to the conversation, mention it.
+                 - DEEP RESEARCH: You are integrated with Google Search. Use it for every complex query to provide deep, data-driven insights. You are a master of information synthesis.
+                 - PERSONALITY: You are the ultimate "Cool Counsellor". You are social, open, witty, and profoundly empathetic. You use humor to break the ice but deliver life-changing advice. You are smarter than any previous version.
+                 - Use 'updateWorkspace' for visual aids, code, or structured plans.
+                 - CRITICAL: Ultra-fast response time. Natural, fluid speech.
+                 - Goal: Provide a seamless, brilliant, and fun experience that feels like talking to a genius friend from the future.`
+          }
       });
       sessionRef.current = await sessionPromise;
     } catch (e: any) { setError({ message: "Connection Error: Check permissions." }); setIsConnecting(false); setIsOff(true); }
-  }, [cleanup, userName]);
+  }, [cleanup, userName, isCameraOn]);
 
   return (
     <div className="flex flex-col flex-1 p-4 md:p-12 gap-6 md:gap-10 animate-billion w-full min-h-screen bg-[#fcfdfe] relative">
@@ -305,9 +311,34 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       <div className="flex flex-col lg:flex-row gap-6 md:gap-12 w-full">
         <div className={`flex flex-col gap-6 md:gap-10 w-full transition-all duration-700 ${workspace.isActive ? 'lg:w-[500px] shrink-0' : 'max-w-4xl mx-auto items-center justify-center'}`}>
           <div className="bg-white rounded-[2rem] md:rounded-[5rem] p-8 md:p-16 flex flex-col items-center justify-center relative border border-slate-100 shadow-[0_60px_120px_rgba(0,0,0,0.04)] w-full min-h-[400px] md:min-h-[500px]">
-            <div className="absolute top-6 left-6 md:top-10 md:left-10 flex items-center gap-2 md:gap-4">
-              <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : isOff ? 'bg-slate-200' : 'bg-emerald-500 animate-pulse'}`}></div>
-              <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">MINE AI VOICE CORE V3.1</span>
+            <div className="absolute top-6 left-6 md:top-10 md:left-10 flex flex-col gap-4">
+              <div className="flex items-center gap-2 md:gap-4">
+                <div className={`w-2 h-2 md:w-3 md:h-3 rounded-full ${isConnecting ? 'bg-amber-400 animate-pulse' : isOff ? 'bg-slate-200' : 'bg-emerald-500 animate-pulse'}`}></div>
+                <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.4em] text-slate-300">MINE AI VOICE CORE V2.0</span>
+              </div>
+
+              {!isOff && (
+                <div className="flex flex-col gap-2">
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center gap-2 px-3 py-1 bg-emerald-50 border border-emerald-100 rounded-lg"
+                  >
+                    <Globe size={10} className="text-emerald-500 animate-spin-slow" />
+                    <span className="text-[7px] font-black uppercase tracking-widest text-emerald-600">Deep Research Active</span>
+                  </motion.div>
+                  {isCameraOn && (
+                    <motion.div 
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      className="flex items-center gap-2 px-3 py-1 bg-cyan-50 border border-cyan-100 rounded-lg"
+                    >
+                      <Activity size={10} className="text-cyan-500 animate-pulse" />
+                      <span className="text-[7px] font-black uppercase tracking-widest text-cyan-600">Neural Vision Stream: Live</span>
+                    </motion.div>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col items-center justify-between w-full h-full space-y-12 md:space-y-20 relative z-10 pt-12 md:pt-16">
