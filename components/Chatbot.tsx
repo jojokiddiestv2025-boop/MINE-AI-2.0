@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2, Trash2, Sparkles, Image as ImageIcon, X, Wand2, BookOpen } from 'lucide-react';
+import { Send, Bot, User, Loader2, Trash2, Sparkles, Image as ImageIcon, X, Wand2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 interface Message {
@@ -10,7 +10,7 @@ interface Message {
   isGenerated?: boolean;
 }
 
-const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ userName, onStoryMode }) => {
+const Chatbot: React.FC<{ userName: string }> = ({ userName }) => {
   const [messages, setMessages] = useState<Message[]>(() => {
     const saved = localStorage.getItem('mine_ai_chat_history');
     if (saved) {
@@ -53,6 +53,25 @@ const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ use
       setSelectedImage(reader.result as string);
     };
     reader.readAsDataURL(file);
+  };
+
+  const handleDownload = async (url: string, index: number) => {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = `mine-ai-gen-${index}.png`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      console.error('Download failed', error);
+      // Fallback: open in new tab if fetch fails (CORS)
+      window.open(url, '_blank');
+    }
   };
 
   const handleGenerateImage = async () => {
@@ -171,6 +190,20 @@ const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ use
     localStorage.removeItem('mine_ai_chat_history');
   };
 
+  const clearImages = () => {
+    setMessages(prev => prev.map(msg => ({ ...msg, image: undefined })));
+  };
+
+  const deleteMessage = (index: number) => {
+    setMessages(prev => {
+      const newMessages = prev.filter((_, i) => i !== index);
+      if (newMessages.length === 0) {
+        return [{ role: 'assistant', content: `History cleared. How can I help you now, ${userName}?` }];
+      }
+      return newMessages;
+    });
+  };
+
   return (
     <div className="flex flex-col h-full max-w-5xl mx-auto p-4 md:p-8">
       {/* Header */}
@@ -191,18 +224,17 @@ const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ use
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button 
-            onClick={onStoryMode}
-            className="hidden md:flex items-center gap-2 px-4 py-2 rounded-xl bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all text-xs font-black uppercase tracking-widest"
-            title="Switch to Storybook"
-          >
-            <BookOpen size={16} />
-            <span>Story Mode</span>
-          </button>
           <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-100">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
             <span className="text-[9px] font-black text-slate-400 uppercase tracking-tighter">System Ready</span>
           </div>
+          <button 
+            onClick={clearImages}
+            className="p-3 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-indigo-600 transition-all"
+            title="Clear All Images"
+          >
+            <ImageIcon size={20} />
+          </button>
           <button 
             onClick={clearChat}
             className="p-3 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-red-500 transition-all"
@@ -228,18 +260,27 @@ const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ use
                   ? 'bg-slate-900 text-white rounded-tr-none' 
                   : 'bg-white border border-slate-100 text-slate-700 rounded-tl-none'
               }`}>
-                <div className="flex items-center gap-2 mb-2 opacity-50">
-                  {msg.role === 'user' ? <User size={12} /> : <Sparkles size={12} />}
-                  <span className="text-[10px] font-black uppercase tracking-widest">
-                    {msg.role === 'user' ? userName : 'Mine AI'}
-                  </span>
+                <div className="flex items-center justify-between mb-2 opacity-50">
+                  <div className="flex items-center gap-2">
+                    {msg.role === 'user' ? <User size={12} /> : <Sparkles size={12} />}
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      {msg.role === 'user' ? userName : 'Mine AI'}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => deleteMessage(idx)}
+                    className="p-1 hover:text-red-500 transition-colors"
+                    title="Delete Message"
+                  >
+                    <Trash2 size={12} />
+                  </button>
                 </div>
                 {msg.image && (
-                  <div className="relative group mb-3">
+                  <div className="relative group mb-3 overflow-hidden rounded-xl">
                     <img 
                       src={msg.image} 
                       alt="Mine AI Visual" 
-                      className="w-full max-h-96 object-contain rounded-xl border border-slate-700/10 bg-slate-50"
+                      className="w-full max-h-96 object-contain rounded-xl border border-slate-700/10 bg-slate-50 transition-transform duration-500 group-hover:scale-105"
                       referrerPolicy="no-referrer"
                       onError={(e) => {
                         const target = e.target as HTMLImageElement;
@@ -248,6 +289,16 @@ const Chatbot: React.FC<{ userName: string; onStoryMode?: () => void }> = ({ use
                       }}
                     />
                     <div className="absolute inset-0 rounded-xl ring-1 ring-inset ring-black/5 pointer-events-none" />
+                    
+                    {/* Download Button Overlay */}
+                    <button 
+                      onClick={() => handleDownload(msg.image!, idx)}
+                      className="absolute top-2 right-2 p-2 bg-white/90 backdrop-blur-sm rounded-lg text-slate-900 opacity-0 group-hover:opacity-100 transition-all shadow-lg hover:bg-white active:scale-95 flex items-center gap-2"
+                      title="Download Image"
+                    >
+                      <Download size={16} />
+                      <span className="text-[10px] font-black uppercase tracking-widest pr-1">Save</span>
+                    </button>
                   </div>
                 )}
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{msg.content}</p>

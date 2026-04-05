@@ -158,6 +158,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       setIsConnecting(true);
       setIsOff(false);
       
+      // Request permissions for Median.co (GoNative) wrapped apps
+      if (typeof window !== 'undefined') {
+        const median = (window as any).median || (window as any).gonative;
+        if (median && median.android && median.android.requestPermission) {
+          median.android.requestPermission({ permission: 'android.permission.RECORD_AUDIO' });
+          if (isCameraOn) {
+            median.android.requestPermission({ permission: 'android.permission.CAMERA' });
+          }
+        }
+      }
+      
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
       const stream = await navigator.mediaDevices.getUserMedia({ 
         audio: true,
@@ -360,7 +371,18 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
 
                 <div className="flex items-center gap-4">
                   <button 
-                    onClick={() => setIsCameraOn(!isCameraOn)}
+                    onClick={() => {
+                      const newCameraState = !isCameraOn;
+                      setIsCameraOn(newCameraState);
+                      
+                      // Request camera permission for Median.co wrapped apps when toggled on
+                      if (newCameraState && typeof window !== 'undefined') {
+                        const median = (window as any).median || (window as any).gonative;
+                        if (median && median.android && median.android.requestPermission) {
+                          median.android.requestPermission({ permission: 'android.permission.CAMERA' });
+                        }
+                      }
+                    }}
                     disabled={!isOff}
                     className={`p-4 rounded-2xl transition-all ${isCameraOn ? 'bg-accent text-white' : 'bg-slate-100 text-slate-400'} ${!isOff && 'opacity-50 cursor-not-allowed'}`}
                     title={isOff ? "Toggle Camera" : "Disconnect to toggle camera"}

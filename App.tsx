@@ -4,11 +4,10 @@ import Landing from './components/Landing';
 import Auth from './components/Auth';
 import LiveVoice from './components/LiveVoice';
 import Chatbot from './components/Chatbot';
-import Storybook from './components/Storybook';
 
 import { auth } from './firebase';
 import { onAuthStateChanged, signOut, User } from 'firebase/auth';
-import { Sparkles, Mic, LogOut, Home, MessageSquare, BookOpen } from 'lucide-react';
+import { Sparkles, Mic, LogOut, Home, MessageSquare } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
 /**
@@ -17,7 +16,7 @@ import { motion, AnimatePresence } from 'motion/react';
  */
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
-  const [view, setView] = useState<'landing' | 'auth' | 'voice' | 'chatbot' | 'storybook'>('landing');
+  const [view, setView] = useState<'landing' | 'auth' | 'voice' | 'chatbot'>('landing');
 
   // Sync authentication state with Firebase
   useEffect(() => {
@@ -72,8 +71,7 @@ const App: React.FC = () => {
         <nav className="flex-1 flex flex-col gap-10">
           {[
             { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} />, label: 'Voice' },
-            { id: 'chatbot', icon: <MessageSquare size={24} strokeWidth={2.5} />, label: 'Chat' },
-            { id: 'storybook', icon: <BookOpen size={24} strokeWidth={2.5} />, label: 'Story' }
+            { id: 'chatbot', icon: <MessageSquare size={24} strokeWidth={2.5} />, label: 'Chat' }
           ].map(item => (
             <button 
               key={item.id}
@@ -106,8 +104,7 @@ const App: React.FC = () => {
         </button>
         {[
           { id: 'voice', icon: <Mic size={24} strokeWidth={2.5} /> },
-          { id: 'chatbot', icon: <MessageSquare size={24} strokeWidth={2.5} /> },
-          { id: 'storybook', icon: <BookOpen size={24} strokeWidth={2.5} /> }
+          { id: 'chatbot', icon: <MessageSquare size={24} strokeWidth={2.5} /> }
         ].map(item => (
           <button 
             key={item.id}
@@ -128,8 +125,7 @@ const App: React.FC = () => {
       {/* Primary Workspace Area */}
       <main className="flex-1 bg-white pb-20 md:pb-0">
         {view === 'voice' && <LiveVoice userName={user?.displayName || 'Core'} />}
-        {view === 'chatbot' && <Chatbot userName={user?.displayName || 'Core'} onStoryMode={() => setView('storybook')} />}
-        {view === 'storybook' && <Storybook userName={user?.displayName || 'Core'} />}
+        {view === 'chatbot' && <Chatbot userName={user?.displayName || 'Core'} />}
       </main>
     </div>
   );

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import Logo from './Logo';
-import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Mic, Heart, BookOpen } from 'lucide-react';
+import { Sparkles, Zap, Shield, ArrowRight, Github, Twitter, Globe, Cpu, Mic, Heart } from 'lucide-react';
 import { motion } from 'motion/react';
 
 interface LandingProps {
@@ -162,10 +162,9 @@ const Landing: React.FC<LandingProps> = ({ onGetStarted, onAuthClick, isLoggedIn
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
             {[
               { title: 'Neural Voice', desc: 'Unlimited real-time voice intelligence for rapid high-fidelity interaction and sovereign reasoning.', icon: <Mic className="text-accent w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
-              { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> },
-              { title: 'Storybook AI', desc: 'Immersive Gemini-style story generation with AI-painted scenes and whimsical narratives.', icon: <BookOpen className="text-indigo-500 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> }
+              { title: 'Flash Reasoning', desc: 'Rapid 32K multimodal logic for complex problem solving and advanced planning.', icon: <Zap className="text-cyan-400 w-[28px] h-[28px] md:w-[32px] md:h-[32px]" /> }
             ].map((tech, i) => (
-              <div key={i} className={`p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] bg-slate-50 border border-slate-100 text-left space-y-4 md:space-y-6 hover:shadow-2xl transition-all hover:-translate-y-2 group ${i === 2 ? 'md:col-span-2' : ''}`}>
+              <div key={i} className="p-8 md:p-16 rounded-[2rem] md:rounded-[4rem] bg-slate-50 border border-slate-100 text-left space-y-4 md:space-y-6 hover:shadow-2xl transition-all hover:-translate-y-2 group">
                 <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl md:rounded-3xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
                   {tech.icon}
                 </div>
