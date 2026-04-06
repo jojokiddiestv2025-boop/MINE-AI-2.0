@@ -50,7 +50,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
 
   const outputAudioContextRef = useRef<AudioContext | null>(null);
   const audioQueueRef = useRef<AudioBuffer[]>([]);
-  const isPlayingRef = useRef(false);
+  const nextPlayTimeRef = useRef<number>(0);
+  const activeSourcesRef = useRef<AudioBufferSourceNode[]>([]);
 
   const warmUpAudioContext = (ctx: AudioContext) => {
     if (ctx.state === 'suspended') {
@@ -143,6 +144,13 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
     if (mediaStreamRef.current) mediaStreamRef.current.getTracks().forEach(track => track.stop());
     if (frameIntervalRef.current) clearInterval(frameIntervalRef.current);
 
+    activeSourcesRef.current.forEach(source => {
+      try { source.stop(); } catch (e) {}
+    });
+    activeSourcesRef.current = [];
+    nextPlayTimeRef.current = 0;
+    audioQueueRef.current = [];
+
     setIsConnected(false);
     setIsConnecting(false);
     setIsModelThinking(false);
@@ -185,23 +193,38 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       const inputCtx = new AudioContextClass({ sampleRate: 16000 });
       outputAudioContextRef.current = outputCtx;
       warmUpAudioContext(outputCtx);
+      
+      nextPlayTimeRef.current = 0;
+      activeSourcesRef.current = [];
+      audioQueueRef.current = [];
 
       const playFromQueue = () => {
-        if (isPlayingRef.current || audioQueueRef.current.length === 0) {
+        if (audioQueueRef.current.length === 0) {
           return;
         }
-
-        isPlayingRef.current = true;
 
         const buffer = audioQueueRef.current.shift()!;
         const source = outputCtx.createBufferSource();
         source.buffer = buffer;
         source.connect(outputCtx.destination);
+        
+        activeSourcesRef.current.push(source);
         source.onended = () => {
-          isPlayingRef.current = false;
-          playFromQueue();
+          activeSourcesRef.current = activeSourcesRef.current.filter(s => s !== source);
         };
-        source.start();
+
+        // If we fell behind or just started, schedule slightly in the future
+        if (nextPlayTimeRef.current < outputCtx.currentTime) {
+          nextPlayTimeRef.current = outputCtx.currentTime + 0.05; // 50ms buffer
+        }
+
+        source.start(nextPlayTimeRef.current);
+        nextPlayTimeRef.current += buffer.duration;
+
+        // Process next immediately if there are more in the queue
+        if (audioQueueRef.current.length > 0) {
+          playFromQueue();
+        }
       };
 
       const sessionPromise = ai.live.connect({
@@ -249,6 +272,11 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
             if (m.serverContent?.modelTurn) setIsModelThinking(false);
             if (m.serverContent?.interrupted) {
               audioQueueRef.current = [];
+              nextPlayTimeRef.current = 0;
+              activeSourcesRef.current.forEach(source => {
+                try { source.stop(); } catch (e) {}
+              });
+              activeSourcesRef.current = [];
             }
             if (m.toolCall?.functionCalls) {
               for (const fc of m.toolCall.functionCalls) {
