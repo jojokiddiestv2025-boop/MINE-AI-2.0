@@ -130,8 +130,21 @@ const Chatbot: React.FC<{ userName: string }> = ({ userName }) => {
         // In production/preview, the key is in the environment
       }
 
+      const now = new Date();
+      const timeContext = `Current Date/Time: ${now.toLocaleString()}, Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}.`;
+      let locationInfo = 'Location unknown.';
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 5000 });
+        });
+        locationInfo = `Current Location: ${position.coords.latitude}, ${position.coords.longitude}`;
+      } catch (e) { console.warn("Location access denied or unavailable."); }
+      const context = `${timeContext} ${locationInfo}`;
+
       // Prepare messages for the API - limit to last 20 messages to avoid context window issues
-      const apiMessages = messages.concat(userMessage).slice(-20).map(m => {
+      const apiMessages = [
+        { role: 'system', content: `You are MINE AI. Use the following context for your responses: ${context}. Proactively use Google Search for weather, news, or current events.` },
+        ...messages.concat(userMessage).slice(-20).map(m => {
         if (m.role === 'user' && m.image) {
           return {
             role: m.role,
@@ -147,7 +160,7 @@ const Chatbot: React.FC<{ userName: string }> = ({ userName }) => {
           };
         }
         return { role: m.role, content: m.content };
-      });
+      })];
 
       const response = await fetch('/api/chat', {
         method: 'POST',

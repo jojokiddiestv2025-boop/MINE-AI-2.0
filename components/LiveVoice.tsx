@@ -185,6 +185,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   }, []);
 
   const startConversation = useCallback(async () => {
+    if (isConnecting || isConnected) return;
+
     try {
       setError(null);
       setIsConnecting(true);
@@ -192,12 +194,17 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       
       // Request permissions and get location
       let locationInfo = 'Location unknown.';
+      let timeInfo = 'Time unknown.';
       try {
         const position = await new Promise<GeolocationPosition>((resolve, reject) => {
           navigator.geolocation.getCurrentPosition(resolve, reject);
         });
         locationInfo = `Current Location: ${position.coords.latitude}, ${position.coords.longitude}`;
       } catch (e) { console.warn("Location access denied or unavailable."); }
+      try {
+        const now = new Date();
+        timeInfo = `Current Date/Time: ${now.toLocaleString()}, Timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`;
+      } catch (e) { console.warn("Time info unavailable."); }
 
       if (typeof window !== 'undefined') {
         const median = (window as any).median || (window as any).gonative;
@@ -427,6 +434,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                  - VOICE: You are using the official Gemini Neural Voice (Kore).
                  - VISION CAPABILITIES: You have a constant visual stream. Proactively analyze the user's environment. If you see something cool or funny, mention it!
                  - DEEP RESEARCH & REAL-TIME DATA: You have access to real-time information via Google Search. For every query about weather, news, or current events, use Google Search proactively.
+                 - CONTEXT: ${timeInfo}.
                  - LOCATION: ${locationInfo}. Use this to provide context-aware responses, especially for weather and local news.
                  - Use 'updateWorkspace' for visual aids, code, or structured plans.
                  - CRITICAL: Ultra-fast response time. Natural, fluid, and FUN speech.
