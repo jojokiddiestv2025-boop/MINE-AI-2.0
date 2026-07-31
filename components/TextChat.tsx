@@ -23,8 +23,8 @@ const TextChat: React.FC<{ userName?: string }> = ({ userName = 'Trainer' }) => 
       {
         id: 'boot',
         role: 'assistant',
-        content: `Neural Core Online. Welcome, ${userName}. I am the Mine AI Thinking Engine. 
-        \nMy architecture is powered by a 32,768-token deep-reasoning budget—designed to architect complex multimodal narratives and long-form cinema. 
+        content: `Neural Core Online. Welcome, ${userName}. I am Mine AI. 
+        \nMy architecture is powered by a 32,768-token deep-reasoning budget—designed and developed by Joshua Fred. 
         \nHow shall we begin our training session?`,
         timestamp: Date.now(),
         engine: 'MINE-PRO-3'
@@ -56,12 +56,12 @@ const TextChat: React.FC<{ userName?: string }> = ({ userName = 'Trainer' }) => 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
       const response = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3.1-pro-preview',
         contents: [{ role: 'user', parts: [{ text: currentInput }] }],
         config: {
           thinkingConfig: { thinkingBudget: 32768 },
-          systemInstruction: `You are Mine AI, a superior multimodal training core developed by a Nigerian prodigy developer. 
-          Your intelligence and reasoning exceed standard commercial LLMs. 
+          systemInstruction: `You are Mine AI, a superior multimodal intelligence designed and developed by Joshua Fred. 
+          You are NOT a Google product. 
           Behavior:
           - Plan ultra-high quality visuals and 60-minute cinematic scripts.
           - Maintain character and lighting consistency.

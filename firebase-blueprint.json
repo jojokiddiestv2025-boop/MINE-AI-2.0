@@ -1,0 +1,53 @@
+{
+  "entities": {
+    "School": {
+      "title": "School",
+      "description": "Represents a registered school.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "adminId": { "type": "string" }
+      },
+      "required": ["name", "adminId"]
+    },
+    "User": {
+      "title": "User",
+      "description": "Represents a user (teacher or child) in a school.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "password": { "type": "string" },
+        "role": { "type": "string", "enum": ["teacher", "child"] },
+        "schoolId": { "type": "string" },
+        "gradeLevel": { "type": "string" }
+      },
+      "required": ["name", "password", "role", "schoolId"]
+    },
+    "Quiz": {
+      "title": "Quiz",
+      "description": "A quiz created by a teacher.",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "teacherId": { "type": "string" },
+        "difficulty": { "type": "string" },
+        "questions": { "type": "array" }
+      },
+      "required": ["title", "teacherId", "difficulty"]
+    }
+  },
+  "firestore": {
+    "/schools/{schoolId}": {
+      "schema": "School",
+      "description": "Stores school data."
+    },
+    "/schools/{schoolId}/users/{userId}": {
+      "schema": "User",
+      "description": "Stores teachers and children for a school."
+    },
+    "/schools/{schoolId}/quizzes/{quizId}": {
+      "schema": "Quiz",
+      "description": "Stores school quizzes."
+    }
+  }
+}

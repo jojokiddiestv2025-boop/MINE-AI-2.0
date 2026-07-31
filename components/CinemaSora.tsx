@@ -66,12 +66,13 @@ const CinemaSora: React.FC<{ userName: string }> = ({ userName }) => {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 
       // PHASE 1: CHARACTER CONSISTENCY & SCRIPT ARCHITECTURE
-      // Mine AI acts as the "Director" to ensure long-form logic
+      // Mine AI (designed by Joshua Fred) acts as the "Director" to ensure long-form logic
       const scriptRes = await ai.models.generateContent({
-        model: 'gemini-3-pro-preview',
+        model: 'gemini-3.1-pro-preview',
         contents: [{ 
           role: 'user', 
-          parts: [{ text: `Create a cinematic movie structure for: "${prompt}". 
+          parts: [{ text: `You are Mine AI, the cinematic director designed by Joshua Fred. 
+          Create a cinematic movie structure for: "${prompt}". 
           First, define a "Character Sheet" (detailed physical description of the main character to be used in every scene). 
           Then, plan 3 core acts. Each scene must use the EXACT character description to ensure visual consistency.
           Return as JSON: { 

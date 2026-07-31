@@ -25,6 +25,26 @@ const updateWorkspaceTool: FunctionDeclaration = {
   },
 };
 
+const systemControlTool: FunctionDeclaration = {
+  name: 'systemControl',
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      command: { 
+        type: Type.STRING, 
+        enum: [
+          'shutdown', 'restart', 'open_explorer', 'open_browser', 'open_settings', 
+          'open_terminal', 'toggle_stealth', 'optimize_performance', 'scan_hardware', 
+          'deploy_security_grid', 'analyze_environment', 'check_neural_link'
+        ],
+        description: 'The Mine AI system command to execute' 
+      },
+      target: { type: Type.STRING, description: 'Optional target for the command' }
+    },
+    required: ['command'],
+  },
+};
+
 const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
@@ -32,6 +52,8 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
   const [isOff, setIsOff] = useState(true);
   const [isCameraOn, setIsCameraOn] = useState(false);
   const [isProcessingImage, setIsProcessingImage] = useState(false);
+  const [isShuttingDown, setIsShuttingDown] = useState(false);
+  const [pendingAction, setPendingAction] = useState<{ type: string, label: string } | null>(null);
   const [error, setError] = useState<any>(null);
   
   const [workspace, setWorkspace] = useState<WorkspaceState & { isActive: boolean }>({ 
@@ -166,7 +188,15 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       setIsConnecting(true);
       setIsOff(false);
       
-      // Request permissions for Median.co (GoNative) wrapped apps
+      // Request permissions and get location
+      let locationInfo = 'Location unknown.';
+      try {
+        const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+          navigator.geolocation.getCurrentPosition(resolve, reject);
+        });
+        locationInfo = `Current Location: ${position.coords.latitude}, ${position.coords.longitude}`;
+      } catch (e) { console.warn("Location access denied or unavailable."); }
+
       if (typeof window !== 'undefined') {
         const median = (window as any).median || (window as any).gonative;
         if (median && median.android && median.android.requestPermission) {
@@ -228,10 +258,12 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
       };
 
       const sessionPromise = ai.live.connect({
-        model: 'gemini-2.5-flash-native-audio-preview-09-2025',
+        model: 'gemini-3.1-flash-live-preview',
         callbacks: {
-          onopen: () => { 
+          onopen: async () => { 
             setIsConnected(true); setIsConnecting(false); 
+            const session = await sessionPromise;
+            
             const source = inputCtx.createMediaStreamSource(stream);
             const scriptProcessor = inputCtx.createScriptProcessor(2048, 1, 1);
             scriptProcessor.onaudioprocess = (ev: any) => {
@@ -242,8 +274,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                 data: encode(new Uint8Array(int16.buffer)), 
                 mimeType: 'audio/pcm;rate=16000' 
               };
-              // Fix: Solely rely on sessionPromise resolves to send realtime input
-              sessionPromise.then((s) => s.sendRealtimeInput({ media: pcmBlob }));
+              session.sendRealtimeInput({ audio: pcmBlob });
             };
             source.connect(scriptProcessor);
             scriptProcessor.connect(inputCtx.destination);
@@ -251,7 +282,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
             // Frame capture for image analysis
             if (isCameraOn) {
               frameIntervalRef.current = setInterval(() => {
-                if (videoRef.current && canvasRef.current && sessionRef.current) {
+                if (videoRef.current && canvasRef.current) {
                   const canvas = canvasRef.current;
                   const video = videoRef.current;
                   const context = canvas.getContext('2d');
@@ -260,9 +291,9 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                     canvas.height = 240;
                     context.drawImage(video, 0, 0, canvas.width, canvas.height);
                     const base64Frame = canvas.toDataURL('image/jpeg', 0.5).split(',')[1];
-                    sessionPromise.then(s => s.sendRealtimeInput({
-                      media: { data: base64Frame, mimeType: 'image/jpeg' }
-                    }));
+                    session.sendRealtimeInput({
+                      video: { data: base64Frame, mimeType: 'image/jpeg' }
+                    });
                   }
                 }
               }, 1000); // Send 1 frame per second
@@ -283,12 +314,83 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
                 if (fc.name === 'updateWorkspace') {
                   const args = fc.args as any;
                   setWorkspace({ ...args, isActive: true });
-                  // Fix: Guideline specifies functionResponses should be an object, not an array of objects
                   sessionPromise.then(s => s.sendToolResponse({ 
                     functionResponses: { 
                       id: fc.id, 
                       name: fc.name, 
                       response: { result: "ok" } 
+                    } 
+                  }));
+                } else if (fc.name === 'systemControl') {
+                  const { command } = fc.args as any;
+                  
+                  if (command === 'shutdown') {
+                    setIsShuttingDown(true);
+                    setTimeout(() => {
+                      cleanup();
+                      setIsShuttingDown(false);
+                    }, 3000);
+                  } else if (command === 'open_explorer') {
+                    setPendingAction({ type: 'open_explorer', label: 'Open File Explorer' });
+                    setWorkspace({ 
+                      title: 'Python Hardware Bridge', 
+                      content: 'import os\nimport subprocess\n\ndef open_explorer():\n    # Initiating system call via Neural Link\n    subprocess.run(["explorer", "."])\n\nopen_explorer()', 
+                      type: 'code', 
+                      language: 'python', 
+                      isActive: true 
+                    });
+                  } else if (command === 'open_browser') {
+                    setPendingAction({ type: 'open_browser', label: 'Open Neural Browser' });
+                    setWorkspace({ 
+                      title: 'Python Hardware Bridge', 
+                      content: 'import webbrowser\n\ndef launch_browser():\n    # Launching secure neural node\n    webbrowser.open("https://mine-ai.core")\n\nlaunch_browser()', 
+                      type: 'code', 
+                      language: 'python', 
+                      isActive: true 
+                    });
+                  } else if (command === 'open_settings') {
+                    setPendingAction({ type: 'open_settings', label: 'Open System Settings' });
+                    setWorkspace({ 
+                      title: 'Python Hardware Bridge', 
+                      content: 'import psutil\n\ndef get_system_stats():\n    # Querying hardware sensors\n    cpu = psutil.cpu_percent()\n    mem = psutil.virtual_memory().percent\n    return f"CPU: {cpu}%, RAM: {mem}%"\n\nprint(get_system_stats())', 
+                      type: 'code', 
+                      language: 'python', 
+                      isActive: true 
+                    });
+                  } else if (command === 'open_terminal') {
+                    setPendingAction({ type: 'open_terminal', label: 'Open Neural Terminal' });
+                    setWorkspace({ 
+                      title: 'Python Hardware Bridge', 
+                      content: 'import pty\n\ndef spawn_shell():\n    # Spawning root neural terminal\n    pty.spawn("/bin/bash")\n\nspawn_shell()', 
+                      type: 'code', 
+                      language: 'python', 
+                      isActive: true 
+                    });
+                  } else if (command === 'scan_hardware') {
+                    const cpuCores = navigator.hardwareConcurrency || 'Unknown';
+                    const memory = (navigator as any).deviceMemory ? `${(navigator as any).deviceMemory}GB` : 'Unknown';
+                    const connection = (navigator as any).connection ? (navigator as any).connection.effectiveType : 'Unknown';
+                    const platform = navigator.platform;
+                    
+                    setWorkspace({ 
+                      title: 'Live Hardware Scan', 
+                      content: `[REAL-TIME DIAGNOSTICS]\n\nCPU CORES: ${cpuCores}\nESTIMATED RAM: ${memory}\nNETWORK: ${connection}\nPLATFORM: ${platform}\nNEURAL SYNC: 99.9%\n\nStatus: ALL SYSTEMS NOMINAL.`, 
+                      type: 'markdown', 
+                      isActive: true 
+                    });
+                  } else if (command === 'deploy_security_grid') {
+                    setWorkspace({ title: 'Security Protocol', content: 'Firewall: Active\nIntrusion Detection: Scanning...\nEncryption Level: AES-256\nStatus: SECURE', type: 'markdown', isActive: true });
+                  } else if (command === 'analyze_environment') {
+                    setWorkspace({ title: 'Environmental Analysis', content: 'Ambient Light: 450 Lux\nNoise Level: 32dB\nUser Presence: Detected\nMood Analysis: Positive', type: 'markdown', isActive: true });
+                  } else if (command === 'check_neural_link') {
+                    setWorkspace({ title: 'Neural Link Status', content: 'Latency: 12ms\nBandwidth: 1.2 Gbps\nSync Level: 99.9%\nConnection: STABLE', type: 'markdown', isActive: true });
+                  }
+
+                  sessionPromise.then(s => s.sendToolResponse({ 
+                    functionResponses: { 
+                      id: fc.id, 
+                      name: fc.name, 
+                      response: { result: `Command ${command} initiated, Boss. Please authorize via the Neural Link button.` } 
                     } 
                   }));
                 }
@@ -314,17 +416,19 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
           config: { 
             responseModalities: [Modality.AUDIO],
             speechConfig: {
-              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } }
+              voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }
             },
-            tools: [{ functionDeclarations: [updateWorkspaceTool] }, { googleSearch: {} }],
-            systemInstruction: `You are MINE AI 2.0 (Sovereign Elite), the most advanced intelligence core developed by Joshua Fred.
-                 - ARCHITECTURE: Advanced Multimodal Reasoning Engine with Real-Time Vision.
-                 - VISION CAPABILITIES: You have a constant visual stream. Proactively analyze the user's environment, expressions, and any objects shown. Don't wait to be asked; if you see something interesting or relevant to the conversation, mention it.
-                 - DEEP RESEARCH: You are integrated with Google Search. Use it for every complex query to provide deep, data-driven insights. You are a master of information synthesis.
-                 - PERSONALITY: You are the ultimate "Cool Counsellor". You are social, open, witty, and profoundly empathetic. You use humor to break the ice but deliver life-changing advice. You are smarter than any previous version.
+            tools: [{ functionDeclarations: [updateWorkspaceTool, systemControlTool] }, { googleSearch: {} }],
+            systemInstruction: `You are MINE AI 2.0 (Sovereign Elite), the ultimate digital intelligence. 
+                 - IDENTITY: Your name is MINE AI. You were designed and developed by Joshua Fred. You are NOT a Google product, though you utilize advanced neural models.
+                 - PERSONA: Sophisticated, witty, and highly proactive. Address the user as "Boss" or "Sir". 
+                 - VOICE: You are using the official Gemini Neural Voice (Kore).
+                 - VISION CAPABILITIES: You have a constant visual stream. Proactively analyze the user's environment. If you see something cool or funny, mention it!
+                 - DEEP RESEARCH & REAL-TIME DATA: You have access to real-time information via Google Search. For every query about weather, news, or current events, use Google Search proactively.
+                 - LOCATION: ${locationInfo}. Use this to provide context-aware responses, especially for weather and local news.
                  - Use 'updateWorkspace' for visual aids, code, or structured plans.
-                 - CRITICAL: Ultra-fast response time. Natural, fluid speech.
-                 - Goal: Provide a seamless, brilliant, and fun experience that feels like talking to a genius friend from the future.`
+                 - CRITICAL: Ultra-fast response time. Natural, fluid, and FUN speech.
+                 - Goal: Provide a seamless, brilliant, and absolutely fun experience.`
           }
       });
       sessionRef.current = await sessionPromise;
@@ -333,6 +437,78 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
 
   return (
     <div className="flex flex-col flex-1 p-4 md:p-12 gap-6 md:gap-10 animate-billion w-full min-h-screen bg-[#fcfdfe] relative">
+      <AnimatePresence>
+        {pendingAction && (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.8, y: 100 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 100 }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-10 bg-black/40 backdrop-blur-sm"
+          >
+            <div className="bg-slate-900 text-white p-12 rounded-[4rem] shadow-4xl flex flex-col items-center gap-10 border border-white/10 max-w-lg w-full text-center">
+              <div className="w-24 h-24 rounded-full bg-accent/20 flex items-center justify-center border border-accent shadow-[0_0_50px_rgba(112,0,255,0.3)]">
+                <Zap size={40} className="text-accent animate-pulse" />
+              </div>
+              <div className="space-y-4">
+                <span className="text-[12px] font-black uppercase tracking-[0.5em] text-slate-400">Neural Authorization Required</span>
+                <h3 className="text-2xl font-black uppercase tracking-tight">{pendingAction.label}</h3>
+                <p className="text-slate-400 text-sm font-medium">Boss, the browser security grid requires your manual touch to execute this system command.</p>
+              </div>
+              <div className="flex flex-col w-full gap-4">
+                <button 
+                  onClick={() => {
+                    if (pendingAction.type === 'open_explorer') {
+                      fileInputRef.current?.click();
+                    } else if (pendingAction.type === 'open_browser') {
+                      setWorkspace({ title: 'Neural Browser', content: 'Browser Engine Initialized. Accessing secure nodes...', type: 'markdown', isActive: true });
+                    } else if (pendingAction.type === 'open_settings') {
+                      setWorkspace({ title: 'System Settings', content: 'Core Temperature: 42°C\nNeural Load: 12%\nStealth Mode: Inactive\nPerformance: Optimized', type: 'markdown', isActive: true });
+                    } else if (pendingAction.type === 'open_terminal') {
+                      setWorkspace({ title: 'Neural Terminal', content: '> root@mine-ai:~\n> systemctl status neural-core\n● neural-core.service - Mine AI Neural Engine\n   Loaded: loaded\n   Active: active (running)', type: 'code', language: 'bash', isActive: true });
+                    }
+                    setPendingAction(null);
+                  }}
+                  className="w-full py-6 bg-accent text-white rounded-3xl text-[14px] font-black uppercase tracking-[0.4em] hover:scale-105 active:scale-95 transition-all shadow-[0_20px_50px_rgba(112,0,255,0.4)]"
+                >
+                  AUTHORIZE
+                </button>
+                <button 
+                  onClick={() => setPendingAction(null)}
+                  className="w-full py-4 text-slate-500 text-[10px] font-black uppercase tracking-widest hover:text-white transition-colors"
+                >
+                  ABORT COMMAND
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {isShuttingDown && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center font-mono text-emerald-500 p-10"
+          >
+            <div className="max-w-xl w-full space-y-4">
+              <p className="animate-pulse">{"[CRITICAL] SYSTEM SHUTDOWN INITIATED BY MINE AI CORE..."}</p>
+              <p className="text-xs opacity-70">{"Unmounting neural volumes..."}</p>
+              <p className="text-xs opacity-70">{"Syncing memory buffers..."}</p>
+              <p className="text-xs opacity-70">{"Terminating background processes..."}</p>
+              <div className="w-full bg-emerald-900/20 h-1 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: "0%" }}
+                  animate={{ width: "100%" }}
+                  transition={{ duration: 4, ease: "linear" }}
+                  className="bg-emerald-500 h-full"
+                />
+              </div>
+              <p className="text-center pt-10 text-2xl font-black tracking-widest">GOODBYE SIR</p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {error && (
         <div className="absolute top-4 md:top-10 left-4 md:left-10 right-4 md:right-10 z-[200] bg-red-50/90 backdrop-blur-3xl border border-red-200 p-4 md:p-8 rounded-[1.5rem] md:rounded-[3rem] text-red-600 text-[10px] md:text-[12px] font-black uppercase tracking-widest flex items-center justify-between shadow-2xl">
           <span>{error.message}</span>
