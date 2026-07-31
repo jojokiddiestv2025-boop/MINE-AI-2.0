@@ -88,8 +88,10 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
 
   const encode = (bytes: Uint8Array) => {
     let binary = '';
-    const len = bytes.byteLength;
-    for (let i = 0; i < len; i++) binary += String.fromCharCode(bytes[i]);
+    const chunkSize = 8192;
+    for (let i = 0; i < bytes.length; i += chunkSize) {
+      binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunkSize)));
+    }
     return btoa(binary);
   };
 
@@ -265,7 +267,7 @@ const LiveVoice: React.FC<LiveVoiceProps> = ({ userName = 'User' }) => {
             const session = await sessionPromise;
             
             const source = inputCtx.createMediaStreamSource(stream);
-            const scriptProcessor = inputCtx.createScriptProcessor(2048, 1, 1);
+            const scriptProcessor = inputCtx.createScriptProcessor(1024, 1, 1);
             scriptProcessor.onaudioprocess = (ev: any) => {
               const inputData = ev.inputBuffer.getChannelData(0);
               const int16 = new Int16Array(inputData.length);
